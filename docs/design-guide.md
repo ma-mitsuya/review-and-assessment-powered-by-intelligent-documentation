@@ -1,5 +1,19 @@
 # BEACON アプリケーション開発指示書
 
+## 前提条件（重要）
+
+- 開発を始める前に、**docs 下のドキュメントにすべて目を通してください。**
+- 技術的な詳細に関する知識で不明な点がある場合、q_dev_tools/internet.py をツールとして積極的に利用してください。使い方:
+
+```
+python3 internet_search.py "検索クエリ" --limit 5 --lang ja
+```
+
+## 用語定義
+
+- 審査対象:契約書、申請書（図面、テキスト、表含む）など。詳細は PRFAQ 参考
+- チェックリスト:審査する際に照らし合わせで利用するチェックリスト。詳細は PRFAQ 参考
+
 ## 1. プロジェクト概要
 
 BEACON（Building & Engineering Approval Compliance Navigator）は、不動産業界向けの AI ドキュメント適合性チェックシステムです。このシステムは、申請書類や契約書が規制やチェックリストに適合しているかを自動的に確認し、人手不足や長時間労働といった業界課題の解決に貢献します。
@@ -44,7 +58,7 @@ BEACON-real-estate.xml を確認すること。
 
 ### 3.1 技術スタック
 
-- **フロントエンド**: React SPA, TypeScript, Vite, Tailwind CSS, zustand
+- **フロントエンド**: React SPA, TypeScript, Vite, Tailwind CSS, zustand, SWR, amplify（認証画面のみ）
 - **バックエンド**: AWS Lambda (TypeScript), Lambda web adapter, fastify, AWS CDK
 - **テスト**: Jest, TDD 手法
 - その他ライブラリは必須の場合のみ導入 (axios は利用せず fetch 使う、など)
