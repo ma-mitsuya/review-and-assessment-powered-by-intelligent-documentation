@@ -1,10 +1,10 @@
 /**
  * Document analyzer service for analyzing documents against checklists
  */
-import { LlmMessage, LlmServiceError, Result, err, ok } from "./types";
-import { sendRequest } from "./llm-service";
+import { LlmMessage, LlmServiceError, Result, err, ok } from "../llm-types";
+import { sendRequest } from "../operations/llm-invoke";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
-import { createBedrockClient } from "./llm-client";
+import { createBedrockClient } from "../llm-client";
 
 /**
  * Document analysis result

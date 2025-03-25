@@ -1,7 +1,7 @@
 /**
  * LLM Config - 設定関連
  */
-import { LlmRequestOptions } from "./types";
+import { LlmRequestOptions } from "./llm-types";
 
 /**
  * LLMリクエストのデフォルトオプション
