@@ -105,9 +105,7 @@ export class DocumentPageProcessor extends Construct {
           "bedrock:GetModelInvocationJob",
           "bedrock:StopModelInvocationJob",
         ],
-        resources: [
-          `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/*`,
-        ],
+        resources: ["*"],
       })
     );
 
@@ -134,6 +132,7 @@ export class DocumentPageProcessor extends Construct {
         action: "extractText",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
+        fileType: sfn.JsonPath.stringAt("$.fileType"),
       }),
       resultPath: "$.textExtraction",
       outputPath: "$",
@@ -146,6 +145,7 @@ export class DocumentPageProcessor extends Construct {
         action: "processWithLLM",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
+        fileType: sfn.JsonPath.stringAt("$.fileType"),
       }),
       resultPath: "$.llmProcessing",
       outputPath: "$",
@@ -306,9 +306,7 @@ export class DocumentPageProcessor extends Construct {
           "bedrock:GetModelInvocationJob",
           "bedrock:StopModelInvocationJob",
         ],
-        resources: [
-          `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/*`,
-        ],
+        resources: ["*"],
       })
     );
 

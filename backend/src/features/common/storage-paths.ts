@@ -5,7 +5,7 @@ export function getOriginalDocumentKey(
   documentId: string,
   fileName: string
 ): string {
-  return `$raw/${documentId}/${fileName}`;
+  return `raw/${documentId}/${fileName}`;
 }
 
 export function getPagePdfKey(documentId: string, pageNumber: number): string {

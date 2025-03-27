@@ -9,6 +9,6 @@ import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
  * @returns BedrockRuntimeClient
  */
 export function createBedrockRuntimeClient(): BedrockRuntimeClient {
-  const region = process.env.BEDROCK_RUNTIME_REGION;
+  const region = process.env.BEDROCK_RUNTIME_REGION || "us-east-1";
   return new BedrockRuntimeClient({ region });
 }
