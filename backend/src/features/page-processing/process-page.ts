@@ -33,16 +33,29 @@ export async function processWithLLM(
   const { documentId, pageNumber, fileType } = params;
   const { s3, bedrock, modelId, inferenceConfig } = deps;
 
-  const getResult = await s3.getObject(getPagePdfKey(documentId, pageNumber));
-  if (!getResult.ok) return err(getResult.error);
-  const fileBuffer = getResult.value;
+  console.log(`[processWithLLM] 開始: documentId=${documentId}, pageNumber=${pageNumber}, fileType=${fileType}, modelId=${modelId}`);
 
+  console.log(`[processWithLLM] S3からファイル取得開始`);
+  const getResult = await s3.getObject(getPagePdfKey(documentId, pageNumber));
+  if (!getResult.ok) {
+    console.error(`[processWithLLM] S3からのファイル取得失敗: ${getResult.error.message}`);
+    return err(getResult.error);
+  }
+  const fileBuffer = getResult.value;
+  console.log(`[processWithLLM] S3からファイル取得成功: サイズ=${fileBuffer.length}バイト`);
+
+  console.log(`[processWithLLM] LLMメッセージ構築開始`);
   const messageResult = buildLlmMessagesFromFile(fileBuffer, fileType);
-  if (!messageResult.ok) return err(messageResult.error);
+  if (!messageResult.ok) {
+    console.error(`[processWithLLM] LLMメッセージ構築失敗: ${messageResult.error.message}`);
+    return err(messageResult.error);
+  }
   const messages = messageResult.value;
+  console.log(`[processWithLLM] LLMメッセージ構築成功`);
 
   let markdownContent = "";
   try {
+    console.log(`[processWithLLM] Bedrock API呼び出し開始: modelId=${modelId}`);
     const command = new ConverseCommand({
       modelId,
       messages,
@@ -50,13 +63,19 @@ export async function processWithLLM(
     });
 
     const response = await bedrock.send(command);
+    console.log(`[processWithLLM] Bedrock API呼び出し成功`);
+    
     const contentBlocks = response.output?.message?.content ?? [];
+    console.log(`[processWithLLM] レスポンスブロック数: ${contentBlocks.length}`);
 
     markdownContent = contentBlocks
       .filter((c) => c.hasOwnProperty("text"))
       .map((c: any) => c.text)
       .join("");
+    
+    console.log(`[processWithLLM] 抽出されたマークダウン: ${markdownContent.length}文字`);
   } catch (e) {
+    console.error(`[processWithLLM] Bedrock API呼び出しエラー: ${e instanceof Error ? e.message : String(e)}`);
     return err(
       e instanceof Error ? e : new Error("LLM処理中にエラーが発生しました")
     );
@@ -64,14 +83,20 @@ export async function processWithLLM(
 
   // 結果を保存
   const key = getPageLlmOcrTextKey(documentId, pageNumber);
+  console.log(`[processWithLLM] 結果をS3に保存開始: ${key}`);
   const saveResult = await s3.uploadObject(
     key,
     Buffer.from(markdownContent),
     "text/markdown"
   );
-  console.log(`saveResult: ${saveResult}`);
-  if (!saveResult.ok) return err(saveResult.error);
+  
+  if (!saveResult.ok) {
+    console.error(`[processWithLLM] S3への保存失敗: ${saveResult.error.message}`);
+    return err(saveResult.error);
+  }
+  console.log(`[processWithLLM] S3への保存成功`);
 
+  console.log(`[processWithLLM] 処理完了: documentId=${documentId}, pageNumber=${pageNumber}`);
   return ok({ documentId, pageNumber });
 }
 
@@ -82,8 +107,11 @@ export function buildLlmMessagesFromFile(
   fileBuffer: Buffer,
   fileType: FileType
 ): Result<Message[], Error> {
+  console.log(`[buildLlmMessagesFromFile] 開始: fileType=${fileType}, bufferSize=${fileBuffer.length}`);
+  
   switch (fileType) {
     case "text": {
+      console.log(`[buildLlmMessagesFromFile] テキストファイル処理`);
       const textBlock: ContentBlock = {
         text:
           "以下のテキストをMarkdown形式で構造化してください。\n\n" +
@@ -93,6 +121,7 @@ export function buildLlmMessagesFromFile(
     }
 
     case "pdf": {
+      console.log(`[buildLlmMessagesFromFile] PDFファイル処理`);
       const docBlock: ContentBlock = {
         document: {
           name: `page.pdf`,
@@ -111,6 +140,7 @@ export function buildLlmMessagesFromFile(
     }
 
     default:
+      console.error(`[buildLlmMessagesFromFile] 未対応のファイル形式: ${fileType}`);
       return err(new Error(`未対応のファイル形式です: ${fileType}`));
   }
 }
