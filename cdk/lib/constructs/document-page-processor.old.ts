@@ -84,7 +84,6 @@ export class DocumentPageProcessor extends Construct {
       memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
-        AWS_REGION: cdk.Stack.of(this).region,
       },
     });
 

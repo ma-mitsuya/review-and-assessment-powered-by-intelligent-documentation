@@ -71,9 +71,10 @@ export async function combinePageResults(
       new ConverseCommand({ modelId, messages, inferenceConfig })
     );
 
+    // ContentBlockオブジェクトの型を適切に判定
     checklist = (response.output?.message?.content ?? [])
-      .filter((c): c is { type: "text"; text: string } => c.type === "text")
-      .map((c) => c.text)
+      .filter((c) => 'text' in c)
+      .map((c) => (c as { text: string }).text)
       .join("");
   } catch (e) {
     return err(e instanceof Error ? e : new Error("LLM呼び出し失敗"));

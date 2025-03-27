@@ -6,12 +6,12 @@ import {
   Message,
   ContentBlock,
   ConverseCommand,
-  BedrockRuntimeClient,
 } from "@aws-sdk/client-bedrock-runtime";
 import { FileType } from "../../core/utils/file";
 import { PDF_PAGE_PROMPT } from "./prompt";
 import { S3Utils } from "../../core/utils/s3";
 import { getPageLlmOcrTextKey, getPagePdfKey } from "../common/storage-paths";
+import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 
 export async function processWithLLM(
   params: {
@@ -53,8 +53,8 @@ export async function processWithLLM(
     const contentBlocks = response.output?.message?.content ?? [];
 
     markdownContent = contentBlocks
-      .filter((c): c is { type: "text"; text: string } => c.type === "text")
-      .map((c) => c.text)
+      .filter((c) => c.hasOwnProperty("text"))
+      .map((c: any) => c.text)
       .join("");
   } catch (e) {
     return err(
