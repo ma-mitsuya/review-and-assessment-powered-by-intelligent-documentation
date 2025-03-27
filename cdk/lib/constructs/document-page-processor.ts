@@ -161,8 +161,8 @@ export class DocumentPageProcessor extends Construct {
         lambdaFunction: this.backendLambda,
         payload: sfn.TaskInput.fromObject({
           action: "combinePageResults",
-          documentId: sfn.JsonPath.stringAt("$.documentId"),
-          pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
+          // 配列データを直接渡す
+          parallelResults: sfn.JsonPath.entirePayload,
         }),
         outputPath: "$.Payload",
       }
