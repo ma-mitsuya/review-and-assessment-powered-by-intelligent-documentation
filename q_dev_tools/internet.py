@@ -46,7 +46,14 @@ def main():
         # 検索の実行
         print(f"検索クエリ: {args.query}")
         print(f"検索オプション: {search_options}")
-        results = app.search(args.query, search_options)
+        response = app.search(args.query, search_options)
+        
+        # FirecrawlAppの戻り値はdictで、実際の結果はdata配列に含まれる
+        if not isinstance(response, dict) or 'data' not in response:
+            print("エラー: 予期しない応答形式です", file=sys.stderr)
+            sys.exit(1)
+            
+        results = response.get('data', [])
 
         # 結果の表示
         print(f"\n検索結果: {len(results)} 件見つかりました\n")
@@ -54,7 +61,7 @@ def main():
             print(f"結果 {i}:")
             print(f"タイトル: {result.get('title', 'タイトルなし')}")
             print(f"URL: {result.get('url', 'URLなし')}")
-            print(f"スニペット: {result.get('snippet', 'スニペットなし')}")
+            print(f"説明: {result.get('description', 'スニペットなし')}")
             print("-" * 80)
 
         # 結果の保存（指定された場合）

@@ -6,7 +6,7 @@
 - 技術的な詳細に関する知識で不明な点がある場合、q_dev_tools/internet.py をツールとして積極的に利用してください。使い方:
 
 ```
-python3 internet_search.py "検索クエリ" --limit 5 --lang ja
+python3 internet_search.py "検索クエリ" --limit 5 --lang en
 ```
 
 ## 用語定義
