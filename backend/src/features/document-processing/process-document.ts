@@ -1,4 +1,4 @@
-import { Result, ok, err } from "../../core/utils/result";
+import { Result, ok, err, allResults } from "../../core/utils/result";
 import { DocumentMetadata, DocumentProcessResult } from "./types";
 import { splitIntoPages } from "./split-pages";
 import { getFileType, FileType } from "../../core/utils/file";
@@ -14,90 +14,54 @@ import { PDFDocument } from "pdf-lib";
  * @returns 処理結果
  */
 export async function processDocument(
-  params: {
-    documentId: string;
-    fileName: string;
-  },
-  deps: {
-    s3: S3Utils;
-    pdfLib: {
-      PDFDocument: typeof PDFDocument;
-    };
-  }
+  params: { documentId: string; fileName: string },
+  deps: { s3: S3Utils; pdfLib: { PDFDocument: typeof PDFDocument } }
 ): Promise<Result<DocumentProcessResult, Error>> {
-  try {
-    const { documentId, fileName } = params;
-    const { s3 } = deps;
+  const { documentId, fileName } = params;
+  const { s3 } = deps;
+  const originalKey = getOriginalDocumentKey(documentId, fileName);
+  const fileType = getFileType(fileName);
 
-    const originalKey = getOriginalDocumentKey(documentId, fileName);
-    const fileType = getFileType(fileName);
+  // S3から対象を取得
+  const fileResult = await s3.getObject(originalKey);
+  if (!fileResult.ok) return fileResult;
 
-    // 元ファイルをS3から取得
-    const fileBufferResult = await s3.getObject(originalKey);
-    if (!fileBufferResult.ok) return err(fileBufferResult.error);
-    const fileBuffer = fileBufferResult.value;
+  // ページに分割
+  const pagesResult = await splitIntoPages(
+    { buffer: fileResult.value, fileType },
+    { pdfLib: deps.pdfLib }
+  );
+  if (!pagesResult.ok) return pagesResult;
 
-    // ページ分割
-    const splitPagesResult = await splitIntoPages(
-      {
-        buffer: fileBuffer,
-        fileType,
-      },
-      {
-        pdfLib: {
-          PDFDocument,
-        },
-      }
-    );
-    if (!splitPagesResult.ok) return err(splitPagesResult.error);
-
-    const splitPages = splitPagesResult.value;
-
-    // 並列でアップロードを行う
-    const uploadResults = await Promise.all(
-      splitPages.map(async (page) => {
-        const pageKey = getPagePdfKey(documentId, page.pageNumber);
-        const result = await s3.uploadObject(
-          pageKey,
-          page.buffer,
-          "application/pdf"
-        );
-        return {
-          pageNumber: page.pageNumber,
-          result,
-        };
-      })
-    );
-
-    const failed = uploadResults.find((r) => !r.result.ok);
-    if (failed) {
-      return err(
-        new Error(`ページ${failed.pageNumber}のアップロードに失敗しました`)
+  // 各ページをS3にアップロード
+  const uploadPromises = pagesResult.value.map((page) => {
+    const pageKey = getPagePdfKey(documentId, page.pageNumber);
+    return s3
+      .uploadObject(pageKey, page.buffer, "application/pdf")
+      .then((result) =>
+        result.ok ? ok({ pageNumber: page.pageNumber }) : result
       );
-    }
+  });
 
-    const pageInfos: DocumentProcessResult["pages"] = uploadResults.map(
-      (r) => ({
-        pageNumber: r.pageNumber,
-      })
-    );
+  // すべてのアップロード結果を集約
+  const uploadResults = await allResults(uploadPromises);
+  if (!uploadResults.ok) return uploadResults;
 
-    const metadata: DocumentMetadata = {
-      documentId,
-      fileName,
-      fileType,
-      pageCount: splitPages.length,
-      extractedAt: new Date(),
-      processingStatus: "processing",
-    };
+  // 成功した場合は結果を構築
+  const pageInfos = uploadResults.value;
+  const metadata: DocumentMetadata = {
+    documentId,
+    fileName,
+    fileType,
+    pageCount: pageInfos.length,
+    extractedAt: new Date(),
+    processingStatus: "processing",
+  };
 
-    return ok({
-      documentId,
-      metadata,
-      pages: pageInfos,
-      pageCount: splitPages.length,
-    });
-  } catch (error) {
-    return err(error instanceof Error ? error : new Error(String(error)));
-  }
+  return ok({
+    documentId,
+    metadata,
+    pages: pageInfos,
+    pageCount: pageInfos.length,
+  });
 }

@@ -2,11 +2,13 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { Duration } from "aws-cdk-lib";
+import * as path from "path";
 
 /**
  * ドキュメント処理ワークフローのプロパティ
@@ -74,15 +76,20 @@ export class DocumentPageProcessor extends Construct {
     const distributedMapConcurrency = props.distributedMapConcurrency || 20;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
-    // バックエンドLambda関数の作成
-    this.backendLambda = new lambda.Function(this, "BackendFunction", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "handlers/index.handler",
-      code: lambda.Code.fromAsset("../backend/dist"),
+    // バックエンドLambda関数の作成 (NodeJsFunctionを使用)
+    this.backendLambda = new nodejs.NodejsFunction(this, "BackendFunction", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "handler",
+      entry: path.join(__dirname, "../../../backend/src/handlers/index.ts"),
       timeout: Duration.minutes(15),
       memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ["aws-sdk", "canvas"],
       },
     });
 

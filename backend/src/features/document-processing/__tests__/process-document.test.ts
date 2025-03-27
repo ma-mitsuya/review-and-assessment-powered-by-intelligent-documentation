@@ -119,7 +119,7 @@ describe("processDocument", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.message).toBe("ページ2のアップロードに失敗しました");
+      expect(result.error.message).toBe("アップロードに失敗しました");
     }
   });
 

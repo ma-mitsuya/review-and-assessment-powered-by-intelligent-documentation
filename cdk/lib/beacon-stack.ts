@@ -13,19 +13,19 @@ export class BeaconStack extends cdk.Stack {
       versioned: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      lifecycleRules: [
-        {
-          id: "DeleteTempFiles",
-          prefix: "pages/",
-          expiration: cdk.Duration.days(7),
-        },
-        {
-          id: "DeleteProcessedResults",
-          prefix: "llm-results/",
-          expiration: cdk.Duration.days(30),
-        },
-      ],
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      // lifecycleRules: [
+      //   {
+      //     id: "DeleteTempFiles",
+      //     prefix: "pages/",
+      //     expiration: cdk.Duration.days(7),
+      //   },
+      //   {
+      //     id: "DeleteProcessedResults",
+      //     prefix: "llm-results/",
+      //     expiration: cdk.Duration.days(30),
+      //   },
+      // ],
     });
 
     // ドキュメント処理ワークフローの作成
