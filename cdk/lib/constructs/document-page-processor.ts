@@ -77,13 +77,12 @@ export class DocumentPageProcessor extends Construct {
     // バックエンドLambda関数の作成
     this.backendLambda = new lambda.Function(this, "BackendFunction", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset("../backend"),
+      handler: "handlers/index.handler",
+      code: lambda.Code.fromAsset("../backend/dist"),
       timeout: Duration.minutes(15),
       memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
-        AWS_REGION: cdk.Stack.of(this).region,
       },
     });
 
