@@ -17,22 +17,30 @@ export async function processDocument(
   params: { documentId: string; fileName: string },
   deps: { s3: S3Utils; pdfLib: { PDFDocument: typeof PDFDocument } }
 ): Promise<Result<DocumentProcessResult, Error>> {
-  console.log(`[processDocument] 開始: documentId=${params.documentId}, fileName=${params.fileName}`);
+  console.log(
+    `[processDocument] 開始: documentId=${params.documentId}, fileName=${params.fileName}`
+  );
   const { documentId, fileName } = params;
   const { s3 } = deps;
   const originalKey = getOriginalDocumentKey(documentId, fileName);
   const fileType = getFileType(fileName);
-  
-  console.log(`[processDocument] ファイルタイプ: ${fileType}, S3キー: ${originalKey}`);
+
+  console.log(
+    `[processDocument] ファイルタイプ: ${fileType}, S3キー: ${originalKey}`
+  );
 
   // S3から対象を取得
   console.log(`[processDocument] S3からファイル取得開始: ${originalKey}`);
   const fileResult = await s3.getObject(originalKey);
   if (!fileResult.ok) {
-    console.error(`[processDocument] S3からのファイル取得失敗: ${fileResult.error.message}`);
+    console.error(
+      `[processDocument] S3からのファイル取得失敗: ${fileResult.error.message}`
+    );
     return fileResult;
   }
-  console.log(`[processDocument] S3からファイル取得成功: サイズ=${fileResult.value.length}バイト`);
+  console.log(
+    `[processDocument] S3からファイル取得成功: サイズ=${fileResult.value.length}バイト`
+  );
 
   // ページに分割
   console.log(`[processDocument] ページ分割処理開始`);
@@ -41,24 +49,34 @@ export async function processDocument(
     { pdfLib: deps.pdfLib }
   );
   if (!pagesResult.ok) {
-    console.error(`[processDocument] ページ分割処理失敗: ${pagesResult.error.message}`);
+    console.error(
+      `[processDocument] ページ分割処理失敗: ${pagesResult.error.message}`
+    );
     return pagesResult;
   }
-  console.log(`[processDocument] ページ分割処理成功: ${pagesResult.value.length}ページ`);
+  console.log(
+    `[processDocument] ページ分割処理成功: ${pagesResult.value.length}ページ`
+  );
 
   // 各ページをS3にアップロード
   console.log(`[processDocument] 分割ページのS3アップロード開始`);
   const uploadPromises = pagesResult.value.map((page) => {
     const pageKey = getPagePdfKey(documentId, page.pageNumber);
-    console.log(`[processDocument] ページ${page.pageNumber}のアップロード: ${pageKey}`);
+    console.log(
+      `[processDocument] ページ${page.pageNumber}のアップロード: ${pageKey}`
+    );
     return s3
       .uploadObject(pageKey, page.buffer, "application/pdf")
       .then((result) => {
         if (!result.ok) {
-          console.error(`[processDocument] ページ${page.pageNumber}のアップロード失敗: ${result.error.message}`);
+          console.error(
+            `[processDocument] ページ${page.pageNumber}のアップロード失敗: ${result.error.message}`
+          );
           return result;
         }
-        console.log(`[processDocument] ページ${page.pageNumber}のアップロード成功`);
+        console.log(
+          `[processDocument] ページ${page.pageNumber}のアップロード成功`
+        );
         return ok({ pageNumber: page.pageNumber });
       });
   });
@@ -67,7 +85,9 @@ export async function processDocument(
   console.log(`[processDocument] すべてのページアップロード結果を集約`);
   const uploadResults = await allResults(uploadPromises);
   if (!uploadResults.ok) {
-    console.error(`[processDocument] ページアップロード集約でエラー: ${uploadResults.error.message}`);
+    console.error(
+      `[processDocument] ページアップロード集約でエラー: ${uploadResults.error.message}`
+    );
     return uploadResults;
   }
 
@@ -77,12 +97,15 @@ export async function processDocument(
     documentId,
     fileName,
     fileType,
+    // fileType: "pdf", // 暫定。TODO: 後続の処理で毎回fileTypeを判定する
     pageCount: pageInfos.length,
     extractedAt: new Date(),
     processingStatus: "processing",
   };
 
-  console.log(`[processDocument] 処理完了: documentId=${documentId}, ページ数=${pageInfos.length}`);
+  console.log(
+    `[processDocument] 処理完了: documentId=${documentId}, ページ数=${pageInfos.length}`
+  );
   return ok({
     documentId,
     metadata,

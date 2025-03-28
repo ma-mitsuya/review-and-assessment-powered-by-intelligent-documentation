@@ -105,7 +105,7 @@ async function handleProcessWithLLM(event: {
       inferenceConfig: {
         // Ref: https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-comparison-table
         maxTokens: 8192,
-        temperature: 1.0,
+        temperature: 0.7,
         topP: 0.999,
       },
     }

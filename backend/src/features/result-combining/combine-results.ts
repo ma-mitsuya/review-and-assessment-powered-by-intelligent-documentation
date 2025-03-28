@@ -240,8 +240,8 @@ export async function combinePageResults(
   if (!textRes.ok || !llmRes.ok) {
     const errorKey = !textRes.ok ? textKey : llmKey;
     const errorMessage = !textRes.ok
-      ? textRes.error.message
-      : llmRes.error.message;
+      ? (textRes as any).error.message
+      : (llmRes as any).error.message;
     console.error(
       `[combinePageResults] S3からの読み込み失敗: ${errorKey} - ${errorMessage}`
     );

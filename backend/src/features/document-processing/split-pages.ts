@@ -95,10 +95,22 @@ export async function processImageAsPage(
     const { pdfLib } = deps;
 
     const pdfDoc = await pdfLib.PDFDocument.create();
-    const image = await pdfDoc.embedPng(buffer); // JPGなら embedJpg
-    const { width, height } = image.scale(1);
 
+    // PNG と JPG の両方に対応
+    let image;
+    try {
+      image = await pdfDoc.embedPng(buffer);
+    } catch {
+      image = await pdfDoc.embedJpg(buffer);
+    }
+
+    // 画像のオリジナルサイズを取得
+    const { width, height } = image;
+
+    // ページサイズを画像のサイズに合わせる
     const page = pdfDoc.addPage([width, height]);
+
+    // 画像を等倍でページいっぱいに描画
     page.drawImage(image, {
       x: 0,
       y: 0,
@@ -107,6 +119,10 @@ export async function processImageAsPage(
     });
 
     const pdfBuffer = Buffer.from(await pdfDoc.save());
+
+    console.log("Image dimensions:", width, height);
+    console.log("Buffer size:", buffer.length);
+    console.log("Output PDF size:", pdfBuffer.length);
 
     return ok([
       {
@@ -118,6 +134,38 @@ export async function processImageAsPage(
     return err(new Error(`画像PDF変換中にエラーが発生しました: ${error}`));
   }
 }
+// export async function processImageAsPage(
+//   params: { buffer: Buffer },
+//   deps: DocumentProcessorDeps
+// ): Promise<Result<SplitPage[], Error>> {
+//   try {
+//     const { buffer } = params;
+//     const { pdfLib } = deps;
+
+//     const pdfDoc = await pdfLib.PDFDocument.create();
+//     const image = await pdfDoc.embedPng(buffer); // JPGなら embedJpg
+//     const { width, height } = image.scale(1);
+
+//     const page = pdfDoc.addPage([width, height]);
+//     page.drawImage(image, {
+//       x: 0,
+//       y: 0,
+//       width,
+//       height,
+//     });
+
+//     const pdfBuffer = Buffer.from(await pdfDoc.save());
+
+//     return ok([
+//       {
+//         buffer: pdfBuffer,
+//         pageNumber: 1,
+//       },
+//     ]);
+//   } catch (error) {
+//     return err(new Error(`画像PDF変換中にエラーが発生しました: ${error}`));
+//   }
+// }
 
 /**
  * テキストファイルを単一ページとして処理
