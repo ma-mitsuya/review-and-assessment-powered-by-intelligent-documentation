@@ -103,7 +103,8 @@ async function handleProcessWithLLM(event: {
       // スロットリング回避のためHaiku
       modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
       inferenceConfig: {
-        maxTokens: 4096,
+        // Ref: https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-comparison-table
+        maxTokens: 8192,
         temperature: 1.0,
         topP: 0.999,
       },
@@ -136,10 +137,9 @@ async function handleCombinePageResults(event: {
     {
       s3: createS3Utils(),
       bedrock: createBedrockRuntimeClient(),
-      // modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
       modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
       inferenceConfig: {
-        maxTokens: 4096,
+        maxTokens: 8192,
         temperature: 1.0,
         topP: 0.999,
       },

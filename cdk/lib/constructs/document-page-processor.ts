@@ -154,6 +154,8 @@ export class DocumentPageProcessor extends Construct {
         "Lambda.ServiceException",
         "Lambda.AWSLambdaException",
         "Lambda.SdkClientException",
+        // TODO: throttlingの場合に限定
+        "Error",
       ],
       interval: Duration.seconds(2),
       backoffRate: 2,
@@ -173,7 +175,18 @@ export class DocumentPageProcessor extends Construct {
         }),
         outputPath: "$.Payload",
       }
-    );
+    ).addRetry({
+      errors: [
+        "Lambda.ServiceException",
+        "Lambda.AWSLambdaException",
+        "Lambda.SdkClientException",
+        // TODO: throttlingの場合に限定
+        "Error",
+      ],
+      interval: Duration.seconds(2),
+      backoffRate: 2,
+      maxAttempts: 5,
+    });
 
     // エラーハンドリングLambda
     const handleErrorTask = new tasks.LambdaInvoke(this, "HandleError", {
