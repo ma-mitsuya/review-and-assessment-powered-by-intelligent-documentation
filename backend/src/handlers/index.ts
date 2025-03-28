@@ -101,7 +101,7 @@ async function handleProcessWithLLM(event: {
       s3: createS3Utils(),
       bedrock: createBedrockRuntimeClient(),
       // スロットリング回避のためHaiku
-      modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+      modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
       inferenceConfig: {
         maxTokens: 4096,
         temperature: 1.0,
@@ -136,7 +136,8 @@ async function handleCombinePageResults(event: {
     {
       s3: createS3Utils(),
       bedrock: createBedrockRuntimeClient(),
-      modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+      // modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+      modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
       inferenceConfig: {
         maxTokens: 4096,
         temperature: 1.0,
