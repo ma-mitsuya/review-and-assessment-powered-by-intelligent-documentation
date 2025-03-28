@@ -1,4 +1,4 @@
-// index.ts - Lambda ハンドラー
+import "source-map-support/register";
 import { FileType } from "../core/utils/file";
 import { unwrapOrThrow } from "../core/utils/result";
 import {
@@ -113,20 +113,37 @@ async function handleProcessWithLLM(event: {
 }
 
 async function handleCombinePageResults(event: {
-  documentId: string;
-  pageNumber: number;
+  parallelResults: {
+    documentId: string;
+    pageNumber: number;
+    textExtraction?: { Payload: { documentId: string; pageNumber: number } };
+    llmProcessing?: { Payload: { documentId: string; pageNumber: number } };
+  }[];
 }): Promise<CombinedPageResult> {
-  const result = await combinePageResults(event, {
-    s3: createS3Utils(),
-    bedrock: createBedrockRuntimeClient(),
-    // スロットリング回避のためHaiku
-    modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
-    inferenceConfig: {
-      maxTokens: 4096,
-      temperature: 1.0,
-      topP: 0.999,
-    },
-  });
+  const pageResult = event.parallelResults.find(
+    (r) => r.textExtraction || r.llmProcessing
+  );
+
+  if (!pageResult) {
+    throw new Error("parallelResults に処理対象が含まれていません");
+  }
+
+  const documentId = pageResult.documentId;
+  const pageNumber = pageResult.pageNumber;
+
+  const result = await combinePageResults(
+    { documentId, pageNumber },
+    {
+      s3: createS3Utils(),
+      bedrock: createBedrockRuntimeClient(),
+      modelId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+      inferenceConfig: {
+        maxTokens: 4096,
+        temperature: 1.0,
+        topP: 0.999,
+      },
+    }
+  );
 
   return unwrapOrThrow(result);
 }
@@ -135,9 +152,15 @@ async function handleAggregatePageResults(event: {
   documentId: string;
   processedPages: { pageNumber: number }[];
 }): Promise<AggregatedDocumentResult> {
-  const result = await aggregatePageResults(event, {
-    s3: createS3Utils(),
-  });
+  const result = await aggregatePageResults(
+    {
+      documentId: event.documentId,
+      processedPages: event.processedPages,
+    },
+    {
+      s3: createS3Utils(),
+    }
+  );
   return unwrapOrThrow(result);
 }
 

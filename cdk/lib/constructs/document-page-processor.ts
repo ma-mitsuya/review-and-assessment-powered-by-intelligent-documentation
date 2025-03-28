@@ -87,7 +87,7 @@ export class DocumentPageProcessor extends Construct {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
       },
       bundling: {
-        minify: true,
+        // minify: true,
         sourceMap: true,
         externalModules: ["aws-sdk", "canvas"],
       },

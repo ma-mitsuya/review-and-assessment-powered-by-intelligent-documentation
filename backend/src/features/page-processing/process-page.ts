@@ -12,6 +12,7 @@ import { PDF_PAGE_PROMPT } from "./prompt";
 import { S3Utils } from "../../core/utils/s3";
 import { getPageLlmOcrTextKey, getPagePdfKey } from "../common/storage-paths";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { modelId } from "../../core/bedrock/model-id";
 
 export async function processWithLLM(
   params: {
@@ -22,7 +23,7 @@ export async function processWithLLM(
   deps: {
     s3: S3Utils;
     bedrock: BedrockRuntimeClient;
-    modelId: string;
+    modelId: modelId;
     inferenceConfig: {
       maxTokens: number;
       temperature: number;
@@ -33,21 +34,29 @@ export async function processWithLLM(
   const { documentId, pageNumber, fileType } = params;
   const { s3, bedrock, modelId, inferenceConfig } = deps;
 
-  console.log(`[processWithLLM] 開始: documentId=${documentId}, pageNumber=${pageNumber}, fileType=${fileType}, modelId=${modelId}`);
+  console.log(
+    `[processWithLLM] 開始: documentId=${documentId}, pageNumber=${pageNumber}, fileType=${fileType}, modelId=${modelId}`
+  );
 
   console.log(`[processWithLLM] S3からファイル取得開始`);
   const getResult = await s3.getObject(getPagePdfKey(documentId, pageNumber));
   if (!getResult.ok) {
-    console.error(`[processWithLLM] S3からのファイル取得失敗: ${getResult.error.message}`);
+    console.error(
+      `[processWithLLM] S3からのファイル取得失敗: ${getResult.error.message}`
+    );
     return err(getResult.error);
   }
   const fileBuffer = getResult.value;
-  console.log(`[processWithLLM] S3からファイル取得成功: サイズ=${fileBuffer.length}バイト`);
+  console.log(
+    `[processWithLLM] S3からファイル取得成功: サイズ=${fileBuffer.length}バイト`
+  );
 
   console.log(`[processWithLLM] LLMメッセージ構築開始`);
   const messageResult = buildLlmMessagesFromFile(fileBuffer, fileType);
   if (!messageResult.ok) {
-    console.error(`[processWithLLM] LLMメッセージ構築失敗: ${messageResult.error.message}`);
+    console.error(
+      `[processWithLLM] LLMメッセージ構築失敗: ${messageResult.error.message}`
+    );
     return err(messageResult.error);
   }
   const messages = messageResult.value;
@@ -64,18 +73,26 @@ export async function processWithLLM(
 
     const response = await bedrock.send(command);
     console.log(`[processWithLLM] Bedrock API呼び出し成功`);
-    
+
     const contentBlocks = response.output?.message?.content ?? [];
-    console.log(`[processWithLLM] レスポンスブロック数: ${contentBlocks.length}`);
+    console.log(
+      `[processWithLLM] レスポンスブロック数: ${contentBlocks.length}`
+    );
 
     markdownContent = contentBlocks
       .filter((c) => c.hasOwnProperty("text"))
       .map((c: any) => c.text)
       .join("");
-    
-    console.log(`[processWithLLM] 抽出されたマークダウン: ${markdownContent.length}文字`);
+
+    console.log(
+      `[processWithLLM] 抽出されたマークダウン: ${markdownContent.length}文字`
+    );
   } catch (e) {
-    console.error(`[processWithLLM] Bedrock API呼び出しエラー: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(
+      `[processWithLLM] Bedrock API呼び出しエラー: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     return err(
       e instanceof Error ? e : new Error("LLM処理中にエラーが発生しました")
     );
@@ -89,14 +106,18 @@ export async function processWithLLM(
     Buffer.from(markdownContent),
     "text/markdown"
   );
-  
+
   if (!saveResult.ok) {
-    console.error(`[processWithLLM] S3への保存失敗: ${saveResult.error.message}`);
+    console.error(
+      `[processWithLLM] S3への保存失敗: ${saveResult.error.message}`
+    );
     return err(saveResult.error);
   }
   console.log(`[processWithLLM] S3への保存成功`);
 
-  console.log(`[processWithLLM] 処理完了: documentId=${documentId}, pageNumber=${pageNumber}`);
+  console.log(
+    `[processWithLLM] 処理完了: documentId=${documentId}, pageNumber=${pageNumber}`
+  );
   return ok({ documentId, pageNumber });
 }
 
@@ -107,8 +128,10 @@ export function buildLlmMessagesFromFile(
   fileBuffer: Buffer,
   fileType: FileType
 ): Result<Message[], Error> {
-  console.log(`[buildLlmMessagesFromFile] 開始: fileType=${fileType}, bufferSize=${fileBuffer.length}`);
-  
+  console.log(
+    `[buildLlmMessagesFromFile] 開始: fileType=${fileType}, bufferSize=${fileBuffer.length}`
+  );
+
   switch (fileType) {
     case "text": {
       console.log(`[buildLlmMessagesFromFile] テキストファイル処理`);
@@ -124,7 +147,7 @@ export function buildLlmMessagesFromFile(
       console.log(`[buildLlmMessagesFromFile] PDFファイル処理`);
       const docBlock: ContentBlock = {
         document: {
-          name: `page.pdf`,
+          name: `page`,
           format: "pdf",
           source: {
             bytes: Uint8Array.from(fileBuffer),
@@ -140,7 +163,9 @@ export function buildLlmMessagesFromFile(
     }
 
     default:
-      console.error(`[buildLlmMessagesFromFile] 未対応のファイル形式: ${fileType}`);
+      console.error(
+        `[buildLlmMessagesFromFile] 未対応のファイル形式: ${fileType}`
+      );
       return err(new Error(`未対応のファイル形式です: ${fileType}`));
   }
 }
