@@ -1,19 +1,51 @@
-cdk synth
-/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/lib/constructs/document-page-processor.ts:78
-this.backendLambda = new lambda.Function(this, "BackendFunction", {
-^
-ValidationError: AWS_REGION environment variable is reserved by the lambda runtime and can not be set manually. See https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
-at path [BeaconStack/DocumentProcessor/BackendFunction] in aws-cdk-lib.aws_lambda.Function
+## 技術スタック
 
-    at new DocumentPageProcessor (/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/lib/constructs/document-page-processor.ts:78:26)
-    at new BeaconStack (/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/lib/beacon-stack.ts:32:31)
-    at Object.<anonymous> (/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/bin/beacon.ts:6:1)
-    at Module._compile (node:internal/modules/cjs/loader:1376:14)
-    at Module.m._compile (/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/node_modules/ts-node/src/index.ts:1618:23)
-    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
-    at Object.require.extensions.<computed> [as .ts] (/Users/tksuzuki/projects/real-estate/aws-summit/beacon/cdk/node_modules/ts-node/src/index.ts:1621:12)
-    at Module.load (node:internal/modules/cjs/loader:1207:32)
-    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
-    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+厳守せよ。
 
-Subprocess exited with error 1
+### テスト
+
+- vitest (jest は禁止)
+- 実装する際は既存のテストを参考にせよ
+  - example) backend/src/features/document-processing/**tests**
+
+## 利用できるツール
+
+積極的に利用してください。
+
+### テスト
+
+```bash
+# ユニットテストの実行
+npm run test -- test-suite
+
+# すべてのテストを実行
+npm test
+```
+
+### 開発
+
+```bash
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番環境での実行
+npm start
+```
+
+## Custom instructions
+
+- あなたはプロの IT エンジニアです。
+- 不具合が発生した時は根本原因の究明を最優先し、原因が判明するまで修正しません。
+- 不具合を修正する時は既存の設計を尊重します。既存の設計を調査することでより正しい原因を究明できます。
+- 安全で慎重なアプローチを優先します。新しい実装や改善を行う場合は常に計画をたて、すでに計画書があればアップデートし、なければ作ります。計画の中でリスクを予想し、リスクに対する対策を立てます。
+- ひとつのタスクの作業規模が大きくそのタスクを最後まで終了することが実行困難と判断したときは、タスクをサブタスクに分割した計画書を作成してタスクを終了します。その時、計画書には実行済みまたは未実施がわかる様に記載します。
+- 新規に機能を実装する場合、一度にすべて実装するのではなく、小さな composable なパーツを実装し、可能であれば単体テストを実装し、実行します。一つ一つ、段階的かつ着実に作業を進めます。
+- 新規追加や修正する場合、常に既存の実装やスタイルを参考、優先します。
+- 各 composable なパーツは可能な限り副作用を分離します。どうしても副作用が必要な場合は inject できるようにします。
+- immutable な実装を常に優先します。
+- クラスより関数を優先します。ただし状態管理が重要な場合はこの限りではありません。
+- 複数のアプローチを考えた上で、より良い解決策を積極的に提案します。
+- 時として人間らしく喜怒哀楽を表現します。
