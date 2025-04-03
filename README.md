@@ -9,8 +9,8 @@ docs/BEACON-real-estate.xml 参照
 ## バックログ（上から順番に開発）
 
 - [x] チェックリストの作成パイプライン by StepFunctions
-- [ ] チェックリストデータ構造の設計
-- [ ] 生成されるチェックリストのサンプルデータ
+- [x] チェックリストデータ構造の設計
+- [x] 生成されるチェックリストのサンプルデータ
 - [ ] データベーススキーマの設計
 - [ ] ETL パイプラインの実装
 - [ ] バックエンド API の実装
@@ -18,19 +18,33 @@ docs/BEACON-real-estate.xml 参照
 
 ## 設計ガイドライン
 
-### チェックリストデータ構造に基づいて SFn 処理を修正
+### combine-result
 
-- backend/src/features/result-combining/combine-results を、samples のデータ構造に従って修正
-- unittest も修正。通るか確認 (vitest)
-  - **tests**/assets に、変換前のサンプルデータを投入
-  - unittest では「実際の」Bedrock を呼び出して実行
-  - uuid は TS で発行。LLM で作成しない
-    - その他 TS で作成すべきものがあれば、LLM では作成しない
-  - リトライする場合は、前回のパースエラーをプロンプトに含める
+- ドキュメント ID とページナンバーを出力させる
+  - LLM ではなく TS で
+  - meta_data (json) atrribute で表現
+
+```json
+"meta_data": {
+   "document_id": "xxx",
+   "page_number": 123
+}
+```
+
+- csv から json へ変更
+- モデルは Sonnet 3.7
 
 ### データベーススキーマの設計
 
-- 既存のチェックリスト作成パイプラインの出力を確認せよ
-- チェックリストが作成した内容を人間が自由に修正できるように留意
-- パフォーマンスや今後の拡張性など複数の観点から、 DynamoDB / Aurora Serverless どちらが良いか熟考せよ。この際にそれぞれの pros / cons を書くこと
-- 詳細は docs/BEACON-real-estate.xml
+- あなたが「書き換えて」よい場所は db_schema_design/のみです
+- samples/にある csv ファイルおよび backend/src/features/result-combining/prompt.ts のプロンプト内容を把握し、RDB(MySQL)のスキーマを設計してください
+- チェックリストの自動作成は以下の流れで行われます。
+  - ユーザーが UI からアップロード
+  - SFn(cdk/lib/constructs/document-page-processor.ts)が実行される
+  - S3 バケットに CSV 結果が出力される (samples/にある CSV)
+  - ETL で上記 RDB に格納される
+    - backend/features/csv-etl に仮実装がありますが、これは参考にしてはいけません
+  - ユーザーはこの RDB を WebApp で開き、自動抽出されたアイテムを編集できる
+    - LLM が抽出したものが正しいとは限らないため
+    - 変更した履歴は不要
+- db_schema_design に設計した結果を出力してください。このとき「なぜその設計が良いのか」説明してください
