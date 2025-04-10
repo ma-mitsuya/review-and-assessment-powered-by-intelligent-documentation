@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// チェックリストセット
+model CheckListSet {
+  id          String     @id @map("check_list_set_id") @db.VarChar(26)
+  name        String     @db.VarChar(255)
+  description String?    @db.Text
+  checkLists  CheckList[]
+  documents   Document[]
+
+  @@map("check_list_sets")
+}
+
+// チェックリスト項目
+model CheckList {
+  id           String         @id @map("check_id") @db.VarChar(26)
+  name         String         @db.VarChar(255)
+  description  String?        @db.Text
+  parentId     String?        @map("parent_id") @db.VarChar(26)
+  itemType     String         @map("item_type") @db.VarChar(20)
+  isConclusion Boolean        @default(false) @map("is_conclusion")
+  flowData     Json?          @map("flow_data")
+  metaData     Json?          @map("meta_data")
+  checkListSetId String?      @map("check_list_set_id") @db.VarChar(26)
+  checkListSet  CheckListSet? @relation(fields: [checkListSetId], references: [id])
+  parent       CheckList?     @relation("CheckListToCheckList", fields: [parentId], references: [id])
+  children     CheckList[]    @relation("CheckListToCheckList")
+  extractedItems ExtractedItem[]
+  checkResults CheckResult[]
+
+  @@map("check_list")
+}
+
+// ドキュメント
+model Document {
+  id            String       @id @map("document_id") @db.VarChar(26)
+  filename      String       @db.VarChar(255)
+  s3Path        String       @map("s3_path") @db.VarChar(512)
+  fileType      String       @map("file_type") @db.VarChar(50)
+  uploadDate    DateTime     @map("upload_date") @db.Timestamp()
+  checkListSetId String?     @map("check_list_set_id") @db.VarChar(26)
+  userId        String?      @map("user_id") @db.VarChar(50)
+  checkListSet  CheckListSet? @relation(fields: [checkListSetId], references: [id])
+  checkResults  CheckResult[]
+
+  @@map("documents")
+}
+
+// 抽出項目
+model ExtractedItem {
+  id           String    @id @map("item_id") @db.VarChar(26)
+  checkId      String    @map("check_id") @db.VarChar(26)
+  originalValue String?  @map("original_value") @db.Text
+  modifiedValue String?  @map("modified_value") @db.Text
+  fieldName    String?   @map("field_name") @db.VarChar(255)
+  isModified   Boolean   @default(false) @map("is_modified")
+  modifiedDate DateTime? @map("modified_date") @db.Timestamp()
+  userId       String?   @map("user_id") @db.VarChar(50)
+  checkList    CheckList @relation(fields: [checkId], references: [id])
+
+  @@map("extracted_items")
+}
+
+// チェック結果
+model CheckResult {
+  id             String   @id @map("result_id") @db.VarChar(26)
+  checkId        String   @map("check_id") @db.VarChar(26)
+  documentId     String   @map("document_id") @db.VarChar(26)
+  resultValue    String?  @map("result_value") @db.VarChar(20)
+  confidenceScore Float?  @map("confidence_score")
+  extractedText  String?  @map("extracted_text") @db.Text
+  llmExplanation String?  @map("llm_explanation") @db.Text
+  userOverride   Boolean  @default(false) @map("user_override")
+  timestamp      DateTime @db.Timestamp()
+  checkList      CheckList @relation(fields: [checkId], references: [id])
+  document       Document @relation(fields: [documentId], references: [id])
+
+  @@map("check_results")
+}
