@@ -10,9 +10,9 @@ import {
   getPageLlmOcrTextKey,
 } from "../common/storage-paths";
 import { Checklist, ChecklistItem, CombinedPageResult } from "./types";
-import { CHECKLIST_PROMPT } from "./prompt";
+import { CHECKLIST_EXTRACTION_PROMPT } from "./prompt";
 import { modelId } from "../../core/bedrock/model-id";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * CSVの有効性をチェックする純粋関数
@@ -54,9 +54,13 @@ export function validateCsvFormat(csv: string): {
     }
 
     const [id, , , , , allRequired, required] = fields;
-    
+
     // IDがUUID形式かチェック
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      )
+    ) {
       return {
         isValid: false,
         message: `行 ${i + 1} のidフィールドがUUID形式ではありません: "${id}"`,
@@ -67,7 +71,9 @@ export function validateCsvFormat(csv: string): {
     if (allRequired !== "true" && allRequired !== "false") {
       return {
         isValid: false,
-        message: `行 ${i + 1} のallRequiredフィールドが不正です: "${allRequired}"`,
+        message: `行 ${
+          i + 1
+        } のallRequiredフィールドが不正です: "${allRequired}"`,
       };
     }
 
@@ -123,7 +129,7 @@ export function parseCsvToChecklist(csv: string): Result<Checklist, Error> {
     }
 
     const items: ChecklistItem[] = [];
-    
+
     // ヘッダー行をスキップ
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -131,11 +137,21 @@ export function parseCsvToChecklist(csv: string): Result<Checklist, Error> {
 
       const fields = extractCsvFields(line);
       if (fields.length !== 7) {
-        return err(new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`));
+        return err(
+          new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`)
+        );
       }
 
-      const [id, name, condition, parentId, dependsOnStr, allRequired, required] = fields;
-      
+      const [
+        id,
+        name,
+        condition,
+        parentId,
+        dependsOnStr,
+        allRequired,
+        required,
+      ] = fields;
+
       // dependsOnは複数のIDをカンマ区切りで指定可能
       // 引用符で囲まれている場合は引用符を除去
       let dependsOn: string[] | undefined = undefined;
@@ -144,12 +160,12 @@ export function parseCsvToChecklist(csv: string): Result<Checklist, Error> {
         if (dependsOnStr.startsWith('"') && dependsOnStr.endsWith('"')) {
           // 引用符を除去して内部のカンマで分割
           const innerStr = dependsOnStr.substring(1, dependsOnStr.length - 1);
-          dependsOn = innerStr.split(",").map(id => id.trim());
+          dependsOn = innerStr.split(",").map((id) => id.trim());
         } else {
-          dependsOn = dependsOnStr.split(",").map(id => id.trim());
+          dependsOn = dependsOnStr.split(",").map((id) => id.trim());
         }
       }
-      
+
       items.push({
         id,
         name,
@@ -157,7 +173,7 @@ export function parseCsvToChecklist(csv: string): Result<Checklist, Error> {
         parentId: parentId || undefined,
         dependsOn,
         allRequired: allRequired === "true",
-        required: required === "true"
+        required: required === "true",
       });
     }
 
@@ -186,9 +202,9 @@ export async function generateChecklist(
 ): Promise<Result<string, Error>> {
   try {
     // エラー情報がある場合はエラー情報を含むプロンプトを使用
-    const promptText = errorDetails 
-      ? createPromptWithError(CHECKLIST_PROMPT, errorDetails)
-      : CHECKLIST_PROMPT;
+    const promptText = errorDetails
+      ? createPromptWithError(CHECKLIST_EXTRACTION_PROMPT, errorDetails)
+      : CHECKLIST_EXTRACTION_PROMPT;
 
     const messages: Message[] = [
       {
@@ -314,11 +330,13 @@ export function convertLegacyFormatToNew(csv: string): Result<string, Error> {
     }
 
     // 新しいヘッダー
-    const newLines = ["id,name,condition,parentId,dependsOn,allRequired,required"];
-    
+    const newLines = [
+      "id,name,condition,parentId,dependsOn,allRequired,required",
+    ];
+
     // 親子関係を追跡するマップ
     const parentMap = new Map<string, string>();
-    
+
     // 各行を処理
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -326,11 +344,13 @@ export function convertLegacyFormatToNew(csv: string): Result<string, Error> {
 
       const fields = extractCsvFields(line);
       if (fields.length !== 3) {
-        return err(new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`));
+        return err(
+          new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`)
+        );
       }
 
       const [id, name, condition] = fields;
-      
+
       // 親子関係を判定（1.1の場合、1が親）
       let parentId = "";
       const idParts = id.split(".");
@@ -338,17 +358,17 @@ export function convertLegacyFormatToNew(csv: string): Result<string, Error> {
         const parentIdValue = idParts.slice(0, -1).join(".");
         parentId = parentMap.get(parentIdValue) || "";
       }
-      
+
       // 新しいUUIDを生成（TSで発行）
       const newId = uuidv4();
-      
+
       // 元のIDと新しいUUIDのマッピングを保存
       parentMap.set(id, newId);
-      
+
       // 新しい行を作成
       newLines.push(`${newId},${name},${condition},${parentId},,true,true`);
     }
-    
+
     return ok(newLines.join("\n"));
   } catch (e) {
     return err(e instanceof Error ? e : new Error("CSVの変換に失敗しました"));
@@ -428,12 +448,12 @@ export async function combinePageResults(
 
   let checklist: string;
   let parsedChecklist: Checklist | null = null;
-  
+
   if (!checklistResult.ok) {
     console.warn(
       `[combinePageResults] 新形式のチェックリスト生成に失敗: ${checklistResult.error.message}。旧形式で再試行します。`
     );
-    
+
     // 旧形式で再試行
     const legacyResult = await generateChecklist(
       text,
@@ -442,14 +462,14 @@ export async function combinePageResults(
       modelId,
       inferenceConfig
     );
-    
+
     if (!legacyResult.ok) {
       console.error(
         `[combinePageResults] チェックリスト生成失敗: ${legacyResult.error.message}`
       );
       return err(legacyResult.error);
     }
-    
+
     // 旧形式から新形式に変換
     const convertResult = convertLegacyFormatToNew(legacyResult.value);
     if (!convertResult.ok) {
@@ -458,7 +478,7 @@ export async function combinePageResults(
       );
       return err(convertResult.error);
     }
-    
+
     checklist = convertResult.value;
   } else {
     checklist = checklistResult.value;
@@ -472,37 +492,40 @@ export async function combinePageResults(
     );
     return err(parseResult.error);
   }
-  
+
   parsedChecklist = parseResult.value;
-  
+
   // UUIDが空の項目にUUIDを割り当て
-  const updatedItems = parsedChecklist.items.map(item => {
+  const updatedItems = parsedChecklist.items.map((item) => {
     // IDが空の場合、新しいUUIDを生成
     if (!item.id) {
       return {
         ...item,
-        id: uuidv4()
+        id: uuidv4(),
       };
     }
     return item;
   });
-  
+
   // 更新されたチェックリスト
   const updatedChecklist: Checklist = {
-    items: updatedItems
+    items: updatedItems,
   };
-  
+
   // チェックリストをCSVに戻す
   const csvLines = [
     "id,name,condition,parentId,dependsOn,allRequired,required",
-    ...updatedChecklist.items.map(item => {
-      const dependsOnStr = item.dependsOn && item.dependsOn.length > 0 
-        ? item.dependsOn.join(",") 
-        : "";
-      return `${item.id},${item.name},${item.condition},${item.parentId || ""},${dependsOnStr},${item.allRequired},${item.required}`;
-    })
+    ...updatedChecklist.items.map((item) => {
+      const dependsOnStr =
+        item.dependsOn && item.dependsOn.length > 0
+          ? item.dependsOn.join(",")
+          : "";
+      return `${item.id},${item.name},${item.condition},${
+        item.parentId || ""
+      },${dependsOnStr},${item.allRequired},${item.required}`;
+    }),
   ];
-  
+
   const finalCsv = csvLines.join("\n");
 
   console.log(

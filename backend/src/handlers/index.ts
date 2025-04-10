@@ -17,10 +17,8 @@ import {
 } from "../features/page-processing";
 import { createBedrockRuntimeClient } from "../core/bedrock";
 import { PDFDocument } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
 import { aggregatePageResults } from "../features/aggregate-results/aggregate-results";
 import { AggregatedDocumentResult } from "../features/aggregate-results/type";
-pdfjsLib.GlobalWorkerOptions.workerSrc = require("pdfjs-dist/build/pdf.worker.entry");
 
 /**
  * Lambda ハンドラー - Step Functionsからのイベントを処理
@@ -77,10 +75,6 @@ async function handleExtractText(event: {
     },
     {
       s3: createS3Utils(),
-      pdfLib: {
-        getDocument: (params: { data: Uint8Array }) =>
-          pdfjsLib.getDocument(params),
-      },
     }
   );
   return unwrapOrThrow(result);
