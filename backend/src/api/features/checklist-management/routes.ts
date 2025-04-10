@@ -24,9 +24,9 @@ export function registerCheckListRoutes(fastify: FastifyInstance, prisma: Prisma
     try {
       const { page, limit, sortBy, sortOrder } = request.query;
       
-      // クエリパラメータの検証
-      const validatedPage = page && page > 0 ? page : 1;
-      const validatedLimit = limit && limit > 0 && limit <= 100 ? limit : 10;
+      // クエリパラメータの検証と数値型への変換
+      const validatedPage = page && Number(page) > 0 ? Number(page) : 1;
+      const validatedLimit = limit && Number(limit) > 0 && Number(limit) <= 100 ? Number(limit) : 10;
       
       // データの取得
       const [checkListSets, total] = await Promise.all([
