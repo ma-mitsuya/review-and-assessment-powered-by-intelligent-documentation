@@ -8,6 +8,8 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+  // シャドウデータベースのURLを指定することも可能
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // チェックリストセット

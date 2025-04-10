@@ -26,6 +26,7 @@
     "@aws-sdk/client-secrets-manager": "^3.777.0",
     "@fastify/cors": "^8.3.0",
     "@prisma/client": "^5.22.0",
+    "canvas": "^3.1.0",
     "csv-parser": "^3.2.0",
     "fastify": "^4.24.3",
     "mysql2": "^3.6.1",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.148",
     "@types/node": "^20.8.6",
+    "@types/pdfjs-dist": "^2.10.378",
     "@types/uuid": "^10.0.0",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.1",

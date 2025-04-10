@@ -25,6 +25,19 @@ docker-compose up -d
 - ユーザー名: beacon_user
 - パスワード: beacon_password
 
+注意: Docker起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`beacon_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
+
+1. ボリュームを削除して再作成する：
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+2. 手動で権限を付与する：
+```bash
+docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
+```
+
 ### 2. バックエンドの依存関係インストール
 
 ```bash
@@ -139,6 +152,33 @@ npm run build
 3. 必要に応じてデータベースコンテナを再起動：
    ```bash
    docker-compose restart mysql
+   ```
+
+### Prisma マイグレーションエラー
+
+Prisma マイグレーションでシャドウデータベースの作成エラーが発生した場合：
+
+```
+Error: P3014
+Prisma Migrate could not create the shadow database. Please make sure the database user has permission to create databases.
+```
+
+これは、`beacon_user`ユーザーに`CREATE DATABASE`権限がない場合に発生します。以下の対処法を試してください：
+
+1. Docker起動時に自動的に権限が付与されるはずですが、既存のボリュームがある場合は初期化スクリプトが実行されません。その場合は、ボリュームを削除して再作成します：
+   ```bash
+   docker-compose down -v
+   docker-compose up -d
+   ```
+
+2. または、手動で権限を付与します：
+   ```bash
+   docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
+   ```
+
+3. 権限が正しく設定されているか確認：
+   ```bash
+   docker exec -it beacon-mysql mysql -uroot -ppassword -e "SHOW GRANTS FOR 'beacon_user'@'%';"
    ```
 
 ### その他の問題
