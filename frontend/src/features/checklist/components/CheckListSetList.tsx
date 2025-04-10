@@ -1,11 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useCheckListSets } from '../hooks/useCheckListSets';
+import { deleteData } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット一覧コンポーネント
  */
 export default function CheckListSetList() {
-  const { data: checkListSets, error, isLoading, meta } = useCheckListSets();
+  const { data: checkListSets, error, isLoading, meta, mutate } = useCheckListSets();
+
+  // チェックリストセットの削除処理
+  const handleDelete = async (id: string, name: string) => {
+    if (confirm(`チェックリストセット「${name}」を削除してもよろしいですか？`)) {
+      try {
+        await deleteData(`/checklist-sets/${id}`);
+        // 削除後にリストを再取得
+        mutate();
+      } catch (error) {
+        console.error('削除に失敗しました', error);
+        alert('チェックリストセットの削除に失敗しました');
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -104,12 +119,7 @@ export default function CheckListSetList() {
                     </Link>
                     <button
                       className="text-red hover:text-red flex items-center"
-                      onClick={() => {
-                        if (confirm('このチェックリストセットを削除してもよろしいですか？')) {
-                          // 削除処理を実装
-                          console.log(`Delete ${set.check_list_set_id}`);
-                        }
-                      }}
+                      onClick={() => handleDelete(set.check_list_set_id, set.name)}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />

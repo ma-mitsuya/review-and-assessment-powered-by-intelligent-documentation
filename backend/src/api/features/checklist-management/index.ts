@@ -5,7 +5,8 @@
 import { FastifyInstance } from 'fastify';
 import { registerCheckListSetRoutes } from './controller';
 import { CheckListSetServiceImpl } from './service';
-import { PrismaCheckListSetRepository, MockCheckListSetRepository } from './repository';
+import { PrismaCheckListSetRepository } from './repository';
+import { MockCheckListSetRepository } from './MockCheckListSetRepository';
 import { getPrismaClient } from '../../core/db';
 
 /**

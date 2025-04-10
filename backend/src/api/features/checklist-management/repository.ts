@@ -3,7 +3,8 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { CheckListSet, GetCheckListSetsParams } from './types';
+import { CheckListSet, GetCheckListSetsParams, CreateCheckListSetRequest, UpdateCheckListSetRequest } from './types';
+import { ulid } from 'ulid';
 
 /**
  * チェックリストセットリポジトリのインターフェース
@@ -29,42 +30,28 @@ export interface CheckListSetRepository {
    * @returns チェックリストセット、存在しない場合はnull
    */
   getCheckListSetById(id: string): Promise<CheckListSet | null>;
-}
-
-/**
- * モック実装のチェックリストセットリポジトリ
- */
-export class MockCheckListSetRepository implements CheckListSetRepository {
-  private mockData: CheckListSet[] = [
-    {
-      check_list_set_id: '01B5NHDV91YF9QKH4JBSQFSBGN',
-      name: '自社物件チェックリストセット',
-      description: '自社物件の契約書チェック用のセット'
-    },
-    {
-      check_list_set_id: '01DAG9M3AQN08QVNFMW6P6MKSG',
-      name: '他社物件チェックリストセット',
-      description: '他社物件の契約書チェック用のセット'
-    }
-  ];
-
-  async getCheckListSets(params?: GetCheckListSetsParams): Promise<CheckListSet[]> {
-    // ページネーション処理
-    if (params?.page && params?.limit) {
-      const start = (params.page - 1) * params.limit;
-      const end = start + params.limit;
-      return this.mockData.slice(start, end);
-    }
-    return this.mockData;
-  }
-
-  async countCheckListSets(): Promise<number> {
-    return this.mockData.length;
-  }
-
-  async getCheckListSetById(id: string): Promise<CheckListSet | null> {
-    return this.mockData.find(set => set.check_list_set_id === id) || null;
-  }
+  
+  /**
+   * チェックリストセットを作成する
+   * @param data 作成するチェックリストセットのデータ
+   * @returns 作成されたチェックリストセット
+   */
+  createCheckListSet(data: CreateCheckListSetRequest): Promise<CheckListSet>;
+  
+  /**
+   * チェックリストセットを更新する
+   * @param id 更新するチェックリストセットのID
+   * @param data 更新データ
+   * @returns 更新されたチェックリストセット、存在しない場合はnull
+   */
+  updateCheckListSet(id: string, data: UpdateCheckListSetRequest): Promise<CheckListSet | null>;
+  
+  /**
+   * チェックリストセットを削除する
+   * @param id 削除するチェックリストセットのID
+   * @returns 削除に成功した場合はtrue、存在しない場合はfalse
+   */
+  deleteCheckListSet(id: string): Promise<boolean>;
 }
 
 /**
@@ -106,5 +93,58 @@ export class PrismaCheckListSetRepository implements CheckListSetRepository {
       name: checkListSet.name,
       description: checkListSet.description || ''
     };
+  }
+  
+  async createCheckListSet(data: CreateCheckListSetRequest): Promise<CheckListSet> {
+    const id = ulid();
+    
+    const checkListSet = await this.prisma.checkListSet.create({
+      data: {
+        id,
+        name: data.name,
+        description: data.description
+      }
+    });
+    
+    return {
+      check_list_set_id: checkListSet.id,
+      name: checkListSet.name,
+      description: checkListSet.description || ''
+    };
+  }
+  
+  async updateCheckListSet(id: string, data: UpdateCheckListSetRequest): Promise<CheckListSet | null> {
+    // 更新前に存在確認
+    const exists = await this.prisma.checkListSet.findUnique({
+      where: { id }
+    });
+    
+    if (!exists) return null;
+    
+    const checkListSet = await this.prisma.checkListSet.update({
+      where: { id },
+      data: {
+        name: data.name !== undefined ? data.name : undefined,
+        description: data.description !== undefined ? data.description : undefined
+      }
+    });
+    
+    return {
+      check_list_set_id: checkListSet.id,
+      name: checkListSet.name,
+      description: checkListSet.description || ''
+    };
+  }
+  
+  async deleteCheckListSet(id: string): Promise<boolean> {
+    try {
+      await this.prisma.checkListSet.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      // レコードが存在しない場合や外部キー制約などでエラーが発生した場合
+      return false;
+    }
   }
 }

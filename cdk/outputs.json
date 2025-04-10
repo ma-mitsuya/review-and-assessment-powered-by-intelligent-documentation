@@ -1,0 +1,7 @@
+{
+  "BeaconStack": {
+    "DocumentBucketName": "beaconstack-documentbucketae41e5a9-ojiaoslknwdj",
+    "BackendLambdaArn": "arn:aws:lambda:ap-northeast-1:151364017355:function:BeaconStack-DocumentProcessorBackendFunctionDA2F24-d1TSntMKTJFt",
+    "StateMachineArn": "arn:aws:states:ap-northeast-1:151364017355:stateMachine:DocumentProcessorDocumentProcessingWorkflow35E87741-iSeMpMArNETR"
+  }
+}

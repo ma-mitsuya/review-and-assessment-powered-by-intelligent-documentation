@@ -6,6 +6,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { PrismaClient } from '@prisma/client';
 import { registerCheckListRoutes } from './features/checklist-management/routes';
+import { registerCheckListItemRoutes } from './features/checklist-item-management/routes';
 
 // Fastifyインスタンスの作成
 const fastify = Fastify({
@@ -27,6 +28,7 @@ fastify.get('/', async () => {
 
 // 各機能のルートを登録
 registerCheckListRoutes(fastify, prisma);
+registerCheckListItemRoutes(fastify, prisma);
 
 // サーバー起動
 const start = async () => {
