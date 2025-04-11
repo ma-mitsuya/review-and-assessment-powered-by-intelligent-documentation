@@ -131,7 +131,7 @@ async function handleCombinePageResults(event: {
     {
       s3: createS3Utils(),
       bedrock: createBedrockRuntimeClient(),
-      modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+      modelId: "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
       inferenceConfig: {
         maxTokens: 8192,
         temperature: 1.0,

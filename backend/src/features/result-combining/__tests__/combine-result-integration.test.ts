@@ -1,31 +1,25 @@
 import { describe, it, expect, vi } from "vitest";
+import fs from "fs";
+import path from "path";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
-import { generateChecklist, validateCsvFormat, parseCsvToChecklist } from "../combine-results";
-import fs from 'fs';
-import path from 'path';
-import { createPromptWithError } from "../prompt";
+import { S3Utils } from "../../../core/utils";
+import { combinePageResults } from "../combine-results";
 
 // サンプルデータの読み込み
 const sampleExtractedText = fs.readFileSync(
-  path.join(__dirname, 'assets', 'sample-extracted-text.txt'),
-  'utf-8'
+  path.join(__dirname, "assets", "sample-extracted-text.txt"),
+  "utf-8"
 );
 const sampleLlmOcrText = fs.readFileSync(
-  path.join(__dirname, 'assets', 'sample-llm-ocr.txt'),
-  'utf-8'
-);
-
-// サンプルの期待される出力を読み込み
-const sampleChecklistOutput = fs.readFileSync(
-  path.join(__dirname, 'assets', 'sample-checklist-output.csv'),
-  'utf-8'
+  path.join(__dirname, "assets", "sample-llm-ocr.txt"),
+  "utf-8"
 );
 
 // テスト用の推論設定
 const inferenceConfig = {
   maxTokens: 4096,
   temperature: 0.7,
-  topP: 0.9
+  topP: 0.9,
 };
 
 // このテストは実際のBedrockを呼び出すため、CI環境では実行しない
@@ -33,175 +27,65 @@ const inferenceConfig = {
 const shouldRunIntegrationTests = process.env.RUN_INTEGRATION_TESTS === "true";
 
 // テストをスキップするための条件付きdescribe
-const conditionalDescribe = shouldRunIntegrationTests ? describe : describe.skip;
+const conditionalDescribe = shouldRunIntegrationTests
+  ? describe
+  : describe.skip;
 
-describe("generateChecklist with mocks", () => {
-  // Bedrockクライアントのモック
-  const mockBedrockSend = vi.fn();
-  const mockBedrock = {
-    send: mockBedrockSend
-  };
-
-  beforeEach(() => {
-    // モックをリセット
-    vi.resetAllMocks();
+conditionalDescribe("combinePageResults 統合テスト", () => {
+  // タイムアウトを60秒に延長
+  it("実際のBedrockを呼び出してJSONを生成する", async () => {
+    // テスト用のドキュメントIDとページ番号
+    const documentId = "test-doc-1";
+    const pageNumber = 1;
     
-    // モックレスポンスを設定
-    mockBedrockSend.mockResolvedValue({
-      output: {
-        message: {
-          content: [
-            { text: sampleChecklistOutput }
-          ]
+    // S3モックの作成
+    const s3Mock = {
+      getObject: vi.fn().mockImplementation((key) => {
+        if (key.includes("extracted-text")) {
+          return Promise.resolve({ ok: true, value: Buffer.from(sampleExtractedText) });
+        } else if (key.includes("llm-ocr")) {
+          return Promise.resolve({ ok: true, value: Buffer.from(sampleLlmOcrText) });
         }
-      }
-    });
-  });
-
-  it("モックBedrockを使用してチェックリストを生成できる", async () => {
-    // モックBedrockを使用してチェックリストを生成
-    const result = await generateChecklist(
-      sampleExtractedText,
-      sampleLlmOcrText,
-      mockBedrock as any,
-      "anthropic.claude-3-sonnet-20240229-v1:0",
-      inferenceConfig
-    );
-
-    // 結果が成功していることを確認
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    // 生成されたCSVの内容を検証
-    const csv = result.value;
-    console.log("Generated CSV:", csv);
-
-    // CSVをパースしてチェックリストオブジェクトに変換できることを確認
-    const parseResult = parseCsvToChecklist(csv);
-    expect(parseResult.ok).toBe(true);
-    if (!parseResult.ok) return;
-
-    // チェックリストの内容を検証
-    const checklist = parseResult.value;
-    expect(checklist.items.length).toBeGreaterThan(0);
-
-    // 建築主情報が含まれていることを確認
-    const hasOwnerInfo = checklist.items.some(item => 
-      item.name.includes("建築主") || item.condition.includes("建築主")
-    );
-    expect(hasOwnerInfo).toBe(true);
-
-    // 設計者情報が含まれていることを確認
-    const hasDesignerInfo = checklist.items.some(item => 
-      item.name.includes("設計者") || item.condition.includes("設計者")
-    );
-    expect(hasDesignerInfo).toBe(true);
-  });
-
-  it("エラー情報を含むプロンプトでチェックリストを生成できる", async () => {
-    // エラー情報を含むプロンプトを作成
-    const errorDetails = "CSV検証エラー: 行 2 のrequiredフィールドが不正です: \"yes\"";
-
-    // モックレスポンスを設定（エラー情報を含むプロンプト用）
-    mockBedrockSend.mockResolvedValue({
-      output: {
-        message: {
-          content: [
-            { text: sampleChecklistOutput }
-          ]
-        }
-      }
-    });
-
-    // モックBedrockを使用してチェックリストを生成
-    const result = await generateChecklist(
-      sampleExtractedText,
-      sampleLlmOcrText,
-      mockBedrock as any,
-      "anthropic.claude-3-sonnet-20240229-v1:0",
-      inferenceConfig,
-      errorDetails
-    );
-
-    // 結果が成功していることを確認
-    console.log("Error result:", result);
-    expect(result.ok).toBe(true);
-    if (!result.ok) {
-      console.error("Error:", result.error);
-      return;
-    }
-
-    // 生成されたCSVの内容を検証
-    const csv = result.value;
-    console.log("Generated CSV with error info:", csv);
-
-    // CSVをパースしてチェックリストオブジェクトに変換できることを確認
-    const parseResult = parseCsvToChecklist(csv);
-    expect(parseResult.ok).toBe(true);
-  });
-});
-
-// 実際のBedrockを使用するテスト
-conditionalDescribe("generateChecklist (Integration)", () => {
-  // テストタイムアウトを長めに設定（Bedrockの応答を待つため）
-  vi.setConfig({ testTimeout: 30000 });
-
-  it("実際のBedrockを使用してチェックリストを生成できる", async () => {
+        return Promise.resolve({ ok: false, error: new Error("Not found") });
+      }),
+      uploadObject: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as S3Utils;
+    
     // 実際のBedrockクライアントを作成
-    const bedrock = new BedrockRuntimeClient({
-      region: process.env.AWS_REGION || "us-west-2"
-    });
-
-    // 実際のBedrockを呼び出してチェックリストを生成
-    const result = await generateChecklist(
-      sampleExtractedText,
-      sampleLlmOcrText,
-      bedrock,
-      "anthropic.claude-3-sonnet-20240229-v1:0",
-      inferenceConfig
+    const bedrockClient = new BedrockRuntimeClient({ region: "us-east-1" });
+    
+    // 関数を実行
+    const result = await combinePageResults(
+      { documentId, pageNumber },
+      {
+        s3: s3Mock,
+        bedrock: bedrockClient,
+        modelId: "anthropic.claude-3-sonnet-20240229-v1:0",
+        inferenceConfig,
+      }
     );
-
-    // 結果が成功していることを確認
+    
+    // 結果を確認
     expect(result.ok).toBe(true);
-    if (!result.ok) {
-      console.error("Error:", result.error);
-      return;
+    if (result.ok) {
+      expect(result.value.documentId).toBe(documentId);
+      expect(result.value.pageNumber).toBe(pageNumber);
     }
-
-    // 生成されたCSVの内容を検証
-    const csv = result.value;
-    console.log("Generated CSV:", csv);
-
-    // CSVをパースしてチェックリストオブジェクトに変換できることを確認
-    const parseResult = parseCsvToChecklist(csv);
-    expect(parseResult.ok).toBe(true);
-    if (!parseResult.ok) {
-      console.error("Parse error:", parseResult.error);
-      return;
-    }
-
-    // チェックリストの内容を検証
-    const checklist = parseResult.value;
-    expect(checklist.items.length).toBeGreaterThan(0);
-
-    // 建築主情報が含まれていることを確認
-    const hasOwnerInfo = checklist.items.some(item => 
-      item.name.includes("建築主") || item.condition.includes("建築主")
-    );
-    expect(hasOwnerInfo).toBe(true);
-  });
-});
-
-describe("createPromptWithError", () => {
-  it("エラー情報を含むプロンプトを生成", () => {
-    const basePrompt = "これはベースプロンプトです";
-    const errorDetails = "これはエラー詳細です";
     
-    const result = createPromptWithError(basePrompt, errorDetails);
+    // S3へのアップロード呼び出しを確認
+    expect(s3Mock.uploadObject).toHaveBeenCalledTimes(1);
     
-    expect(result).toContain(basePrompt);
-    expect(result).toContain("<error-information>");
-    expect(result).toContain(errorDetails);
-    expect(result).toContain("</error-information>");
-  });
+    // アップロードされたJSONの内容を確認
+    const uploadCall = s3Mock.uploadObject.mock.calls[0];
+    const uploadedContent = uploadCall[1].toString();
+    console.log("Bedrock出力結果:");
+    console.log(uploadedContent);
+    
+    // JSONとして解析可能か確認
+    const parsedContent = JSON.parse(uploadedContent);
+    expect(parsedContent).toHaveProperty("checklist_items");
+    expect(parsedContent).toHaveProperty("meta_data");
+    expect(parsedContent.meta_data).toHaveProperty("document_id", documentId);
+    expect(parsedContent.meta_data).toHaveProperty("page_number", pageNumber);
+  }, 60000); // タイムアウトを60秒に設定
 });

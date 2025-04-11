@@ -9,370 +9,66 @@ import {
   getPageExtractedTextKey,
   getPageLlmOcrTextKey,
 } from "../common/storage-paths";
-import { Checklist, ChecklistItem, CombinedPageResult } from "./types";
+import { ChecklistItem, ChecklistResponse, CombinedPageResult } from "./types";
 import { CHECKLIST_EXTRACTION_PROMPT } from "./prompt";
 import { modelId } from "../../core/bedrock/model-id";
-import { v4 as uuidv4 } from "uuid";
+import { ulid } from "ulid";
 
 /**
- * CSVの有効性をチェックする純粋関数
- * @param csv CSVデータ文字列
- * @returns 有効性の結果とメッセージ
+ * 数値のparent_idをulidに変換する関数
+ * @param items チェックリスト項目の配列
+ * @returns parent_idがulidに変換されたチェックリスト項目の配列
  */
-export function validateCsvFormat(csv: string): {
-  isValid: boolean;
-  message?: string;
-} {
-  if (!csv || csv.trim() === "") {
-    return { isValid: false, message: "CSVが空です" };
-  }
-
-  const lines = csv.trim().split("\n");
-  if (lines.length === 0) {
-    return { isValid: false, message: "CSVに行がありません" };
-  }
-
-  const header = lines[0].trim();
-  if (header !== "id,name,condition,parentId,dependsOn,allRequired,required") {
-    return { isValid: false, message: `ヘッダーが不正です: "${header}"` };
-  }
-
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line === "") continue;
-
-    // カンマで区切られた各フィールドを抽出（引用符内のカンマは考慮）
-    const fields = extractCsvFields(line);
-
-    if (fields.length !== 7) {
-      return {
-        isValid: false,
-        message: `行 ${i + 1} のフィールド数が不正です: ${
-          fields.length
-        } (期待値: 7)`,
-      };
-    }
-
-    const [id, , , , , allRequired, required] = fields;
-
-    // IDがUUID形式かチェック
-    if (
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        id
-      )
-    ) {
-      return {
-        isValid: false,
-        message: `行 ${i + 1} のidフィールドがUUID形式ではありません: "${id}"`,
-      };
-    }
-
-    // allRequiredとrequiredがbooleanかチェック
-    if (allRequired !== "true" && allRequired !== "false") {
-      return {
-        isValid: false,
-        message: `行 ${
-          i + 1
-        } のallRequiredフィールドが不正です: "${allRequired}"`,
-      };
-    }
-
-    if (required !== "true" && required !== "false") {
-      return {
-        isValid: false,
-        message: `行 ${i + 1} のrequiredフィールドが不正です: "${required}"`,
-      };
-    }
-  }
-
-  return { isValid: true };
-}
-
-/**
- * CSVの行から正確にフィールドを抽出する関数（引用符内のカンマを考慮）
- */
-export function extractCsvFields(line: string): string[] {
-  const fields: string[] = [];
-  let currentField = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-
-    if (char === '"') {
-      // 引用符をそのまま保持する
-      currentField += char;
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      fields.push(currentField);
-      currentField = "";
-    } else {
-      currentField += char;
-    }
-  }
-
-  // 最後のフィールドを追加
-  fields.push(currentField);
-  return fields;
-}
-
-/**
- * CSVをパースしてChecklistオブジェクトに変換する
- * @param csv CSVデータ文字列
- * @returns パース結果
- */
-export function parseCsvToChecklist(csv: string): Result<Checklist, Error> {
-  try {
-    const lines = csv.trim().split("\n");
-    if (lines.length <= 1) {
-      return err(new Error("CSVにデータ行がありません"));
-    }
-
-    const items: ChecklistItem[] = [];
-
-    // ヘッダー行をスキップ
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line === "") continue;
-
-      const fields = extractCsvFields(line);
-      if (fields.length !== 7) {
-        return err(
-          new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`)
-        );
+function convertParentIdsToUlid(items: ChecklistItem[]): ChecklistItem[] {
+  // 数値IDとulidのマッピングを作成
+  const idMapping: Record<number, string> = {};
+  
+  // 最初にすべての項目にulidを割り当てる
+  items.forEach((item, index) => {
+    idMapping[index + 1] = ulid();
+  });
+  
+  // parent_idを変換した新しい配列を作成
+  return items.map((item) => {
+    const newItem = { ...item };
+    
+    // parent_idがnullでない場合、対応するulidに変換
+    if (newItem.parent_id !== null) {
+      const parentIdNumber = Number(newItem.parent_id);
+      if (!isNaN(parentIdNumber) && idMapping[parentIdNumber]) {
+        newItem.parent_id = idMapping[parentIdNumber];
       }
-
-      const [
-        id,
-        name,
-        condition,
-        parentId,
-        dependsOnStr,
-        allRequired,
-        required,
-      ] = fields;
-
-      // dependsOnは複数のIDをカンマ区切りで指定可能
-      // 引用符で囲まれている場合は引用符を除去
-      let dependsOn: string[] | undefined = undefined;
-      if (dependsOnStr) {
-        // 引用符で囲まれている場合は内部のカンマを正しく処理
-        if (dependsOnStr.startsWith('"') && dependsOnStr.endsWith('"')) {
-          // 引用符を除去して内部のカンマで分割
-          const innerStr = dependsOnStr.substring(1, dependsOnStr.length - 1);
-          dependsOn = innerStr.split(",").map((id) => id.trim());
-        } else {
-          dependsOn = dependsOnStr.split(",").map((id) => id.trim());
+    }
+    
+    // flow_dataのnext_if_yes, next_if_no, next_optionsの値も変換
+    if (newItem.flow_data) {
+      if (newItem.flow_data.condition_type === "YES_NO") {
+        if (newItem.flow_data.next_if_yes !== undefined) {
+          const nextIfYesNum = Number(newItem.flow_data.next_if_yes);
+          if (!isNaN(nextIfYesNum) && idMapping[nextIfYesNum]) {
+            newItem.flow_data.next_if_yes = idMapping[nextIfYesNum];
+          }
         }
+        if (newItem.flow_data.next_if_no !== undefined) {
+          const nextIfNoNum = Number(newItem.flow_data.next_if_no);
+          if (!isNaN(nextIfNoNum) && idMapping[nextIfNoNum]) {
+            newItem.flow_data.next_if_no = idMapping[nextIfNoNum];
+          }
+        }
+      } else if (newItem.flow_data.condition_type === "MULTI_CHOICE" && newItem.flow_data.next_options) {
+        const newOptions: Record<string, string> = {};
+        for (const [key, value] of Object.entries(newItem.flow_data.next_options)) {
+          const valueNum = Number(value);
+          if (!isNaN(valueNum) && idMapping[valueNum]) {
+            newOptions[key] = idMapping[valueNum];
+          }
+        }
+        newItem.flow_data.next_options = newOptions;
       }
-
-      items.push({
-        id,
-        name,
-        condition,
-        parentId: parentId || undefined,
-        dependsOn,
-        allRequired: allRequired === "true",
-        required: required === "true",
-      });
     }
-
-    return ok({ items });
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error("CSVのパースに失敗しました"));
-  }
-}
-
-/**
- * LLMに問い合わせてチェックリストを取得する純粋関数
- * @param extractedText 抽出されたテキスト
- * @param llmOcrText LLM OCRテキスト
- * @param bedrock Bedrockクライアント
- * @param modelId モデルID
- * @param inferenceConfig 推論設定
- * @param errorDetails エラー詳細（リトライ時に使用）
- */
-export async function generateChecklist(
-  extractedText: string,
-  llmOcrText: string,
-  bedrock: BedrockRuntimeClient,
-  modelId: modelId,
-  inferenceConfig: any,
-  errorDetails?: string
-): Promise<Result<string, Error>> {
-  try {
-    // エラー情報がある場合はエラー情報を含むプロンプトを使用
-    const promptText = errorDetails
-      ? createPromptWithError(CHECKLIST_EXTRACTION_PROMPT, errorDetails)
-      : CHECKLIST_EXTRACTION_PROMPT;
-
-    const messages: Message[] = [
-      {
-        role: "user",
-        content: [
-          { text: promptText },
-          {
-            text: `<extracted-text>\n${extractedText}\n</extracted-text>\n<llm-ocr>\n${llmOcrText}</llm-ocr>`,
-          },
-        ],
-      },
-    ];
-
-    const response = await bedrock.send(
-      new ConverseCommand({ modelId, messages, inferenceConfig })
-    );
-
-    const checklist = (response.output?.message?.content ?? [])
-      .filter((c) => "text" in c)
-      .map((c) => (c as { text: string }).text)
-      .join("");
-
-    return ok(checklist);
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error("LLM呼び出し失敗"));
-  }
-}
-
-/**
- * チェックリストの生成を最大リトライ回数まで試行する関数
- * @param extractedText 抽出されたテキスト
- * @param llmOcrText LLM OCRテキスト
- * @param bedrock Bedrockクライアント
- * @param modelIdValue モデルID
- * @param inferenceConfig 推論設定
- * @param maxRetries 最大リトライ回数
- */
-export async function generateValidChecklist(
-  extractedText: string,
-  llmOcrText: string,
-  bedrock: BedrockRuntimeClient,
-  modelIdValue: modelId,
-  inferenceConfig: any,
-  maxRetries: number = 2
-): Promise<Result<string, Error>> {
-  let attempts = 0;
-  let lastErrorDetails: string | undefined;
-
-  while (attempts <= maxRetries) {
-    console.log(
-      `[generateValidChecklist] 試行 ${attempts + 1}/${maxRetries + 1}`
-    );
-
-    const result = await generateChecklist(
-      extractedText,
-      llmOcrText,
-      bedrock,
-      modelIdValue,
-      inferenceConfig,
-      lastErrorDetails // 前回のエラー情報を渡す
-    );
-
-    if (!result.ok) {
-      console.error(
-        `[generateValidChecklist] 生成に失敗: ${result.error.message}`
-      );
-      // 生成に失敗した場合もリトライする
-      attempts++;
-      if (attempts > maxRetries) {
-        return err(
-          new Error(
-            `LLM生成に失敗しました。${
-              maxRetries + 1
-            }回試行しましたが全て失敗しました。最後のエラー: ${
-              result.error.message
-            }`
-          )
-        );
-      }
-      console.log(
-        `[generateValidChecklist] リトライします (${attempts}/${maxRetries})`
-      );
-      lastErrorDetails = `LLM呼び出しエラー: ${result.error.message}`;
-      continue;
-    }
-
-    const checklist = result.value;
-    const validation = validateCsvFormat(checklist);
-
-    if (validation.isValid) {
-      console.log(`[generateValidChecklist] 有効なCSVを生成しました`);
-      return ok(checklist);
-    }
-
-    console.warn(`[generateValidChecklist] 無効なCSV: ${validation.message}`);
-    lastErrorDetails = `CSV検証エラー: ${validation.message}`;
-    attempts++;
-  }
-
-  return err(
-    new Error(
-      `有効なCSVの生成に失敗しました。${
-        maxRetries + 1
-      }回試行しましたが全て失敗しました。`
-    )
-  );
-}
-
-/**
- * LLMが生成したCSVが不正な場合に、既存のCSVを新しいフォーマットに変換する
- * @param csv 変換するCSV文字列
- */
-export function convertLegacyFormatToNew(csv: string): Result<string, Error> {
-  try {
-    const lines = csv.trim().split("\n");
-    if (lines.length === 0) {
-      return err(new Error("CSVに行がありません"));
-    }
-
-    const header = lines[0].trim();
-    if (header !== "id,name,condition") {
-      return err(new Error(`想定外のヘッダー形式です: "${header}"`));
-    }
-
-    // 新しいヘッダー
-    const newLines = [
-      "id,name,condition,parentId,dependsOn,allRequired,required",
-    ];
-
-    // 親子関係を追跡するマップ
-    const parentMap = new Map<string, string>();
-
-    // 各行を処理
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line === "") continue;
-
-      const fields = extractCsvFields(line);
-      if (fields.length !== 3) {
-        return err(
-          new Error(`行 ${i + 1} のフィールド数が不正です: ${fields.length}`)
-        );
-      }
-
-      const [id, name, condition] = fields;
-
-      // 親子関係を判定（1.1の場合、1が親）
-      let parentId = "";
-      const idParts = id.split(".");
-      if (idParts.length > 1) {
-        const parentIdValue = idParts.slice(0, -1).join(".");
-        parentId = parentMap.get(parentIdValue) || "";
-      }
-
-      // 新しいUUIDを生成（TSで発行）
-      const newId = uuidv4();
-
-      // 元のIDと新しいUUIDのマッピングを保存
-      parentMap.set(id, newId);
-
-      // 新しい行を作成
-      newLines.push(`${newId},${name},${condition},${parentId},,true,true`);
-    }
-
-    return ok(newLines.join("\n"));
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error("CSVの変換に失敗しました"));
-  }
+    
+    return newItem;
+  });
 }
 
 export async function combinePageResults(
@@ -436,116 +132,92 @@ export async function combinePageResults(
     `[combinePageResults] 抽出テキスト: ${text.length}文字, LLM結果: ${llm.length}文字`
   );
 
-  // チェックリスト生成（リトライロジック含む）
-  const checklistResult = await generateValidChecklist(
-    text,
-    llm,
-    bedrock,
-    modelId,
-    inferenceConfig,
-    2 // 最大2回リトライ
-  );
+  // Bedrockを使用してチェックリストを抽出
+  console.log(`[combinePageResults] Bedrockによるチェックリスト抽出開始`);
+  
+  try {
+    // 入力メッセージの作成
+    const messages: Message[] = [
+      {
+        role: "user",
+        content: [
+          {
+            text: `${CHECKLIST_EXTRACTION_PROMPT}\n\n以下の文書からチェックリストを抽出してください：\n\n${text}\n\n${llm}`,
+          },
+        ],
+      },
+    ];
 
-  let checklist: string;
-  let parsedChecklist: Checklist | null = null;
+    // Bedrockへのリクエスト作成
+    const command = new ConverseCommand({
+      modelId: modelId,
+      messages,
+      inferenceConfig: {
+        maxTokens: inferenceConfig.maxTokens,
+        temperature: inferenceConfig.temperature,
+        topP: inferenceConfig.topP,
+      },
+    });
 
-  if (!checklistResult.ok) {
-    console.warn(
-      `[combinePageResults] 新形式のチェックリスト生成に失敗: ${checklistResult.error.message}。旧形式で再試行します。`
-    );
-
-    // 旧形式で再試行
-    const legacyResult = await generateChecklist(
-      text,
-      llm,
-      bedrock,
-      modelId,
-      inferenceConfig
-    );
-
-    if (!legacyResult.ok) {
-      console.error(
-        `[combinePageResults] チェックリスト生成失敗: ${legacyResult.error.message}`
-      );
-      return err(legacyResult.error);
+    // Bedrockへのリクエスト実行
+    const response = await bedrock.send(command);
+    
+    if (!response.output?.message?.content?.[0]?.text) {
+      console.error(`[combinePageResults] Bedrockからの応答が不正です`);
+      return err(new Error("Bedrockからの応答が不正です"));
     }
 
-    // 旧形式から新形式に変換
-    const convertResult = convertLegacyFormatToNew(legacyResult.value);
-    if (!convertResult.ok) {
-      console.error(
-        `[combinePageResults] チェックリスト形式変換失敗: ${convertResult.error.message}`
-      );
-      return err(convertResult.error);
-    }
-
-    checklist = convertResult.value;
-  } else {
-    checklist = checklistResult.value;
-  }
-
-  // CSVをパースしてチェックリストオブジェクトに変換
-  const parseResult = parseCsvToChecklist(checklist);
-  if (!parseResult.ok) {
-    console.error(
-      `[combinePageResults] チェックリストのパース失敗: ${parseResult.error.message}`
-    );
-    return err(parseResult.error);
-  }
-
-  parsedChecklist = parseResult.value;
-
-  // UUIDが空の項目にUUIDを割り当て
-  const updatedItems = parsedChecklist.items.map((item) => {
-    // IDが空の場合、新しいUUIDを生成
-    if (!item.id) {
-      return {
-        ...item,
-        id: uuidv4(),
+    // LLMの出力からJSONを抽出
+    const llmOutput = response.output.message.content[0].text;
+    console.log(`[combinePageResults] Bedrock応答取得: ${llmOutput.length}文字`);
+    
+    try {
+      // LLMの出力をパース（必ず配列として扱う）
+      const checklistItems: ChecklistItem[] = JSON.parse(llmOutput);
+      
+      // 配列でない場合はエラー
+      if (!Array.isArray(checklistItems)) {
+        throw new Error("LLMの出力が配列形式ではありません");
+      }
+      
+      // parent_idを数値からulidに変換
+      const convertedItems = convertParentIdsToUlid(checklistItems);
+      
+      // メタデータを追加
+      const responseData: ChecklistResponse = {
+        checklist_items: convertedItems,
+        meta_data: {
+          document_id: documentId,
+          page_number: pageNumber
+        }
       };
+      
+      // 最終的なJSONを作成
+      const finalJson = JSON.stringify(responseData, null, 2);
+
+      // S3に書き込む
+      const combinedKey = getPageCombinedKey(documentId, pageNumber);
+      console.log(`[combinePageResults] 結果をS3に保存開始: ${combinedKey}`);
+      const result = await s3.uploadObject(combinedKey, Buffer.from(finalJson));
+      if (!result.ok) {
+        console.error(
+          `[combinePageResults] S3への書き込み失敗: ${result.error.message}`
+        );
+        return err(new Error("S3への書き込み失敗"));
+      }
+      console.log(`[combinePageResults] S3への書き込み成功`);
+
+      console.log(
+        `[combinePageResults] 処理完了: documentId=${documentId}, pageNumber=${pageNumber}`
+      );
+      return ok({ documentId, pageNumber });
+    } catch (parseError) {
+      console.error(`[combinePageResults] JSON解析エラー: ${(parseError as Error).message}`);
+      console.error(`[combinePageResults] 受信したJSON: ${llmOutput}`);
+      return err(new Error(`JSON解析エラー: ${(parseError as Error).message}`));
     }
-    return item;
-  });
-
-  // 更新されたチェックリスト
-  const updatedChecklist: Checklist = {
-    items: updatedItems,
-  };
-
-  // チェックリストをCSVに戻す
-  const csvLines = [
-    "id,name,condition,parentId,dependsOn,allRequired,required",
-    ...updatedChecklist.items.map((item) => {
-      const dependsOnStr =
-        item.dependsOn && item.dependsOn.length > 0
-          ? item.dependsOn.join(",")
-          : "";
-      return `${item.id},${item.name},${item.condition},${
-        item.parentId || ""
-      },${dependsOnStr},${item.allRequired},${item.required}`;
-    }),
-  ];
-
-  const finalCsv = csvLines.join("\n");
-
-  console.log(
-    `[combinePageResults] 生成されたチェックリスト: ${finalCsv.length}文字`
-  );
-
-  // S3に書き込む
-  const combinedKey = getPageCombinedKey(documentId, pageNumber);
-  console.log(`[combinePageResults] 結果をS3に保存開始: ${combinedKey}`);
-  const result = await s3.uploadObject(combinedKey, Buffer.from(finalCsv));
-  if (!result.ok) {
-    console.error(
-      `[combinePageResults] S3への書き込み失敗: ${result.error.message}`
-    );
-    return err(new Error("S3への書き込み失敗"));
+  } catch (error) {
+    console.error(`[combinePageResults] エラー発生: ${(error as Error).message}`);
+    return err(error as Error);
   }
-  console.log(`[combinePageResults] S3への書き込み成功`);
-
-  console.log(
-    `[combinePageResults] 処理完了: documentId=${documentId}, pageNumber=${pageNumber}`
-  );
-  return ok({ documentId, pageNumber });
 }

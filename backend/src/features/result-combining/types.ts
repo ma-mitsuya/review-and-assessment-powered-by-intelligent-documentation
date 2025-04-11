@@ -7,18 +7,31 @@ export interface CombinedPageResult {
  * チェックリスト項目の構造
  */
 export interface ChecklistItem {
-  id: string;
   name: string;
-  condition: string;
-  parentId?: string;
-  dependsOn?: string[];
-  allRequired: boolean;
-  required: boolean;
+  description: string;
+  parent_id: string | null;
+  item_type: "SIMPLE" | "FLOW";
+  is_conclusion: boolean;
+  flow_data: FlowData | null;
 }
 
 /**
- * チェックリスト全体の構造
+ * フローデータの構造
  */
-export interface Checklist {
-  items: ChecklistItem[];
+export interface FlowData {
+  condition_type: "YES_NO" | "MULTI_CHOICE";
+  next_if_yes?: number;
+  next_if_no?: number;
+  next_options?: Record<string, number>;
+}
+
+/**
+ * チェックリスト全体のレスポンス構造
+ */
+export interface ChecklistResponse {
+  checklist_items: ChecklistItem[];
+  meta_data: {
+    document_id: string;
+    page_number: number;
+  };
 }
