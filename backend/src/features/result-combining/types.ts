@@ -20,9 +20,9 @@ export interface ChecklistItem {
  */
 export interface FlowData {
   condition_type: "YES_NO" | "MULTI_CHOICE";
-  next_if_yes?: number;
-  next_if_no?: number;
-  next_options?: Record<string, number>;
+  next_if_yes?: string | number;
+  next_if_no?: string | number;
+  next_options?: Record<string, string>;
 }
 
 /**

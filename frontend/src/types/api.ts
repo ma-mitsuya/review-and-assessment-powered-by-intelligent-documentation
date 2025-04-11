@@ -23,6 +23,11 @@ export type CheckListSet = {
   check_list_set_id: string;
   name: string;
   description: string;
+  documents?: {
+    document_id: string;
+    filename: string;
+    status: string;
+  }[];
 };
 
 /**

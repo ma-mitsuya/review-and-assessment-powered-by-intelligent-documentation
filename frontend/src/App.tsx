@@ -7,6 +7,7 @@ import CheckListSetFormPage from './pages/CheckListSetFormPage';
 import CheckListItemFormPage from './pages/CheckListItemFormPage';
 import ReviewPage from './pages/ReviewPage';
 import NotFoundPage from './pages/NotFoundPage';
+import { CreateChecklistPage } from './features/checklist-creation';
 import './App.css';
 
 /**
@@ -31,7 +32,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             {/* チェックリスト関連のルート */}
             <Route path="checklist" element={<CheckListPage />} />
-            <Route path="checklist/new" element={<CheckListSetFormPage />} />
+            <Route path="checklist/new" element={<CreateChecklistPage />} />
             <Route path="checklist/:id" element={<CheckListSetDetailPage />} />
             <Route path="checklist/:id/edit" element={<CheckListSetFormPage />} />
             <Route path="checklist/:setId/items/new" element={<CheckListItemFormPage />} />

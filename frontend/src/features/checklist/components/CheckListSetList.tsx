@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCheckListSets } from '../hooks/useCheckListSets';
 import { deleteData } from '../../../hooks/useFetch';
 
@@ -7,6 +7,7 @@ import { deleteData } from '../../../hooks/useFetch';
  */
 export default function CheckListSetList() {
   const { data: checkListSets, error, isLoading, meta, mutate } = useCheckListSets();
+  const navigate = useNavigate();
 
   // チェックリストセットの削除処理
   const handleDelete = async (id: string, name: string) => {
@@ -20,6 +21,11 @@ export default function CheckListSetList() {
         alert('チェックリストセットの削除に失敗しました');
       }
     }
+  };
+
+  // 新規作成ページへ遷移
+  const handleCreateNew = () => {
+    navigate('/checklist/new');
   };
 
   if (isLoading) {
@@ -57,19 +63,55 @@ export default function CheckListSetList() {
     );
   }
 
+  // ステータスに応じたバッジを表示する関数
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+            待機中
+          </span>
+        );
+      case 'processing':
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+            処理中
+          </span>
+        );
+      case 'completed':
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+            完了
+          </span>
+        );
+      case 'failed':
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+            失敗
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+            不明
+          </span>
+        );
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-semibold text-aws-squid-ink-light">チェックリストセット一覧</h2>
-        <Link
-          to="/checklist/new"
+        <button
+          onClick={handleCreateNew}
           className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
           </svg>
           新規作成
-        </Link>
+        </button>
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden border border-light-gray">
@@ -81,6 +123,9 @@ export default function CheckListSetList() {
               </th>
               <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
                 説明
+              </th>
+              <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
+                ステータス
               </th>
               <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
                 操作
@@ -95,6 +140,22 @@ export default function CheckListSetList() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-aws-font-color-gray">{set.description}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {set.documents && set.documents.length > 0 ? (
+                    <div className="flex flex-col space-y-1">
+                      {set.documents.map((doc) => (
+                        <div key={doc.document_id} className="flex items-center">
+                          {renderStatusBadge(doc.status)}
+                          <span className="ml-2 text-xs text-aws-font-color-gray truncate max-w-xs">
+                            {doc.filename}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-aws-font-color-gray">ドキュメントなし</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex items-center space-x-3">

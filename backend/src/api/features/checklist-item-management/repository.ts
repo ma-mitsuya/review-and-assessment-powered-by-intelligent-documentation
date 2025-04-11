@@ -155,7 +155,7 @@ export class PrismaCheckListItemRepository implements CheckListItemRepository {
         parentId: data.parentId,
         itemType: data.itemType,
         isConclusion: data.isConclusion || false,
-        flowData: data.flowData || {},
+        flowData: data.flowData ? JSON.stringify(data.flowData) : {},
         metaData: data.metaData || {},
         checkListSetId: data.checkListSetId
       }
@@ -180,7 +180,7 @@ export class PrismaCheckListItemRepository implements CheckListItemRepository {
         parentId: data.parentId !== undefined ? data.parentId : undefined,
         itemType: data.itemType !== undefined ? data.itemType : undefined,
         isConclusion: data.isConclusion !== undefined ? data.isConclusion : undefined,
-        flowData: data.flowData !== undefined ? data.flowData : undefined,
+        flowData: data.flowData !== undefined ? JSON.stringify(data.flowData) : undefined,
         metaData: data.metaData !== undefined ? data.metaData : undefined,
         checkListSetId: data.checkListSetId !== undefined ? data.checkListSetId : undefined
       }

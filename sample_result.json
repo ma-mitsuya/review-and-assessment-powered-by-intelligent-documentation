@@ -1,0 +1,1030 @@
+{
+  "test3": [
+    {
+      "checklist_items": [
+        {
+          "name": "建築物と敷地の関係の確認",
+          "description": "建築物と敷地の関係が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "用途上の可分・不可分",
+          "description": "敷地に複数の建築物を建築する場合（既存建築物を含む）、相互の建築物が機能上関連しているか",
+          "parent_id": "01JRHXG0NBS9372RRD8N6036VH",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "敷地面積の算定",
+          "description": "敷地面積の算定が適切に行われているかの確認",
+          "parent_id": "01JRHXG0NBS9372RRD8N6036VH",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "2項道路との接道",
+          "description": "2項道路と接している場合、後退部分の面積を敷地面積から除いているか",
+          "parent_id": "01JRHXG0NBXFKSGHR55K0TEQNG",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "計画道路の算入",
+          "description": "敷地内にある計画道路は、敷地面積に算入できる。法第42条第1項第4号による道路は除く",
+          "parent_id": "01JRHXG0NBXFKSGHR55K0TEQNG",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "角敷地のすみ切り部分",
+          "description": "角敷地のすみ切り部分を敷地面積から除外するが、条例等で算入できる場合を定めている（東京都等）",
+          "parent_id": "01JRHXG0NBXFKSGHR55K0TEQNG",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "面積の算定方法の確認",
+          "description": "面積の算定方法が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "建築面積の算定",
+          "description": "外壁又はこれに代わる柱の中心線で囲まれた部分の水平投影面積として算定しているか",
+          "parent_id": "01JRHXG0NBMH95SW7HQ0ZE99RJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "不算入部分の確認",
+          "description": "建築面積の不算入部分の確認",
+          "parent_id": "01JRHXG0NBY57SBBGJ0EGZAVKD",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地階の不算入",
+          "description": "地階で地盤面上1ｍ以下にある部分は建築面積に算入しない",
+          "parent_id": "01JRHXG0NBSFWY39B6M3WNAFYS",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "軒・ひさしの算入",
+          "description": "軒、ひさし等で1ｍ以上突き出しているものがある場合、その先端から1ｍ後退した線で囲まれた部分を算入する",
+          "parent_id": "01JRHXG0NBSFWY39B6M3WNAFYS",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "高い開放性を有する部分",
+          "description": "高い開放性を有する建築物又はその部分の場合、その端から水平距離1ｍ以内の部分は算入しない",
+          "parent_id": "01JRHXG0NBSFWY39B6M3WNAFYS",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "床面積の算定",
+          "description": "床面積の算定方法に基づき算定しているか",
+          "parent_id": "01JRHXG0NBMH95SW7HQ0ZE99RJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "高さ等の算定方法の確認",
+          "description": "高さ等の算定方法が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "高さの算定",
+          "description": "高さの算定方法の確認",
+          "parent_id": "01JRHXG0NCY56JWBD9DMVCFGNE",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "道路斜線制限の場合",
+          "description": "道路斜線制限における高さの算定方法の確認",
+          "parent_id": "01JRHXG0NCABPP1E1YK3MN2QMW",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "前面道路からの測定",
+          "description": "前面道路の路面の中心線から測っているか",
+          "parent_id": "01JRHXG0NCNDGK2S8JJZ990X63",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "後退緩和適用時の測定",
+          "description": "後退緩和適用時、後退距離の算定から除く物置等は前面道路の路面の中心線から測っているか",
+          "parent_id": "01JRHXG0NCNDGK2S8JJZ990X63",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "塔屋がある場合の不算入確認",
+          "description": "塔屋がある場合の不算入部分は適切か",
+          "parent_id": "01JRHXG0NCNDGK2S8JJZ990X63",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "隣地斜線制限等の場合",
+          "description": "隣地斜線制限及び高度地区の北側斜線以外の場合の高さ算定",
+          "parent_id": "01JRHXG0NCABPP1E1YK3MN2QMW",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面からの測定",
+          "description": "地盤面から測っているか",
+          "parent_id": "01JRHXG0NCHB44S8JNGKK03ZPN",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "塔屋不算入確認",
+          "description": "塔屋がある場合の不算入部分は適切か",
+          "parent_id": "01JRHXG0NCHB44S8JNGKK03ZPN",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "北側斜線制限等の場合",
+          "description": "北側斜線制限、高度地区の北側斜線制限及び避雷設備の設置の場合の高さ算定",
+          "parent_id": "01JRHXG0NCABPP1E1YK3MN2QMW",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面からの測定",
+          "description": "地盤面から測っているか",
+          "parent_id": "01JRHXG0NCMR4D8E8FFGG742FJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "塔屋の算入",
+          "description": "塔屋を含め算定しているか",
+          "parent_id": "01JRHXG0NCMR4D8E8FFGG742FJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "低層住居専用地域等の場合",
+          "description": "第1種・第2種低層住居専用地域又は田園住居地域内の絶対高さ制限及び日影規制の場合の高さ算定",
+          "parent_id": "01JRHXG0NCABPP1E1YK3MN2QMW",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面からの測定",
+          "description": "地盤面から測っているか",
+          "parent_id": "01JRHXG0NCJRK8KEH9HHQZZ3N1",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "塔屋不算入確認",
+          "description": "塔屋がある場合の不算入部分は適切か",
+          "parent_id": "01JRHXG0NCJRK8KEH9HHQZZ3N1",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "軒の高さの算定",
+          "description": "軒の高さの算定方法の確認",
+          "parent_id": "01JRHXG0NCY56JWBD9DMVCFGNE",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面からの測定",
+          "description": "地盤面から測っているか",
+          "parent_id": "01JRHXG0NC7HQWNT156N47JMFH",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "上端までの高さ",
+          "description": "小屋組又はこれに代わる横架材を支持する壁、敷げた又は柱の上端までの高として算定しているか",
+          "parent_id": "01JRHXG0NC7HQWNT156N47JMFH",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "階数の算定方法の確認",
+          "description": "階数の算定方法が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "吹抜けがある場合の算定",
+          "description": "建築物の一部が吹抜けとなっている場合等、階数が最大のところで算定しているか",
+          "parent_id": "01JRHXG0ND1EP0P66E0BY6AQB6",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "不算入部分の確認",
+          "description": "階数の不算入部分の確認",
+          "parent_id": "01JRHXG0ND1EP0P66E0BY6AQB6",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "昇降機塔等の不算入",
+          "description": "昇降機塔等の水平投影面積が建築面積の1/8以下であれば算入しない",
+          "parent_id": "01JRHXG0NDNV9SX8RRV4TGR96P",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面の算定方法の確認",
+          "description": "地盤面の算定方法が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "地盤面の算定",
+          "description": "地盤面の算定方法の確認",
+          "parent_id": "01JRHXG0ND7GQXVZ0CBGGWN83Z",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "水平面としての算定",
+          "description": "建築物が周囲の地面と接する位置の平均の高さにおける水平面としているか（建築物単位）",
+          "parent_id": "01JRHXG0NDK01RZN85211ECE8Z",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "高低差3mを超える場合",
+          "description": "高低差が3ｍを超える場合は、その高低差3ｍ以内ごとの平均の高さにおける水平面としているか",
+          "parent_id": "01JRHXG0NDK01RZN85211ECE8Z",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "平均地盤面の算定",
+          "description": "平均地盤面の算定方法の確認",
+          "parent_id": "01JRHXG0ND7GQXVZ0CBGGWN83Z",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "日影規制の場合",
+          "description": "日影規制の場合、高低差3ｍに関係なく建築物が周囲の地面と接する位置の平均の高さとして算定しているか（敷地単位）",
+          "parent_id": "01JRHXG0NDNKSN0YF3AHZE9CWB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "建築物が周囲の地面と接する位置",
+          "description": "建築物が周囲の地面と接する位置の定義の確認",
+          "parent_id": "01JRHXG0ND7GQXVZ0CBGGWN83Z",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "中心線での定義",
+          "description": "建築物本体の外壁又はこれに代わる柱の中心線を結んだ位置としているか",
+          "parent_id": "01JRHXG0ND239PGBNK19E60N33",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外壁面での定義",
+          "description": "外壁等の面において算定する方が妥当の場合、中心線ではなく外壁の面とすることができる",
+          "parent_id": "01JRHXG0ND239PGBNK19E60N33",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "特殊な場合の確認",
+          "description": "特殊な場合（ドライエリア等）、取扱いを確認しているか",
+          "parent_id": "01JRHXG0ND239PGBNK19E60N33",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "耐火建築物・準耐火建築物等の構造確認",
+          "description": "耐火建築物・準耐火建築物等の構造が適切であるかの確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "耐火建築物の要件",
+          "description": "耐火建築物の要件を満たしているかの確認",
+          "parent_id": "01JRHXG0NDJ60Q0E4CKZEM5QPK",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "主要構造部の構造",
+          "description": "主要構造部が耐火構造又は耐火建築物の主要構造部に関する技術基準に適合するものかであるか",
+          "parent_id": "01JRHXG0NDJ9P5M2RH9RCC2HFS",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある部分",
+          "description": "外壁の開口部で延焼のおそれのある部分に防火設備を設けているか",
+          "parent_id": "01JRHXG0NDJ9P5M2RH9RCC2HFS",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火建築物の要件",
+          "description": "準耐火建築物の要件を満たしているかの確認",
+          "parent_id": "01JRHXG0NDJ60Q0E4CKZEM5QPK",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火建築物（イ）",
+          "description": "準耐火建築物（イ）の要件確認",
+          "parent_id": "01JRHXG0NEHJDYRZAVVJH2M802",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "主要構造部の構造",
+          "description": "主要構造部が準耐火構造であるか",
+          "parent_id": "01JRHXG0NE5YJPW3QNTM84VDBG",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある部分",
+          "description": "外壁の開口部で延焼のおそれのある部分に防火設備を設けているか",
+          "parent_id": "01JRHXG0NE5YJPW3QNTM84VDBG",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火建築物（ロ-１）",
+          "description": "準耐火建築物（ロ-１）の要件確認",
+          "parent_id": "01JRHXG0NEHJDYRZAVVJH2M802",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外壁と屋根の構造",
+          "description": "外壁が耐火構造であるか、屋根は不燃材料等であるか",
+          "parent_id": "01JRHXG0NETR6E2TJCQEBQREV9",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある屋根部分",
+          "description": "屋根の延焼のおそれのある部分が法86条の4の場合を除き準耐火構造等であるか",
+          "parent_id": "01JRHXG0NETR6E2TJCQEBQREV9",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある部分",
+          "description": "外壁の開口部で延焼のおそれのある部分に防火設備を設けているか",
+          "parent_id": "01JRHXG0NETR6E2TJCQEBQREV9",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火建築物（ロ-２）",
+          "description": "準耐火建築物（ロ-２）の要件確認",
+          "parent_id": "01JRHXG0NEHJDYRZAVVJH2M802",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "柱・はりの材料",
+          "description": "主要構造部の柱及びはりが不燃材料であるか、主要構造部の壁、階段が準不燃材料であるか",
+          "parent_id": "01JRHXG0NE9EQ8GKEETW3M07VC",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある外壁部分",
+          "description": "外壁の延焼のおそれのある部分にあっては、防火構造であるか",
+          "parent_id": "01JRHXG0NE9EQ8GKEETW3M07VC",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "屋根・床の材料",
+          "description": "屋根は、不燃材料又は大臣が認めて指定したものであるか、床は、準不燃材料で造られているか",
+          "parent_id": "01JRHXG0NE9EQ8GKEETW3M07VC",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "3階以上の床構造",
+          "description": "３階以上の階における床は、準耐火構造等であるか",
+          "parent_id": "01JRHXG0NE9EQ8GKEETW3M07VC",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある部分",
+          "description": "外壁の開口部で延焼のおそれのある部分に防火設備を設けているか",
+          "parent_id": "01JRHXG0NE9EQ8GKEETW3M07VC",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "法第21条の規定に適合する建築物の要件",
+          "description": "法第21条の規定に適合する建築物の要件確認",
+          "parent_id": "01JRHXG0NDJ60Q0E4CKZEM5QPK",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {}
+          }
+        },
+        {
+          "name": "耐火構造",
+          "description": "主要構造部が耐火構造（耐火検証法も可）になっているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "火災時倒壊防止構造",
+          "description": "主要構造部が火災時倒壊防止構造になっているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "75分間準耐火構造",
+          "description": "主要構造部が75分間準耐火構造＋90分間準耐火構造（階段室の壁）になっているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "１時間準耐火基準",
+          "description": "主要構造部が１時間準耐火基準の準耐火構造になっているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "令第115条の２基準",
+          "description": "主要構造部が令第115条の２第１項の所定の基準の構造になっているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "その他所定の基準",
+          "description": "上記以外の所定の基準を満たしているか",
+          "parent_id": "01JRHXG0NEY6ACGS3YR95499CB",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "法第27条第1項の規定に適合する建築物の要件",
+          "description": "法第27条第1項の規定に適合する建築物の要件確認",
+          "parent_id": "01JRHXG0NDJ60Q0E4CKZEM5QPK",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {}
+          }
+        },
+        {
+          "name": "避難時倒壊防止構造",
+          "description": "主要構造部が避難時倒壊防止構造であり、自力避難困難者が使用する用途以外の用途、他所定の基準を満たすもの",
+          "parent_id": "01JRHXG0NFB89F3JP9394HR1VV",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火構造（45分，ロ-1，ロ-2）",
+          "description": "主要構造部が準耐火構造（45分，ロ-1，ロ-2）であり、用途に供する部分が所定の床面積以上であるもの等",
+          "parent_id": "01JRHXG0NFB89F3JP9394HR1VV",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準耐火構造（１時間準耐火基準）",
+          "description": "主要構造部が準耐火構造（１時間準耐火基準）であり、木造３階共同住宅・学校等の用途、他所定の基準を満たすもの",
+          "parent_id": "01JRHXG0NFB89F3JP9394HR1VV",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "耐火構造",
+          "description": "主要構造部が耐火構造（耐火検証法も可）であるか",
+          "parent_id": "01JRHXG0NFB89F3JP9394HR1VV",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "防火設備の設置",
+          "description": "延焼のおそれのある部分及び他の外壁開口部から火炎が到達するおそれのある部分の開口部に防火設備（片面20分間（屋内への遮炎性））を設けているか",
+          "parent_id": "01JRHXG0NFB89F3JP9394HR1VV",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        }
+      ],
+      "meta_data": {
+        "document_id": "test3",
+        "page_number": 1
+      }
+    },
+    {
+      "checklist_items": [
+        {
+          "name": "延焼防止建築物（耐火同等建築物）の要件チェック",
+          "description": "建築基準法第61条関連の延焼防止建築物（耐火同等建築物）の要件確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "建物の用途確認",
+          "description": "建物の用途に応じた構造基準の適用",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {
+              "共同住宅等": "01JRHX76S7NWSXA987GJRV3BZY",
+              "物販店舗": "01JRHX76S7EQRX9PT84P2WR2CY",
+              "劇場・学校・飲食等": "01JRHX76S7NFXEGY598YJJZPT0",
+              "戸建住宅": "01JRHX76S7850NTJT0CJXPP8SV"
+            }
+          }
+        },
+        {
+          "name": "共同住宅等の構造基準",
+          "description": "共同住宅等の場合の構造要件",
+          "parent_id": "01JRHX76S797GRRSHTN4MYK302",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "物販店舗の構造基準",
+          "description": "物販店舗の場合の構造要件",
+          "parent_id": "01JRHX76S797GRRSHTN4MYK302",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "劇場・学校・飲食等の構造基準",
+          "description": "劇場、学校、飲食等の場合の構造要件",
+          "parent_id": "01JRHX76S797GRRSHTN4MYK302",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "戸建住宅の構造基準",
+          "description": "戸建住宅の場合の構造要件",
+          "parent_id": "01JRHX76S797GRRSHTN4MYK302",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外壁・軒裏の構造確認",
+          "description": "用途に応じた外壁・軒裏の準耐火構造の確認",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {
+              "共同住宅等": "01JRHX76S77F9CEVXYKTDCJM52",
+              "物販店舗": "01JRHX76S80RYTJ59W8CX60QYB",
+              "劇場・学校・飲食等": "01JRHX76S8XE5V4D9PTE3QY7NJ",
+              "戸建住宅": "01JRHX76S89124N5PTHD4B21XF"
+            }
+          }
+        },
+        {
+          "name": "共同住宅等の外壁・軒裏",
+          "description": "外壁・軒裏が90分間準耐火構造となっているか",
+          "parent_id": "01JRHX76S759CQW876CBH3V890",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "物販店舗の外壁・軒裏",
+          "description": "外壁・軒裏が90分間準耐火構造となっているか",
+          "parent_id": "01JRHX76S759CQW876CBH3V890",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "劇場・学校・飲食等の外壁・軒裏",
+          "description": "外壁・軒裏が75分間準耐火構造となっているか",
+          "parent_id": "01JRHX76S759CQW876CBH3V890",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "戸建住宅の外壁・軒裏",
+          "description": "外壁・軒裏が75分間準耐火構造となっているか",
+          "parent_id": "01JRHX76S759CQW876CBH3V890",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "防火設備の確認",
+          "description": "用途に応じた防火設備の確認（法第2条第九号のニロに適合しているか）",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {
+              "共同住宅等": "01JRHX76S86T9AADTDNNH6NJAM",
+              "物販店舗": "01JRHX76S8CGFGN3H6RT9RETEF",
+              "劇場・学校・飲食等": "01JRHX76S83Y7ZCJNTZVPDH3B2",
+              "戸建住宅": "01JRHX76S8ACF5699QJP4KCF03"
+            }
+          }
+        },
+        {
+          "name": "共同住宅等の防火設備",
+          "description": "法第2条第九号のニロに適合した防火設備となっているか",
+          "parent_id": "01JRHX76S8SJMZDZKCP7WXPG6S",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "物販店舗の防火設備",
+          "description": "30分間の防火設備となっているか",
+          "parent_id": "01JRHX76S8SJMZDZKCP7WXPG6S",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "劇場・学校・飲食等の防火設備",
+          "description": "法第2条第九号のニロに適合した防火設備となっているか",
+          "parent_id": "01JRHX76S8SJMZDZKCP7WXPG6S",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "戸建住宅の防火設備",
+          "description": "法第2条第九号のニロに適合した防火設備となっているか",
+          "parent_id": "01JRHX76S8SJMZDZKCP7WXPG6S",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "主要構造部の確認",
+          "description": "用途に応じた主要構造部（外壁、屋根、階段を除く）の準耐火基準の確認",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "MULTI_CHOICE",
+            "next_options": {
+              "共同住宅等": "01JRHX76S88WKYS3K3680469N7",
+              "物販店舗": "01JRHX76S8MAQWV4RDCZS6S4G4",
+              "劇場・学校・飲食等": "01JRHX76S8P6W5YV7XGHNG5MRT",
+              "戸建住宅": "01JRHX76S971FRYYHY7EXTGRPF"
+            }
+          }
+        },
+        {
+          "name": "共同住宅等の主要構造部",
+          "description": "主要構造部が1時間準耐火基準を満たしているか",
+          "parent_id": "01JRHX76S8JZKWEJ7MWVAEGJ9P",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "物販店舗の主要構造部",
+          "description": "主要構造部が1時間準耐火基準を満たしているか",
+          "parent_id": "01JRHX76S8JZKWEJ7MWVAEGJ9P",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "劇場・学校・飲食等の主要構造部",
+          "description": "主要構造部が1時間準耐火基準を満たしているか",
+          "parent_id": "01JRHX76S8JZKWEJ7MWVAEGJ9P",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "戸建住宅の主要構造部",
+          "description": "主要構造部が45分間準耐火基準を満たしているか",
+          "parent_id": "01JRHX76S8JZKWEJ7MWVAEGJ9P",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "所定の基準確認",
+          "description": "延焼防止建築物の共通基準の確認",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "階数制限",
+          "description": "地階を除く階数が3以下であるか",
+          "parent_id": "01JRHX76S9PAM7QNBCZAH6HM02",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延べ面積制限",
+          "description": "延べ面積が3,000㎡以下（戸建住宅は200㎡以下）であるか",
+          "parent_id": "01JRHX76S9PAM7QNBCZAH6HM02",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外部開口部の開口率",
+          "description": "外部開口部の開口率が所定の基準を満たしているか",
+          "parent_id": "01JRHX76S9PAM7QNBCZAH6HM02",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "防火区画",
+          "description": "所定の防火区画が設けられているか",
+          "parent_id": "01JRHX76S9PAM7QNBCZAH6HM02",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "スプリンクラー設備等",
+          "description": "スプリンクラー設備等が設置されているか（戸建住宅は不要）",
+          "parent_id": "01JRHX76S9PAM7QNBCZAH6HM02",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "特殊用途の確認",
+          "description": "卸売市場の上屋、機械製作工場等の特殊用途の場合の追加確認",
+          "parent_id": "01JRHX76S6B3VG14MC225TSCBA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "YES_NO",
+            "next_if_yes": "01JRHX76S91JAKA0DEN1Z0X7GH",
+            "next_if_no": "01JRHX76S9T5VR26BQET7HDNFA"
+          }
+        },
+        {
+          "name": "主要構造部の材料",
+          "description": "主要構造部が不燃材料で造られているか",
+          "parent_id": "01JRHX76S9WKRTD1V62BNNGZDQ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外壁開口部設備",
+          "description": "外壁開口部設備は20分間防火設備となっているか",
+          "parent_id": "01JRHX76S9WKRTD1V62BNNGZDQ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "準延焼防止建築物の要件確認",
+          "description": "準防火地域内の建築物要件",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "階数・延べ面積の確認",
+          "description": "地階を除く階数が3で延べ面積500㎡以下であるか",
+          "parent_id": "01JRHX76S9T5VR26BQET7HDNFA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "YES_NO",
+            "next_if_yes": "01JRHX76S9T0WGWTC4CSYTJKX7",
+            "next_if_no": "01JRHX76SAQR7078EGNQ9Z65PH"
+          }
+        },
+        {
+          "name": "開口部の構造・面積等",
+          "description": "開口部の構造・面積等が所定の基準を満たしているか",
+          "parent_id": "01JRHX76S9V1X7FRK0TB33YWN6",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "主要部材の構造",
+          "description": "外壁、軒裏、柱、はり、床、屋根、天井等が所定の構造となっているか",
+          "parent_id": "01JRHX76S9V1X7FRK0TB33YWN6",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "3階部分の区画",
+          "description": "3階の室の部分とそれ以外の部分が、間仕切壁又は戸で区画されているか",
+          "parent_id": "01JRHX76S9V1X7FRK0TB33YWN6",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "附属建築物の確認",
+          "description": "延べ面積が50㎡以内の平屋の附属建築物であるか",
+          "parent_id": "01JRHX76S9T5VR26BQET7HDNFA",
+          "item_type": "FLOW",
+          "is_conclusion": false,
+          "flow_data": {
+            "condition_type": "YES_NO",
+            "next_if_yes": "01JRHX76SAHCJGEC6KJ4YS70DH",
+            "next_if_no": "01JRHX76SA0D786VM897D7AM17"
+          }
+        },
+        {
+          "name": "附属建築物の外壁・軒裏",
+          "description": "外壁・軒裏が防火構造となっているか",
+          "parent_id": "01JRHX76SAQR7078EGNQ9Z65PH",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "外壁開口部設備の確認",
+          "description": "外壁開口部設備が20分間防火設備となっているか",
+          "parent_id": "01JRHX76S9T5VR26BQET7HDNFA",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "延焼のおそれのある部分の確認",
+          "description": "隣地境界線、道路中心線又は同一敷地内の建築物相互の外壁間の中心線からの距離による確認",
+          "parent_id": null,
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "1階の距離制限",
+          "description": "1階の外壁が隣地境界線等から3m以下の範囲内にあるかどうかの確認",
+          "parent_id": "01JRHX76SAKRYE968VHF68J3HP",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "2階以上の距離制限",
+          "description": "2階以上の外壁が隣地境界線等から5m以下の範囲内にあるかどうかの確認",
+          "parent_id": "01JRHX76SAKRYE968VHF68J3HP",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "緩和条件の確認",
+          "description": "延焼のおそれのある部分から除外される条件を満たしているかの確認",
+          "parent_id": "01JRHX76SAKRYE968VHF68J3HP",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "防火上有効な空間等",
+          "description": "防火上有効な公園、広場、川等又は水面、耐火構造の壁その他これらに類するものがあるか",
+          "parent_id": "01JRHX76SACM7TGA1JSJQV5GCJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        },
+        {
+          "name": "角度による燃焼リスク",
+          "description": "建築物の外壁面と隣地境界線等との角度に応じて、通常の火災時における火熱により燃焼するおそれのない部分かどうかの確認",
+          "parent_id": "01JRHX76SACM7TGA1JSJQV5GCJ",
+          "item_type": "SIMPLE",
+          "is_conclusion": false,
+          "flow_data": null
+        }
+      ],
+      "meta_data": {
+        "document_id": "test3",
+        "page_number": 2
+      }
+    }
+  ]
+}
