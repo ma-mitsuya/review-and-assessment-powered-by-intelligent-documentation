@@ -3,6 +3,7 @@
  */
 
 import { QueryParams } from '../../core/types';
+import { FlowData, MetaData } from '../../../features/common/flow-chart-types';
 
 /**
  * チェックリスト項目の型定義
@@ -14,8 +15,8 @@ export type CheckListItem = {
   parent_id?: string | null;
   item_type: 'simple' | 'flow';
   is_conclusion: boolean;
-  flow_data?: any;
-  meta_data?: any;
+  flow_data?: FlowData;
+  meta_data?: MetaData;
   check_list_set_id?: string | null;
   children?: CheckListItem[];
 };
@@ -38,8 +39,8 @@ export type CreateCheckListItemRequest = {
   parentId?: string;
   itemType: 'simple' | 'flow';
   isConclusion?: boolean;
-  flowData?: any;
-  metaData?: any;
+  flowData?: FlowData;
+  metaData?: MetaData;
   checkListSetId: string;
 };
 
@@ -52,7 +53,7 @@ export type UpdateCheckListItemRequest = {
   parentId?: string;
   itemType?: 'simple' | 'flow';
   isConclusion?: boolean;
-  flowData?: any;
-  metaData?: any;
+  flowData?: FlowData;
+  metaData?: MetaData;
   checkListSetId?: string;
 };
