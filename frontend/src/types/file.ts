@@ -1,5 +1,7 @@
 /**
  * ファイル関連の共通型定義
+ * 
+ * チェックリスト管理機能で使用するファイルアップロード関連の型定義
  */
 
 /**
@@ -28,4 +30,21 @@ export type PresignedUrlResponse = {
 export type StartProcessingRequest = {
   documentId: string;
   fileName: string;
+};
+
+/**
+ * ドキュメントステータス
+ */
+export type DocumentStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+/**
+ * ドキュメント情報
+ */
+export type DocumentInfo = {
+  document_id: string;
+  filename: string;
+  status: DocumentStatus;
+  created_at?: string;
+  updated_at?: string;
+  check_list_set_id?: string;
 };

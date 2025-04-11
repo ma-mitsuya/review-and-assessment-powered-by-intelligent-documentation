@@ -34,7 +34,6 @@ export interface CreateChecklistResponse {
  */
 interface UseChecklistCreationReturn {
   createChecklist: (data: CreateChecklistRequest) => Promise<CreateChecklistResponse>;
-  getDocumentStatus: (documentId: string) => Promise<DocumentStatusItem | null>;
   isCreating: boolean;
   error: Error | null;
 }
@@ -46,32 +45,6 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { uploadFiles } = useFileUpload();
-  
-  /**
-   * ドキュメントのステータスを取得する
-   */
-  const getDocumentStatus = async (documentId: string): Promise<DocumentStatusItem | null> => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/documents/${documentId}`);
-      if (!response.ok) {
-        throw new Error('ドキュメントステータスの取得に失敗しました');
-      }
-      
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'ドキュメントステータスの取得に失敗しました');
-      }
-      
-      return {
-        document_id: data.data.document_id,
-        filename: data.data.filename,
-        status: data.data.status
-      };
-    } catch (error) {
-      console.error('ドキュメントステータスの取得エラー:', error);
-      return null;
-    }
-  };
   
   /**
    * チェックリストを作成する
@@ -116,7 +89,6 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
   
   return {
     createChecklist,
-    getDocumentStatus,
     isCreating,
     error,
   };
