@@ -23,10 +23,10 @@ function convertParentIdsToUlid(items: ChecklistItem[]): ChecklistItem[] {
   // 数値IDとulidのマッピングを作成
   const idMapping: Record<number, string> = {};
   
-  // 最初にすべての項目にulidを割り当てる
-  items.forEach((item, index) => {
-    idMapping[index + 1] = ulid();
-  });
+  // インデックス0からマッピングを作成（parent_id=0のケースも含む）
+  for (let i = 0; i <= items.length * 2; i++) {
+    idMapping[i] = ulid();
+  }
   
   // parent_idを変換した新しい配列を作成
   return items.map((item) => {
@@ -35,7 +35,7 @@ function convertParentIdsToUlid(items: ChecklistItem[]): ChecklistItem[] {
     // parent_idがnullでない場合、対応するulidに変換
     if (newItem.parent_id !== null) {
       const parentIdNumber = Number(newItem.parent_id);
-      if (!isNaN(parentIdNumber) && idMapping[parentIdNumber]) {
+      if (!isNaN(parentIdNumber) && idMapping[parentIdNumber] !== undefined) {
         newItem.parent_id = idMapping[parentIdNumber];
       }
     }
@@ -45,13 +45,13 @@ function convertParentIdsToUlid(items: ChecklistItem[]): ChecklistItem[] {
       if (newItem.flow_data.condition_type === "YES_NO") {
         if (newItem.flow_data.next_if_yes !== undefined) {
           const nextIfYesNum = Number(newItem.flow_data.next_if_yes);
-          if (!isNaN(nextIfYesNum) && idMapping[nextIfYesNum]) {
+          if (!isNaN(nextIfYesNum) && idMapping[nextIfYesNum] !== undefined) {
             newItem.flow_data.next_if_yes = idMapping[nextIfYesNum];
           }
         }
         if (newItem.flow_data.next_if_no !== undefined) {
           const nextIfNoNum = Number(newItem.flow_data.next_if_no);
-          if (!isNaN(nextIfNoNum) && idMapping[nextIfNoNum]) {
+          if (!isNaN(nextIfNoNum) && idMapping[nextIfNoNum] !== undefined) {
             newItem.flow_data.next_if_no = idMapping[nextIfNoNum];
           }
         }
@@ -59,7 +59,7 @@ function convertParentIdsToUlid(items: ChecklistItem[]): ChecklistItem[] {
         const newOptions: Record<string, string> = {};
         for (const [key, value] of Object.entries(newItem.flow_data.next_options)) {
           const valueNum = Number(value);
-          if (!isNaN(valueNum) && idMapping[valueNum]) {
+          if (!isNaN(valueNum) && idMapping[valueNum] !== undefined) {
             newOptions[key] = idMapping[valueNum];
           }
         }

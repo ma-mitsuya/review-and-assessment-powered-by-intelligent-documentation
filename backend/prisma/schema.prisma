@@ -52,6 +52,7 @@ model Document {
   uploadDate    DateTime     @map("upload_date") @db.Timestamp()
   checkListSetId String?     @map("check_list_set_id") @db.VarChar(26)
   userId        String?      @map("user_id") @db.VarChar(50)
+  status        String       @default("pending") @db.VarChar(20)
   checkListSet  CheckListSet? @relation(fields: [checkListSetId], references: [id])
   checkResults  CheckResult[]
 
