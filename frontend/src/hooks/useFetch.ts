@@ -1,92 +1,94 @@
-/**
- * SWRを使用したデータフェッチカスタムフック
- */
-import useSWR from 'swr';
+import { useState } from 'react';
 import { ApiResponse } from '../types/api';
 
-// APIのベースURL
-const API_BASE_URL = 'http://localhost:3000/api';
+// API のベース URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 /**
- * APIからデータをフェッチするためのfetcher関数
+ * SWR で使用する fetcher 関数
  */
-const fetcher = async <T>(url: string): Promise<T> => {
+export const fetcher = async (url: string) => {
   const response = await fetch(`${API_BASE_URL}${url}`);
-  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'APIリクエストに失敗しました');
+    throw new Error('API request failed');
   }
+  return response.json();
+};
+
+/**
+ * POST リクエストを送信する関数
+ */
+export const postData = async <T>(url: string, data: any): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
   
   return response.json();
 };
 
 /**
- * GETリクエストを行うカスタムフック
- * @param path APIエンドポイントのパス
- * @param options SWRのオプション
+ * PUT リクエストを送信する関数
  */
-export function useFetch<T>(path: string, options = {}) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<T>>(
-    path,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      ...options,
-    }
-  );
-
-  return {
-    data: data?.data,
-    meta: data?.meta,
-    error,
-    isLoading,
-    mutate,
-  };
-}
-
-/**
- * POSTリクエストを行う関数
- * @param path APIエンドポイントのパス
- * @param body リクエストボディ
- */
-export async function postData<T, R = any>(path: string, body: T): Promise<ApiResponse<R>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  return response.json();
-}
-
-/**
- * PUTリクエストを行う関数
- * @param path APIエンドポイントのパス
- * @param body リクエストボディ
- */
-export async function putData<T, R = any>(path: string, body: T): Promise<ApiResponse<R>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+export const putData = async <T>(url: string, data: any): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(data),
   });
-
+  
   return response.json();
-}
+};
 
 /**
- * DELETEリクエストを行う関数
- * @param path APIエンドポイントのパス
+ * DELETE リクエストを送信する関数
  */
-export async function deleteData<R = any>(path: string): Promise<ApiResponse<R>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+export const deleteData = async <T>(url: string): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     method: 'DELETE',
   });
-
+  
   return response.json();
+};
+
+/**
+ * データ送信用のカスタムフック
+ */
+export function useSubmit<T, R = any>() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<ApiResponse<R> | null>(null);
+  
+  const submit = async (url: string, method: 'POST' | 'PUT' | 'DELETE', submitData?: T) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let response;
+      
+      if (method === 'POST') {
+        response = await postData<R>(url, submitData);
+      } else if (method === 'PUT') {
+        response = await putData<R>(url, submitData);
+      } else {
+        response = await deleteData<R>(url);
+      }
+      
+      setData(response);
+      return response;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error occurred');
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  return { submit, isLoading, error, data };
 }

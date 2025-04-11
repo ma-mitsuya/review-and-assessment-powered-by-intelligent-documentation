@@ -1,47 +1,57 @@
-/**
- * チェックリスト項目関連のカスタムフック
- */
-import { useFetch, postData, putData, deleteData } from '../../../hooks/useFetch';
-import { CheckListItem } from '../../../types/api';
+import useSWR from 'swr';
+import { ApiResponse, CheckListItem } from '../../../types/api';
+import { fetcher, postData, putData } from '../../../hooks/useFetch';
 
 /**
  * 特定のチェックリストセットに属するチェックリスト項目を取得するカスタムフック
- * @param setId チェックリストセットID
  */
-export function useCheckListItems(setId: string | undefined) {
-  return useFetch<CheckListItem[]>(setId ? `/checklist-sets/${setId}/items` : '');
+export function useCheckListItems(checkListSetId?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CheckListItem[]>>(
+    checkListSetId ? `/checklist-sets/${checkListSetId}/items` : null,
+    fetcher
+  );
+
+  return {
+    data: data?.data,
+    error,
+    isLoading,
+    mutate,
+  };
 }
 
 /**
  * 特定のチェックリスト項目を取得するカスタムフック
- * @param itemId チェックリスト項目ID
  */
-export function useCheckListItem(itemId: string | undefined) {
-  return useFetch<CheckListItem>(itemId ? `/checklist-items/${itemId}` : '');
+export function useCheckListItem(itemId?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CheckListItem>>(
+    itemId ? `/checklist-items/${itemId}` : null,
+    fetcher
+  );
+
+  return {
+    data: data?.data,
+    error,
+    isLoading,
+    mutate,
+  };
 }
 
 /**
  * チェックリスト項目を作成する関数
- * @param setId チェックリストセットID
- * @param item 作成するチェックリスト項目データ
  */
-export async function createCheckListItem(setId: string, item: Omit<CheckListItem, 'check_id'>) {
-  return postData<Omit<CheckListItem, 'check_id'>, CheckListItem>(`/checklist-sets/${setId}/items`, item);
+export async function createCheckListItem(
+  checkListSetId: string,
+  data: Omit<CheckListItem, 'check_id'>
+) {
+  return await postData<CheckListItem>(`/checklist-sets/${checkListSetId}/items`, data);
 }
 
 /**
  * チェックリスト項目を更新する関数
- * @param itemId チェックリスト項目ID
- * @param item 更新するチェックリスト項目データ
  */
-export async function updateCheckListItem(itemId: string, item: Partial<CheckListItem>) {
-  return putData<Partial<CheckListItem>, CheckListItem>(`/checklist-items/${itemId}`, item);
-}
-
-/**
- * チェックリスト項目を削除する関数
- * @param itemId チェックリスト項目ID
- */
-export async function deleteCheckListItem(itemId: string) {
-  return deleteData(`/checklist-items/${itemId}`);
+export async function updateCheckListItem(
+  itemId: string,
+  data: Partial<CheckListItem>
+) {
+  return await putData<CheckListItem>(`/checklist-items/${itemId}`, data);
 }

@@ -1,22 +1,37 @@
-/**
- * チェックリストセット関連のカスタムフック
- */
-import { useFetch } from '../../../hooks/useFetch';
-import { CheckListSet } from '../../../types/api';
+import useSWR from 'swr';
+import { ApiResponse, CheckListSet } from '../../../types/api';
+import { fetcher } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット一覧を取得するカスタムフック
- * @param page ページ番号
- * @param limit 1ページあたりの件数
  */
-export function useCheckListSets(page = 1, limit = 10) {
-  return useFetch<CheckListSet[]>(`/checklist-sets?page=${page}&limit=${limit}`);
+export function useCheckListSets() {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CheckListSet[]>>(
+    '/checklist-sets',
+    fetcher
+  );
+
+  return {
+    data: data?.data,
+    error,
+    isLoading,
+    mutate,
+  };
 }
 
 /**
  * 特定のチェックリストセットを取得するカスタムフック
- * @param id チェックリストセットID
  */
-export function useCheckListSet(id: string | undefined) {
-  return useFetch<CheckListSet>(id ? `/checklist-sets/${id}` : '');
+export function useCheckListSet(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CheckListSet>>(
+    id ? `/checklist-sets/${id}` : null,
+    fetcher
+  );
+
+  return {
+    data: data?.data,
+    error,
+    isLoading,
+    mutate,
+  };
 }

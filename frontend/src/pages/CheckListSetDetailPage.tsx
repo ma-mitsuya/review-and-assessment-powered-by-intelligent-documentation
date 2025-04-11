@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCheckListSet } from '../features/checklist/hooks/useCheckListSets';
 import { useCheckListItems } from '../features/checklist/hooks/useCheckListItems';
-import CheckListItemTree from '../features/checklist/components/CheckListItemTree';
+import CheckListViewer from '../features/checklist/components/CheckListViewer';
 import { deleteData } from '../hooks/useFetch';
 
 /**
@@ -107,7 +107,7 @@ export default function CheckListSetDetailPage() {
             </div>
           </div>
         ) : (
-          <CheckListItemTree items={checkListItems} />
+          <CheckListViewer items={checkListItems} />
         )}
         
         <div className="mt-6 flex justify-end">
