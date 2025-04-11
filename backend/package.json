@@ -17,8 +17,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "db:seed": "prisma db seed",
-    "db:init": "tsx src/scripts/init-db.ts"
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.779.0",
