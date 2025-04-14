@@ -3,28 +3,28 @@
  */
 import { PrismaClient } from '@prisma/client';
 
-// シングルトンインスタンス
-let prismaInstance: PrismaClient | null = null;
+// PrismaClientのシングルトンインスタンス
+let prismaClient: PrismaClient | null = null;
 
 /**
- * Prismaクライアントのシングルトンインスタンスを取得
+ * PrismaClientを取得する
  * @returns PrismaClientインスタンス
  */
 export function getPrismaClient(): PrismaClient {
-  if (!prismaInstance) {
-    prismaInstance = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  if (!prismaClient) {
+    prismaClient = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
     });
   }
-  return prismaInstance;
+  return prismaClient;
 }
 
 /**
- * テスト用にPrismaクライアントをリセット
+ * PrismaClientをリセットする（主にテスト用）
  */
-export function resetPrismaClient(): void {
-  if (prismaInstance) {
-    prismaInstance.$disconnect();
-    prismaInstance = null;
+export async function resetPrismaClient(): Promise<void> {
+  if (prismaClient) {
+    await prismaClient.$disconnect();
+    prismaClient = null;
   }
 }

@@ -8,22 +8,11 @@ docs/BEACON-real-estate.xml 参照
 
 ## 残タスク
 
-### チェックリスト作成のステータス調査
+### チェックリスト API 実装
 
-- backend/frontend 双方共に、チェックリスト一覧の画面のステータスの取り扱いについて調査し、結果を説明せよ
-- 冗長な実装があれば報告せよ
-
-### check リストの新規作成
-
-- チェックリストの「新規作成」ボタンをクリックすると、ファイルアップロード画面が出る
-- S3 presigned url 使って、`DocumentBucketName`で Cfn 出力されているバケットの、`getOriginalDocumentKey`で構成されるパスにアップロード
-- ドキュメントは複数アップロードできる
-- それぞれのドキュメントに対して、`getOriginalDocumentKey`が個々紐づく
-- アップロード完了したら、`DocumentPageProcessor`で定義されている SFn が自動で実行される
-- 処理のステータスは schema.prisma の Document で管理される
-- 画面にはそのステータスを表示する
-  - チェックリストセット一覧にステータス（処理中、完了など）が表示される
-- 必要な API がなければ実装
+- improved-checklist-api-specification.md に変更内容を記載
+- これに基づいて backend/api/features/checklist を実装せよ
+- まず check リストの新規作成だけ行い、手を止めてください
 
 #### チェックリスト作成の修正
 

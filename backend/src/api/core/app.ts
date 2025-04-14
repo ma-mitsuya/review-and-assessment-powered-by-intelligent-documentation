@@ -1,41 +1,27 @@
 /**
- * Fastifyアプリケーションのエントリーポイント
+ * Fastifyアプリケーションの作成
  */
-
-import fastify, { FastifyInstance } from 'fastify';
-import checklistManagementRoutes from '../features/checklist-management';
+import Fastify, { FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
 
 /**
- * Fastifyアプリケーションの作成
+ * Fastifyアプリケーションを作成する
  * @returns Fastifyインスタンス
  */
 export function createApp(): FastifyInstance {
-  const app = fastify({
+  const app = Fastify({
     logger: true
   });
-
+  
   // CORSの設定
-  app.register(require('@fastify/cors'), {
-    origin: '*', // 本番環境では適切に制限する
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  app.register(cors, {
+    origin: process.env.CORS_ORIGIN || '*'
   });
-
+  
   // ヘルスチェックエンドポイント
-  app.get('/health', async () => {
-    return { status: 'ok' };
+  app.get('/health', async (_, reply) => {
+    reply.code(200).send({ status: 'ok' });
   });
-
-  // 各機能のルートを登録
-  app.register(checklistManagementRoutes, { prefix: '/api/v1' });
-
-  // エラーハンドラー
-  app.setErrorHandler((error, request, reply) => {
-    app.log.error(error);
-    reply.status(500).send({
-      success: false,
-      error: '内部サーバーエラーが発生しました'
-    });
-  });
-
+  
   return app;
 }

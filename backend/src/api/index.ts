@@ -1,56 +1,44 @@
 /**
- * BEACON バックエンドAPIのエントリーポイント
+ * APIエントリーポイント
  */
+import { createApp } from './core/app';
+import { registerChecklistRoutes } from './features/checklist';
+import { registerDocumentRoutes } from './features/document';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import { PrismaClient } from '@prisma/client';
-import { registerCheckListRoutes } from './features/checklist-management/routes';
-import { registerCheckListItemRoutes } from './features/checklist-item-management/routes';
-
-// Fastifyインスタンスの作成
-const fastify = Fastify({
-  logger: true
-});
-
-// CORSの設定
-fastify.register(cors, {
-  origin: true // 開発環境では全てのオリジンを許可
-});
-
-// Prismaクライアントの初期化
-const prisma = new PrismaClient();
-
-// ルートの登録
-fastify.get('/', async () => {
-  return { status: 'ok', message: 'BEACON API is running' };
-});
-
-// 各機能のルートを登録
-registerCheckListRoutes(fastify, prisma);
-registerCheckListItemRoutes(fastify, prisma);
-
-// サーバー起動
-const start = async () => {
+/**
+ * アプリケーションを起動する
+ */
+async function startApp() {
+  const app = createApp();
+  
+  // ルートの登録
+  registerChecklistRoutes(app);
+  registerDocumentRoutes(app);
+  
+  // アプリケーションの起動
   try {
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    console.log('Server is running on http://localhost:3000');
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+    const host = process.env.HOST || '0.0.0.0';
+    
+    await app.listen({ port, host });
+    console.log(`Server is running on http://${host}:${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    console.error('Error starting server:', err);
     process.exit(1);
   }
-};
+}
 
-// プロセス終了時にPrisma接続を閉じる
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
+// ESMでは import.meta.url を使用して現在のファイルパスを取得
+const currentFileUrl = import.meta.url;
+const currentFilePath = fileURLToPath(currentFileUrl);
+const mainModulePath = process.argv[1] ? fileURLToPath(new URL(process.argv[1], 'file:///')) : '';
 
-process.on('SIGTERM', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
+// 現在のファイルが直接実行されている場合にアプリケーションを起動
+if (currentFilePath === mainModulePath) {
+  startApp();
+}
 
-// サーバー起動
-start();
+// テスト用にエクスポート
+export { createApp };
