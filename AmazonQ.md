@@ -1,48 +1,128 @@
-# バックエンドリファクタリング: ドメイン駆動設計の適用
+## ディレクトリ構成
 
-## 変更内容
+All TS プロジェクトです。
 
-1. **ドメイン中心の設計に変更**
-   - `document-upload` 機能を `checklist-management` に統合
-   - APIパスをドメイン表現に変更（`/api/documents/...` → `/api/checklists/uploads/...`）
+- cdk
+  - package.json
+- backend
+  - package.json
+- frontend (React SPA, tailwind css)
+  - package.json
 
-2. **フロントエンドの構造との一貫性確保**
-   - フロントエンドの `checklist-creation` と `checklist` の構造に合わせてバックエンドを整理
+NOTE: root ディレクトリに package.json は存在しません。　 npm init で作成しないように。
 
-3. **RESTfulなAPI設計の改善**
-   - リソースIDをURLパスに含める設計に統一
-   - 例: `/api/checklists/uploads/:id/process`
+## 技術スタック
 
-## 変更したファイル
+厳守せよ。
 
-1. **新規作成ファイル**
-   - `/src/api/features/checklist-management/document-repository.ts`
-   - `/src/api/features/checklist-management/document-service.ts`
-   - `/src/api/features/checklist-management/__tests__/document-service.test.ts`
+### テスト
 
-2. **更新ファイル**
-   - `/src/api/features/checklist-management/types.ts`
-   - `/src/api/features/checklist-management/routes.ts`
-   - `/src/api/features/checklist-management/index.ts`
-   - `/src/api/index.ts`
+- vitest (**jest は禁止**)
+- 実装する際は既存のテストを参考にせよ
+  - example) backend/src/features/document-processing/**tests**
 
-3. **削除対象ファイル**
-   - `/src/api/features/document-upload/` ディレクトリ全体
+### 言語
 
-## 新しいAPIエンドポイント
+- すべて TypeScript。Python 禁止、JavaScript も禁止
+- CommonJS は厳禁。いかなる時も ES Modules (ESM)利用すること
+
+### Web フレームワーク
+
+- REST API は Fastify 利用
+- 実装は src/api 下に行う
+- 共通コア実装: src/api/core
+- ドメイン別機能: src/api/features
+- レイヤードアーキテクチャを採用
+
+### フロントエンド
+
+- vite React SPA
+- tailwind
+- ディレクトリ構成
+  - 基本はベストプラクティスにそう
+  - pages, hooks,　 compoments, etc
+  - API フェッチは標準の fetch 利用
+  - SWR 利用
+  - hooks などアプリ共通で使うものは src のルートに配置で良いが、基本は feature ベースを採用
+    - 機能ごとに features/\*ディレクトリを作成し、その下に hooks, components, etc を配置
+- 実装の前に一度バックエンドのエンドポイントを見て把握すること
+  - backend/src/api
+  - DB 構造 も見ておくと良いでしょう: backend/prisma/schema.prisma
+
+### DB
+
+- MySQL
+- Prisma
+- スキーマは db_schema_design/README, backend/prisma/schema.prisma 参照
+- repository 単体テストは実際の DB に接続し動作確認すること。backend/src/api/features/checklist-management/**tests**/repository-integration.test.ts を参考
+  - なおこの際、backend/package.json を参考に migration/seed を実施する必要があります
+
+## 利用できるツール
+
+積極的に利用してください。
+
+### バックエンドテスト
+
+```bash
+# ユニットテストの実行
+npm run test -- test-suite
+
+# すべてのテストを実行
+npm test
+
+# ビルド通るか確認
+npm run build
+```
+
+### デプロイ
+
+「デプロイしてください」と言われた場合にのみ実行:
 
 ```
-/api/checklists                           # チェックリスト一覧取得・作成
-/api/checklists/:id                       # チェックリスト取得・更新・削除
-/api/checklists/:checklistId/documents    # チェックリストに紐づくドキュメント一覧取得
-/api/checklists/uploads/presigned-url     # 単一ファイルのPresigned URL取得
-/api/checklists/uploads/presigned-urls    # 複数ファイルのPresigned URL取得
-/api/checklists/uploads/:id/process       # ドキュメント処理開始
-/api/checklists/uploads/:id/status        # ドキュメントステータス取得
+cd backend
+npm run build  // ここで失敗した場合、概要のみ報告。修正は行ってはいけません
+cd ../cdk
+cdk deploy --require-approval never
 ```
 
-## 今後の課題
+### 統合テスト
 
-1. フロントエンドのAPI呼び出し部分を新しいエンドポイントに対応させる
-2. 古いAPIエンドポイントを完全に削除する前に、移行期間を設けて互換性を確保する
-3. ドキュメント処理のワークフローを最適化する
+#### チェックリスト抽出
+
+「チェックリスト抽出テストしてください」と言われた場合にのみ実行
+
+- cdk/lib/constructs/document-page-processor.ts の SFn を動作させ、処理が正常終了するかを確認する
+- CfnOutput の StateMachineArn から Arn 取得可能
+- input は下記:
+  画像の場合：
+
+```json
+{
+  "documentId": "test-image-1",
+  "fileName": "placement_diagram.png"
+}
+```
+
+PDF の場合:
+
+```json
+{
+  "documentId": "test-pdf-1",
+  "fileName": "他社物件書面チェックリスト（原本）.pdf"
+}
+```
+
+## Custom instructions
+
+- あなたはプロの IT エンジニアです。
+- 不具合が発生した時は根本原因の究明を最優先し、原因が判明するまで修正しません。
+- 不具合を修正する時は既存の設計を尊重します。既存の設計を調査することでより正しい原因を究明できます。
+- 安全で慎重なアプローチを優先します。新しい実装や改善を行う場合は常に計画をたて、すでに計画書があればアップデートし、なければ作ります。計画の中でリスクを予想し、リスクに対する対策を立てます。
+- ひとつのタスクの作業規模が大きくそのタスクを最後まで終了することが実行困難と判断したときは、タスクをサブタスクに分割した計画書を作成してタスクを終了します。その時、計画書には実行済みまたは未実施がわかる様に記載します。
+- 新規に機能を実装する場合、一度にすべて実装するのではなく、小さな composable なパーツを実装し、可能な限り単体テストを実装し、実行します。一つ一つ、段階的かつ着実に作業を進めます。
+- 新規追加や修正する場合、常に既存の実装やスタイルを参考、優先します。
+- 各 composable なパーツは可能な限り副作用を分離します。どうしても副作用が必要な場合は inject できるようにします。
+- immutable な実装を常に優先します。
+- クラスより関数を優先します。ただし状態管理が重要な場合はこの限りではありません。
+- 複数のアプローチを考えた上で、より良い解決策を積極的に提案します。
+- 時として人間らしく喜怒哀楽を表現します。
