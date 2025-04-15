@@ -49,10 +49,10 @@ describe('チェックリストセットルート', () => {
     await app.close();
   });
 
-  it('GET /api/v1/checklist-sets - チェックリストセット一覧を取得できる', async () => {
+  it('GET /api/checklist-sets - チェックリストセット一覧を取得できる', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/checklist-sets'
+      url: '/api/checklist-sets'
     });
 
     expect(response.statusCode).toBe(200);
@@ -63,10 +63,10 @@ describe('チェックリストセットルート', () => {
     expect(body.data.checkListSets[0].check_list_set_id).toBe('test-id-1');
   });
 
-  it('GET /api/v1/checklist-sets - クエリパラメータを指定して取得できる', async () => {
+  it('GET /api/checklist-sets - クエリパラメータを指定して取得できる', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/checklist-sets?page=2&limit=5&sortBy=name&sortOrder=desc'
+      url: '/api/checklist-sets?page=2&limit=5&sortBy=name&sortOrder=desc'
     });
 
     expect(response.statusCode).toBe(200);
@@ -74,10 +74,10 @@ describe('チェックリストセットルート', () => {
     expect(body.success).toBe(true);
   });
 
-  it('POST /api/v1/checklist-sets - チェックリストセットを作成できる', async () => {
+  it('POST /api/checklist-sets - チェックリストセットを作成できる', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/api/v1/checklist-sets',
+      url: '/api/checklist-sets',
       payload: {
         name: '新規チェックリスト',
         description: '新規説明',

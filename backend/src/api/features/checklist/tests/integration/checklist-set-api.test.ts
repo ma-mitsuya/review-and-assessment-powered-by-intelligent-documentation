@@ -26,7 +26,7 @@ describe('ChecklistSet API Integration Tests', () => {
     resetPrismaClient();
   });
   
-  describe('POST /api/v1/checklist-sets', () => {
+  describe('POST /api/checklist-sets', () => {
     it('チェックリストセットを作成できること', async () => {
       const documentId = generateId();
       
@@ -45,7 +45,7 @@ describe('ChecklistSet API Integration Tests', () => {
       
       const response = await app.inject({
         method: 'POST',
-        url: '/api/v1/checklist-sets',
+        url: '/api/checklist-sets',
         payload
       });
       
@@ -87,7 +87,7 @@ describe('ChecklistSet API Integration Tests', () => {
       
       const response = await app.inject({
         method: 'POST',
-        url: '/api/v1/checklist-sets',
+        url: '/api/checklist-sets',
         payload
       });
       

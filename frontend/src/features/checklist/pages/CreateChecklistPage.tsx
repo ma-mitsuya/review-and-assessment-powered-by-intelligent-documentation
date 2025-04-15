@@ -34,6 +34,7 @@ export function CreateChecklistPage() {
     uploadedDocuments, 
     clearUploadedDocuments, 
     removeDocument,
+    deleteDocument,
     isUploading, 
     error: uploadError 
   } = useDocumentUpload();
@@ -84,7 +85,7 @@ export function CreateChecklistPage() {
   };
   
   // ファイル削除ハンドラ
-  const handleFileRemove = (index: number) => {
+  const handleFileRemove = async (index: number) => {
     const fileToRemove = selectedFiles[index];
     
     // 選択済みファイルリストから削除
@@ -95,7 +96,8 @@ export function CreateChecklistPage() {
     // アップロード済みドキュメントリストからも削除
     const docToRemove = uploadedDocuments.find(doc => doc.filename === fileToRemove.name);
     if (docToRemove) {
-      removeDocument(docToRemove.documentId);
+      // S3からも削除
+      await deleteDocument(docToRemove.documentId);
     }
     
     // ファイルがなくなった場合はエラーを表示
@@ -205,6 +207,7 @@ export function CreateChecklistPage() {
             error={errors.files}
             isUploading={isUploading}
             uploadedDocuments={uploadedDocuments}
+            onDeleteFile={handleFileRemove}
           />
           
           <div className="flex justify-end space-x-3">

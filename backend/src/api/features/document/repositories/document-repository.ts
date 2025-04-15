@@ -59,4 +59,29 @@ export class DocumentRepository {
       }
     });
   }
+
+  /**
+   * ドキュメントを削除する
+   * @param documentId ドキュメントID
+   * @returns 削除成功時はtrue
+   */
+  async deleteDocument(documentId: string): Promise<boolean> {
+    const prisma = getPrismaClient();
+    await prisma.document.delete({
+      where: { id: documentId }
+    });
+    return true;
+  }
+
+  /**
+   * チェックリストセットに関連するドキュメント一覧を取得する
+   * @param checkListSetId チェックリストセットID
+   * @returns ドキュメント一覧
+   */
+  async getDocumentsByChecklistSetId(checkListSetId: string) {
+    const prisma = getPrismaClient();
+    return prisma.document.findMany({
+      where: { checkListSetId }
+    });
+  }
 }

@@ -3,7 +3,7 @@
  * ファイル選択時にpresigned URLを取得し、S3へのアップロードを行う
  */
 import { useState } from 'react';
-import { postData } from '../../../hooks/useFetch';
+import { postData, deleteData } from '../../../hooks/useFetch';
 
 /**
  * Presigned URL レスポンス
@@ -32,6 +32,7 @@ interface UseDocumentUploadReturn {
   uploadedDocuments: DocumentUploadResult[];
   clearUploadedDocuments: () => void;
   removeDocument: (documentId: string) => void;
+  deleteDocument: (documentId: string) => Promise<boolean>;
   isUploading: boolean;
   error: Error | null;
 }
@@ -79,6 +80,29 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
     } catch (error) {
       console.error('S3アップロードエラー:', error);
       throw error;
+    }
+  };
+
+  /**
+   * S3からファイルを削除する
+   */
+  const deleteFromS3 = async (s3Key: string): Promise<boolean> => {
+    try {
+      const response = await deleteData(
+        `/documents/${encodeURIComponent(s3Key)}`
+      );
+
+      if (!response.success) {
+        throw new Error(`ファイルの削除に失敗しました: ${s3Key}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("S3削除エラー:", error);
+      setError(
+        error instanceof Error ? error : new Error("ファイル削除に失敗しました")
+      );
+      return false;
     }
   };
 
@@ -131,11 +155,36 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
     setUploadedDocuments(prev => prev.filter(doc => doc.documentId !== documentId));
   };
 
+  /**
+   * ドキュメントを削除する
+   * ファイル選択解除とS3からの削除を行う
+   */
+  const deleteDocument = async (documentId: string): Promise<boolean> => {
+    const docToDelete = uploadedDocuments.find(
+      (doc) => doc.documentId === documentId
+    );
+    if (!docToDelete) return false;
+
+    // S3から削除
+    const deleted = await deleteFromS3(docToDelete.s3Key);
+
+    if (deleted) {
+      // アップロード済みドキュメントリストから削除
+      setUploadedDocuments((prev) =>
+        prev.filter((doc) => doc.documentId !== documentId)
+      );
+      return true;
+    }
+
+    return false;
+  };
+
   return {
     uploadDocument,
     uploadedDocuments,
     clearUploadedDocuments,
     removeDocument,
+    deleteDocument,
     isUploading,
     error
   };

@@ -19,7 +19,7 @@ export function CheckListPage() {
   // チェックリストセットの削除処理
   const handleDelete = async (id: string, name: string) => {
     try {
-      await deleteData(`/api/v1/checklist-sets/${id}`);
+      await deleteData(`/api/checklist-sets/${id}`);
       // 削除後にリストを再取得
       mutate();
     } catch (error) {

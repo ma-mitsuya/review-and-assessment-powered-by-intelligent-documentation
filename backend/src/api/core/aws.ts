@@ -1,7 +1,7 @@
 /**
  * AWS関連のユーティリティ
  */
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // S3クライアントのシングルトンインスタンス
@@ -42,4 +42,23 @@ export async function getPresignedUrl(
   });
   
   return getSignedUrl(client, command, { expiresIn });
+}
+
+/**
+ * S3からオブジェクトを削除する
+ * @param bucket バケット名
+ * @param key オブジェクトキー
+ * @returns 削除結果
+ */
+export async function deleteS3Object(
+  bucket: string,
+  key: string
+): Promise<void> {
+  const client = getS3Client();
+  const command = new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: key,
+  });
+
+  await client.send(command);
 }

@@ -39,3 +39,37 @@ export const getPresignedUrlSchema: FastifySchema = {
     }
   }
 };
+
+/**
+ * ドキュメント削除リクエストのスキーマ
+ */
+export const deleteDocumentSchema: FastifySchema = {
+  params: {
+    type: 'object',
+    required: ['key'],
+    properties: {
+      key: { type: 'string' },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            deleted: { type: 'boolean' },
+          },
+        },
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        error: { type: 'string' },
+      },
+    },
+  },
+};

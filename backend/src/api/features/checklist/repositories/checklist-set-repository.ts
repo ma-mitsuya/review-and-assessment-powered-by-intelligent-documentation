@@ -100,4 +100,27 @@ export class ChecklistSetRepository {
       return checkListSet;
     });
   }
+
+  /**
+   * チェックリストセットとその関連データを削除する
+   * @param checklistSetId チェックリストセットID
+   */
+  async deleteChecklistSetWithRelations(checklistSetId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      // 関連するチェックリスト項目を削除
+      await tx.checkList.deleteMany({
+        where: { checkListSetId: checklistSetId }
+      });
+
+      // 関連するドキュメントを削除
+      await tx.document.deleteMany({
+        where: { checkListSetId: checklistSetId }
+      });
+
+      // チェックリストセットを削除
+      await tx.checkListSet.delete({
+        where: { id: checklistSetId }
+      });
+    });
+  }
 }

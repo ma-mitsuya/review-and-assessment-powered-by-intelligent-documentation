@@ -5,7 +5,7 @@ import {
   ApiResponse 
 } from '../types';
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = '/api';
 
 /**
  * チェックリストセット一覧を取得するためのフック

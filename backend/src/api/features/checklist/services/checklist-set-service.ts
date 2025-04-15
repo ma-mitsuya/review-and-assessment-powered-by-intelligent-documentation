@@ -3,6 +3,9 @@
  */
 import { Document } from '@prisma/client';
 import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
+import { DocumentRepository } from '../../document/repositories/document-repository';
+import { ok, err, Result } from '../../../../core/utils/result';
+import { deleteS3Object } from '../../../core/aws';
 
 /**
  * ドキュメント情報
@@ -51,9 +54,11 @@ export interface GetChecklistSetsResult {
  */
 export class ChecklistSetService {
   private repository: ChecklistSetRepository;
+  private documentRepository: DocumentRepository;
   
   constructor() {
     this.repository = new ChecklistSetRepository();
+    this.documentRepository = new DocumentRepository();
   }
   
   /**
@@ -109,6 +114,35 @@ export class ChecklistSetService {
       checkListSets,
       total
     };
+  }
+
+  /**
+   * チェックリストセットを削除する
+   * @param checklistSetId チェックリストセットID
+   * @returns 削除結果
+   */
+  async deleteChecklistSet(checklistSetId: string): Promise<Result<boolean, Error>> {
+    try {
+      // 関連するドキュメント情報を取得
+      const documents = await this.documentRepository.getDocumentsByChecklistSetId(checklistSetId);
+
+      // DBからチェックリストセットとその関連データを削除
+      await this.repository.deleteChecklistSetWithRelations(checklistSetId);
+
+      // S3から関連するすべてのファイルを削除
+      const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+      for (const document of documents) {
+        try {
+          await deleteS3Object(bucketName, document.s3Path);
+        } catch (s3Error) {
+          console.error(`S3 deletion failed for document ${document.id}:`, s3Error);
+        }
+      }
+
+      return ok(true);
+    } catch (error) {
+      return err(error instanceof Error ? error : new Error(String(error)));
+    }
   }
 
   /**
