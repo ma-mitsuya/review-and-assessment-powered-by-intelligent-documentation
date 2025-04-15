@@ -8,7 +8,7 @@ import {
   CheckListItemFormPage,
   CreateChecklistPage 
 } from './features/checklist';
-import ReviewPage from './pages/ReviewPage';
+import { ReviewListPage, ReviewCreatePage } from './features/review';
 import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
@@ -43,9 +43,12 @@ function App() {
             <Route path="checklist/:setId/items/new" element={<CheckListItemFormPage />} />
             <Route path="checklist-items/:itemId/edit" element={<CheckListItemFormPage />} />
             
+            {/* 審査関連のルート */}
+            <Route path="review" element={<ReviewListPage />} />
+            <Route path="review/create" element={<ReviewCreatePage />} />
+            
             {/* その他のルート */}
-            <Route path="review" element={<ReviewPage />} />
-            <Route path="documents" element={<ReviewPage />} />
+            <Route path="documents" element={<ReviewListPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

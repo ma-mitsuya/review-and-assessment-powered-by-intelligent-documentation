@@ -3,8 +3,12 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FileUploader } from '../../../components/FileUploader';
+import { useNavigate } from 'react-router-dom';
+import PageHeader from '../../../components/PageHeader';
+import FormTextField from '../../../components/FormTextField';
+import FormTextArea from '../../../components/FormTextArea';
+import FormFileUpload from '../../../components/FormFileUpload';
+import Button from '../../../components/Button';
 import { useChecklistCreation } from '../hooks/useChecklistCreation';
 import { useDocumentUpload, DocumentUploadResult } from '../hooks/useDocumentUpload';
 import { ProcessingStatus } from '../components/ProcessingStatus';
@@ -150,18 +154,14 @@ export function CreateChecklistPage() {
   
   return (
     <div>
-      <div className="mb-8">
-        <Link to="/checklist" className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          チェックリスト一覧に戻る
-        </Link>
-        <h1 className="text-3xl font-bold text-aws-squid-ink-light">チェックリストセットの新規作成</h1>
-        <p className="text-aws-font-color-gray mt-2">
-          新しいチェックリストセットを作成し、関連ファイルをアップロードします
-        </p>
-      </div>
+      <PageHeader
+        title="チェックリストセットの新規作成"
+        description="新しいチェックリストセットを作成し、関連ファイルをアップロードします"
+        backLink={{
+          to: "/checklist",
+          label: "チェックリスト一覧に戻る"
+        }}
+      />
       
       {displayError && (
         <div className="bg-light-red border border-red text-red px-6 py-4 rounded-md shadow-sm mb-6" role="alert">
@@ -177,83 +177,47 @@ export function CreateChecklistPage() {
       
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label htmlFor="name" className="block text-aws-squid-ink-light font-medium mb-2">
-              名前 <span className="text-red">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
-                errors.name ? 'border-red' : 'border-light-gray'
-              }`}
-              placeholder="チェックリストセットの名前"
-            />
-            {errors.name && (
-              <p className="mt-1 text-red text-sm">{errors.name}</p>
-            )}
-          </div>
+          <FormTextField
+            id="name"
+            name="name"
+            label="名前"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="チェックリストセットの名前"
+            required
+            error={errors.name}
+          />
           
-          <div className="mb-6">
-            <label htmlFor="description" className="block text-aws-squid-ink-light font-medium mb-2">
-              説明
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-              placeholder="チェックリストセットの説明"
-            />
-          </div>
+          <FormTextArea
+            id="description"
+            name="description"
+            label="説明"
+            value={formData.description}
+            onChange={handleInputChange}
+            placeholder="チェックリストセットの説明"
+          />
           
-          <div className="mb-6">
-            <label className="block text-aws-squid-ink-light font-medium mb-2">
-              ファイル <span className="text-red">*</span>
-            </label>
-            <FileUploader 
-              files={selectedFiles}
-              onFilesChange={handleFilesChange}
-              isUploading={isUploading}
-            />
-            {errors.files && (
-              <p className="mt-1 text-red text-sm">{errors.files}</p>
-            )}
-            
-            {/* アップロード済みファイル一覧 */}
-            {uploadedDocuments.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium text-aws-squid-ink-light mb-2">アップロード済みファイル:</h3>
-                <ul className="text-sm">
-                  {uploadedDocuments.map((doc, index) => (
-                    <li key={doc.documentId} className="flex items-center text-aws-font-color-gray mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      {doc.filename}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          <FormFileUpload
+            label="ファイル"
+            files={selectedFiles}
+            onFilesChange={handleFilesChange}
+            required
+            error={errors.files}
+            isUploading={isUploading}
+            uploadedDocuments={uploadedDocuments}
+          />
           
           <div className="flex justify-end space-x-3">
-            <Link
+            <Button
+              variant="outline"
               to="/checklist"
-              className="px-5 py-2.5 border border-light-gray rounded-md text-aws-squid-ink-light hover:bg-aws-paper-light transition-colors"
             >
               キャンセル
-            </Link>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               type="submit"
               disabled={isCreating || isUploading || uploadedDocuments.length === 0}
-              className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {(isCreating || isUploading) && (
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -262,7 +226,7 @@ export function CreateChecklistPage() {
                 </svg>
               )}
               作成
-            </button>
+            </Button>
           </div>
         </form>
       </div>
