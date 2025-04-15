@@ -20,4 +20,7 @@
 - すべて TypeScript。JavaScript 厳禁
 - CommonJS は厳禁。いかなる時も ES Modules (ESM)利用すること
 
-##
+## コアコンポーネントの利用
+
+- 実装の際は必ず frontend/src/components に下にあるコンポーネントの利用を試みよ
+  - e.g. ボタンを利用する場合など。なお不足の場合は継承したボタンを各 features/components 下に作成せよ
