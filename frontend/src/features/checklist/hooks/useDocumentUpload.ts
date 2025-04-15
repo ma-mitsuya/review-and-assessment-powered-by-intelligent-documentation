@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { ApiResponse } from '../types';
-import { DocumentInfo, PresignedUrlResponse } from '../../../types/file';
+import { ApiResponse, DocumentInfo, PresignedUrlResponse } from '../types';
 
 const API_BASE_URL = '/api';
 

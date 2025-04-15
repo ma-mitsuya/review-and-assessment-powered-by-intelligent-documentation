@@ -2,7 +2,7 @@
  * チェックリスト機能の型定義
  */
 
-import { DocumentStatus, GetPresignedUrlRequest, PresignedUrlResponse } from '../../../types/file';
+import { DocumentStatus } from '../../../types/file';
 import { ApiResponse as CoreApiResponse } from '../../../types/api';
 
 /**
@@ -176,6 +176,26 @@ export type ChecklistCreationState = {
   items: CheckListItem[];
   selectedItemId: string | null;
   isEditing: boolean;
+};
+
+/**
+ * Presigned URL取得リクエスト
+ */
+export type GetPresignedUrlRequest = {
+  documentId: string;
+  fileName: string;
+  fileType: string;
+  checkListSetId?: string;
+};
+
+/**
+ * Presigned URLレスポンス
+ */
+export type PresignedUrlResponse = {
+  url: string;
+  documentId: string;
+  fields?: Record<string, string>;
+  key?: string;
 };
 
 /**

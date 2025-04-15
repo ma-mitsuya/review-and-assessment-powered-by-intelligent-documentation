@@ -3,7 +3,7 @@
  */
 
 import { useEffect } from 'react';
-import { DocumentStatus } from '../../../types/file';
+import { DocumentStatus } from '../types';
 
 export interface DocumentStatusItem {
   document_id: string;

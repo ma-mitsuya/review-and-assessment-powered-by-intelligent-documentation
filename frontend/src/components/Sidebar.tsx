@@ -64,7 +64,7 @@ export default function Sidebar() {
             <img 
               src={iconImage} 
               alt="BEACON Logo" 
-              className="h-8 w-8 mr-3"
+              className="h-16 w-16 mr-3"
             />
             <h1 className="text-2xl font-bold">BEACON</h1>
           </div>

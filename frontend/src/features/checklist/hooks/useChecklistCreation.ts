@@ -5,8 +5,8 @@
 import { useState } from 'react';
 import { postData } from '../../../hooks/useFetch';
 import { useFileUpload } from '../../../hooks/useFileUpload';
-import { DocumentStatus } from '../../../types/file';
-import { DocumentStatusItem } from '../components/creation/ProcessingStatus';
+import { DocumentStatus } from '../types';
+import { DocumentStatusItem } from '../components/ProcessingStatus';
 
 /**
  * チェックリスト作成リクエスト

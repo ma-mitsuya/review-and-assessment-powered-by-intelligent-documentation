@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { postData } from './useFetch';
-import { GetPresignedUrlRequest, PresignedUrlResponse, StartProcessingRequest } from '../types/file';
+import { GetPresignedUrlRequest, PresignedUrlResponse, StartProcessingRequest } from '../features/checklist/types';
 
 /**
  * ファイルアップロード結果

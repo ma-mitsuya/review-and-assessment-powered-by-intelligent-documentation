@@ -18,6 +18,10 @@ frontend/src/features/checklist/pages/CreateChecklistPage.tsx で、現在ファ
 - ファイル選択すると、presigend-url 発行される
   - 発行の実装は既にされている。既存の実装を確認せよ
 - 発行のレスポンスで得たドキュメント ID を使って、create
+- 現在の実装はチェックリストのデータのみが Backend へ送信 -> uploadFiles を使ってアップロードとなっているが、この実装は API spec 　と異なる
+  - API の仕様書と異なる実装を削除せよ
+  - 必要な API がまだない場合は実装せよ（backend + frontend hook）
+- 上記を実装するための実行計画を立てよ。詳細なコード例は不要です
 
 ## アイコン
 
