@@ -3,7 +3,21 @@
 ## リファクタリング
 
 - frontend で、root の Pages と、features/checklist の pages と両方あり、散財しています。チェックリスト関連はすべて features/checklist に統一せよ
--
+- types が散財。checklist 関連のものはすべて　 features/、そうでない　共通・コアは root に集約せよ
+  - frontend/src/features/checklist/types.ts
+  - frontend/src/features/checklist/types/index.ts
+  - frontend/src/types/api.ts
+  - frontend/src/types/file.ts
+- 削除すべきファイル・パスと、修正すべきファイル・パスをすべて洗い出せ
+  - 同時に、import の修正すべき箇所もすべて洗い出せ
+
+## チェックリスト作成の修正
+
+frontend/src/features/checklist/pages/CreateChecklistPage.tsx で、現在ファイルを選択しただけではアップロード処理は行われません。
+
+- ファイル選択すると、presigend-url 発行される
+  - 発行の実装は既にされている。既存の実装を確認せよ
+- 発行のレスポンスで得たドキュメント ID を使って、create
 
 ## アイコン
 

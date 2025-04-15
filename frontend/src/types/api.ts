@@ -1,5 +1,5 @@
 /**
- * API関連の型定義
+ * API関連の共通型定義
  */
 
 /**
@@ -14,37 +14,4 @@ export type ApiResponse<T = any> = {
     limit?: number;
     total?: number;
   };
-};
-
-/**
- * チェックリストセットの型定義
- */
-export type CheckListSet = {
-  check_list_set_id: string;
-  name: string;
-  description: string;
-  documents?: {
-    document_id: string;
-    filename: string;
-    status: string;
-  }[];
-};
-
-/**
- * チェックリスト項目の型定義
- */
-export type CheckListItem = {
-  check_id: string;
-  name: string;
-  description: string;
-  parent_id?: string;
-  check_list_set_id: string;
-  item_type: 'SIMPLE' | 'FLOW';
-  is_conclusion: boolean;
-  flow_data?: {
-    next_if_yes?: string;
-    next_if_no?: string;
-    condition_type: string;
-  };
-  meta_data?: Record<string, any>;
 };

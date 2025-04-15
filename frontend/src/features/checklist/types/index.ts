@@ -2,7 +2,8 @@
  * チェックリスト機能の型定義
  */
 
-import { DocumentStatus } from '../../../types/file';
+import { DocumentStatus, GetPresignedUrlRequest, PresignedUrlResponse } from '../../../types/file';
+import { ApiResponse as CoreApiResponse } from '../../../types/api';
 
 /**
  * チェックリスト項目タイプ
@@ -81,10 +82,7 @@ export type CheckListSetDetail = CheckListSet & {
 /**
  * API レスポンス型
  */
-export type ApiResponse<T> = {
-  success: boolean;
-  data: T;
-};
+export type ApiResponse<T> = CoreApiResponse<T>;
 
 export type ApiErrorResponse = {
   success: false;
@@ -180,6 +178,25 @@ export type ChecklistCreationState = {
   isEditing: boolean;
 };
 
+/**
+ * ドキュメント処理開始リクエスト
+ */
+export type StartProcessingRequest = {
+  documentId: string;
+  fileName: string;
+};
+
+/**
+ * ドキュメント情報
+ */
+export type DocumentInfo = {
+  document_id: string;
+  filename: string;
+  status: DocumentStatus;
+  created_at?: string;
+  updated_at?: string;
+  check_list_set_id?: string;
+};
 /**
  * チェックリストセットリストのProps
  */

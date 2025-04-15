@@ -1,13 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SWRConfig } from 'swr';
 import Layout from './components/Layout';
-import CheckListPage from './pages/CheckListPage';
-import CheckListSetDetailPage from './pages/CheckListSetDetailPage';
-import CheckListSetFormPage from './pages/CheckListSetFormPage';
-import CheckListItemFormPage from './pages/CheckListItemFormPage';
+import { 
+  CheckListPage, 
+  CheckListSetDetailPage, 
+  CheckListSetFormPage, 
+  CheckListItemFormPage,
+  CreateChecklistPage 
+} from './features/checklist';
 import ReviewPage from './pages/ReviewPage';
 import NotFoundPage from './pages/NotFoundPage';
-import { CreateChecklistPage } from './features/checklist';
 import './App.css';
 
 /**

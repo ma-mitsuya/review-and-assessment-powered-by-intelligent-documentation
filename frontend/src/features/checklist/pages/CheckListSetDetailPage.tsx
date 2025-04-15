@@ -1,13 +1,13 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useCheckListSet } from '../features/checklist/hooks/useCheckListSets';
-import { useCheckListItems } from '../features/checklist/hooks/useCheckListItems';
-import CheckListViewer from '../features/checklist/components/CheckListViewer';
-import { deleteData } from '../hooks/useFetch';
+import { useCheckListSet } from '../hooks/useCheckListSets';
+import { useCheckListItems } from '../hooks/useCheckListItems';
+import CheckListViewer from '../components/CheckListViewer';
+import { deleteData } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット詳細ページ
  */
-export default function CheckListSetDetailPage() {
+export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: checkListSet, error: setError, isLoading: setLoading } = useCheckListSet(id);
@@ -125,3 +125,5 @@ export default function CheckListSetDetailPage() {
     </div>
   );
 }
+
+export default CheckListSetDetailPage;

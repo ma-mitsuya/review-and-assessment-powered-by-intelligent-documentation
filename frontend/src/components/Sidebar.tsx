@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import iconImage from '../assets/icon.png';
 
 /**
  * サイドバーコンポーネント
@@ -60,20 +61,11 @@ export default function Sidebar() {
       >
         <div className="p-6">
           <div className="flex items-center mb-8">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-8 w-8 mr-3 text-aws-aqua" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
+            <img 
+              src={iconImage} 
+              alt="BEACON Logo" 
+              className="h-8 w-8 mr-3"
+            />
             <h1 className="text-2xl font-bold">BEACON</h1>
           </div>
           

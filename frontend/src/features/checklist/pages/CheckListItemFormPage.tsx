@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCheckListItem, useCheckListItems, createCheckListItem, updateCheckListItem } from '../features/checklist/hooks/useCheckListItems';
-import { useCheckListSet } from '../features/checklist/hooks/useCheckListSets';
-import { CheckListItem } from '../types/api';
+import { useCheckListItem, useCheckListItems, createCheckListItem, updateCheckListItem } from '../hooks/useCheckListItems';
+import { useCheckListSet } from '../hooks/useCheckListSets';
+import { CheckListItem } from '../types';
 
 /**
  * チェックリスト項目作成・編集ページ
  */
-export default function CheckListItemFormPage() {
+export function CheckListItemFormPage() {
   const { setId, itemId } = useParams<{ setId: string; itemId: string }>();
   const navigate = useNavigate();
   const isEditMode = !!itemId;
@@ -389,3 +389,5 @@ export default function CheckListItemFormPage() {
     </div>
   );
 }
+
+export default CheckListItemFormPage;

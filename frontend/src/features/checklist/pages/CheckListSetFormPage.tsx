@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCheckListSet } from '../features/checklist/hooks/useCheckListSets';
-import { postData, putData } from '../hooks/useFetch';
+import { useCheckListSet } from '../hooks/useCheckListSets';
+import { postData, putData } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット作成・編集ページ
  */
-export default function CheckListSetFormPage() {
+export function CheckListSetFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
@@ -206,3 +206,5 @@ export default function CheckListSetFormPage() {
     </div>
   );
 }
+
+export default CheckListSetFormPage;

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCheckListSets } from '../features/checklist/hooks/useCheckListSets';
-import CheckListSetList from '../features/checklist/components/CheckListSetList';
-import { deleteData } from '../hooks/useFetch';
+import { useCheckListSets } from '../hooks/useCheckListSets';
+import CheckListSetList from '../components/CheckListSetList';
+import { deleteData } from '../../../hooks/useFetch';
 
 /**
  * チェックリスト一覧ページ
  */
-export default function CheckListPage() {
+export function CheckListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   
@@ -62,3 +62,5 @@ export default function CheckListPage() {
     </div>
   );
 }
+
+export default CheckListPage;
