@@ -83,7 +83,7 @@ export class ChecklistSetRepository {
           id: checkListSetId,
           name,
           description,
-          // ドキュメントを関連付け
+          // ドキュメントを関連付け（ステータスをprocessingに設定）
           documents: {
             create: documents.map(doc => ({
               id: doc.documentId,
@@ -91,7 +91,7 @@ export class ChecklistSetRepository {
               s3Path: doc.s3Key,
               fileType: doc.fileType,
               uploadDate: new Date(),
-              status: 'pending'
+              status: 'processing' // 'pending'から変更
             }))
           }
         }

@@ -70,6 +70,12 @@ export class BeaconStack extends cdk.Stack {
       }
     );
 
+    // バックエンドLambdaにステートマシンARNを環境変数として設定
+    documentProcessor.backendLambda.addEnvironment(
+      'DOCUMENT_PROCESSING_STATE_MACHINE_ARN',
+      documentProcessor.stateMachine.stateMachineArn
+    );
+
     // // S3 -> SQS -> Lambda -> Aurora ETLパイプラインの作成
     // const etlPipeline = new S3SqsEtlAurora(this, "EtlPipeline", {
     //   documentBucket,

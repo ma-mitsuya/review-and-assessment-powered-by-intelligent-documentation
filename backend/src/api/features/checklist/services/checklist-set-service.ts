@@ -5,6 +5,7 @@ import { Document } from '@prisma/client';
 import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
 import { DocumentRepository } from '../../document/repositories/document-repository';
 import { deleteS3Object } from '../../../core/aws';
+import { startStateMachineExecution } from '../../../core/sfn';
 
 /**
  * ドキュメント情報
@@ -66,7 +67,31 @@ export class ChecklistSetService {
    * @returns 作成されたチェックリストセット
    */
   async createChecklistSet(params: CreateChecklistSetParams) {
-    return this.repository.createChecklistSet(params);
+    // チェックリストセットを作成
+    const checkListSet = await this.repository.createChecklistSet(params);
+    
+    // 各ドキュメントの処理を開始
+    const stateMachineArn = process.env.DOCUMENT_PROCESSING_STATE_MACHINE_ARN;
+    if (stateMachineArn) {
+      for (const doc of params.documents) {
+        try {
+          await startStateMachineExecution(
+            stateMachineArn,
+            {
+              documentId: doc.documentId,
+              fileName: doc.filename
+            }
+          );
+        } catch (error) {
+          console.error(`Failed to start processing for document ${doc.documentId}:`, error);
+          // エラーが発生しても処理を続行
+        }
+      }
+    } else {
+      console.warn('DOCUMENT_PROCESSING_STATE_MACHINE_ARN environment variable is not set. Document processing will not start.');
+    }
+    
+    return checkListSet;
   }
 
   /**
