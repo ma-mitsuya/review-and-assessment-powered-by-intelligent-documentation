@@ -10,24 +10,27 @@ export class BeaconStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // S3バケットの作成
-    const documentBucket = new s3.Bucket(this, "DocumentBucket", {
-      versioned: true,
+    const prefix = cdk.Stack.of(this).region;
+
+    const accessLogBucket = new s3.Bucket(this, `${prefix}AccessLogBucket`, {
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      // lifecycleRules: [
-      //   {
-      //     id: "DeleteTempFiles",
-      //     prefix: "pages/",
-      //     expiration: cdk.Duration.days(7),
-      //   },
-      //   {
-      //     id: "DeleteProcessedResults",
-      //     prefix: "llm-results/",
-      //     expiration: cdk.Duration.days(30),
-      //   },
-      // ],
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+      autoDeleteObjects: true,
+    });
+
+    // S3バケットの作成
+    const documentBucket = new s3.Bucket(this, "DocumentBucket", {
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+      autoDeleteObjects: true,
+      serverAccessLogsBucket: accessLogBucket,
+      serverAccessLogsPrefix: "DocumentBucket",
     });
 
     // VPCの作成

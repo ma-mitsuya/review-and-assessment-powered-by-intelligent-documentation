@@ -64,16 +64,21 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
    * S3にファイルをアップロードする
    */
   const uploadToS3 = async (url: string, file: File): Promise<void> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`ファイルのアップロードに失敗しました: ${file.name}`);
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`ファイルのアップロードに失敗しました: ${file.name} (${response.status}: ${response.statusText})`);
+      }
+    } catch (error) {
+      console.error('S3アップロードエラー:', error);
+      throw error;
     }
   };
 
