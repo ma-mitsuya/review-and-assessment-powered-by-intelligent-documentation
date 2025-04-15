@@ -5,6 +5,8 @@
 import { useState } from 'react';
 import { postData } from '../../../hooks/useFetch';
 import { DocumentUploadResult } from './useDocumentUpload';
+import { getCheckListSetsKey } from './useCheckListSets';
+import { mutate } from 'swr';
 
 /**
  * チェックリスト作成リクエスト
@@ -65,6 +67,20 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
       if (!response.success) {
         throw new Error(response.error || 'チェックリストセットの作成に失敗しました');
       }
+      
+      // チェックリスト一覧のキャッシュを無効化して再取得を強制
+      // デフォルトのキャッシュキーを無効化
+      mutate(getCheckListSetsKey());
+      
+      // 他のページやソート順のキャッシュも無効化
+      const checklistSetsPattern = new RegExp(`^/api/checklist-sets\\?`);
+      const keys = Array.from((window as any).SWR?._keys || [])
+        .filter((key: string) => checklistSetsPattern.test(key));
+      
+      // すべてのキャッシュを無効化
+      keys.forEach((key: string) => {
+        mutate(key);
+      });
       
       return response.data;
     } catch (error) {

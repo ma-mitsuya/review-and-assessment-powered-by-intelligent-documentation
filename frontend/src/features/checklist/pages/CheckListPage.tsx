@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useCheckListSets } from '../hooks/useCheckListSets';
+import { useCheckListSetActions } from '../hooks/useCheckListSetActions';
+import { useToast } from '../../../components/Toast';
 import CheckListSetList from '../components/CheckListSetList';
-import { deleteData } from '../../../hooks/useFetch';
 import CreateChecklistButton from '../components/CreateChecklistButton';
 
 /**
@@ -10,21 +12,34 @@ import CreateChecklistButton from '../components/CreateChecklistButton';
 export function CheckListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const location = useLocation();
+  const { addToast } = useToast();
   
-  const { checkListSets, total, isLoading, isError, mutate } = useCheckListSets(
+  const { checkListSets, total, isLoading, isError, mutate, revalidate } = useCheckListSets(
     currentPage,
     itemsPerPage
   );
   
+  const { deleteCheckListSet } = useCheckListSetActions();
+  
+  // 画面表示時またはlocationが変わった時にデータを再取得
+  useEffect(() => {
+    // 新規作成後に一覧画面に戻ってきた場合など、locationが変わった時にデータを再取得
+    revalidate();
+  }, [location, revalidate]);
+  
   // チェックリストセットの削除処理
   const handleDelete = async (id: string, name: string) => {
     try {
-      await deleteData(`/api/checklist-sets/${id}`);
+      await deleteCheckListSet(id);
       // 削除後にリストを再取得
       mutate();
+      // 削除成功のトースト通知を表示
+      addToast(`チェックリスト「${name}」を削除しました`, 'success');
     } catch (error) {
       console.error('削除に失敗しました', error);
-      alert('チェックリストセットの削除に失敗しました');
+      // 削除失敗のトースト通知を表示
+      addToast('チェックリストセットの削除に失敗しました', 'error');
     }
   };
   

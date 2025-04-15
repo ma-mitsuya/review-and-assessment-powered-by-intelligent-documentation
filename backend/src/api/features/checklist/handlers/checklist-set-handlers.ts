@@ -90,3 +90,32 @@ export async function getChecklistSetsHandler(
     });
   }
 }
+
+/**
+ * チェックリストセット削除ハンドラー
+ */
+export async function deleteChecklistSetHandler(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply
+): Promise<void> {
+  try {
+    const { id } = request.params;
+    
+    const checklistSetService = new ChecklistSetService();
+    await checklistSetService.deleteChecklistSet(id);
+
+    reply.code(200).send({
+      success: true,
+      data: {
+        deleted: true
+      }
+    });
+  } catch (error) {
+    request.log.error(error);
+    
+    reply.code(500).send({
+      success: false,
+      error: 'チェックリストセットの削除に失敗しました'
+    });
+  }
+}

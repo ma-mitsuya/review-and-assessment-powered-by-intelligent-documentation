@@ -4,7 +4,6 @@
 import { Document } from '@prisma/client';
 import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
 import { DocumentRepository } from '../../document/repositories/document-repository';
-import { ok, err, Result } from '../../../../core/utils/result';
 import { deleteS3Object } from '../../../core/aws';
 
 /**
@@ -119,30 +118,28 @@ export class ChecklistSetService {
   /**
    * チェックリストセットを削除する
    * @param checklistSetId チェックリストセットID
-   * @returns 削除結果
+   * @returns 削除が成功したかどうか
+   * @throws エラーが発生した場合
    */
-  async deleteChecklistSet(checklistSetId: string): Promise<Result<boolean, Error>> {
-    try {
-      // 関連するドキュメント情報を取得
-      const documents = await this.documentRepository.getDocumentsByChecklistSetId(checklistSetId);
+  async deleteChecklistSet(checklistSetId: string): Promise<boolean> {
+    // 関連するドキュメント情報を取得
+    const documents = await this.documentRepository.getDocumentsByChecklistSetId(checklistSetId);
 
-      // DBからチェックリストセットとその関連データを削除
-      await this.repository.deleteChecklistSetWithRelations(checklistSetId);
+    // DBからチェックリストセットとその関連データを削除
+    await this.repository.deleteChecklistSetWithRelations(checklistSetId);
 
-      // S3から関連するすべてのファイルを削除
-      const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
-      for (const document of documents) {
-        try {
-          await deleteS3Object(bucketName, document.s3Path);
-        } catch (s3Error) {
-          console.error(`S3 deletion failed for document ${document.id}:`, s3Error);
-        }
+    // S3から関連するすべてのファイルを削除
+    const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+    for (const document of documents) {
+      try {
+        await deleteS3Object(bucketName, document.s3Path);
+      } catch (s3Error) {
+        console.error(`S3 deletion failed for document ${document.id}:`, s3Error);
+        // S3削除エラーは致命的ではないので続行
       }
-
-      return ok(true);
-    } catch (error) {
-      return err(error instanceof Error ? error : new Error(String(error)));
     }
+
+    return true;
   }
 
   /**

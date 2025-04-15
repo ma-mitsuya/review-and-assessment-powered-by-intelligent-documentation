@@ -7,6 +7,17 @@ import {
 
 const API_BASE_URL = '/api';
 
+// チェックリストセット一覧のキャッシュキーを生成する関数
+export const getCheckListSetsKey = (page = 1, limit = 10, sortBy?: string, sortOrder?: 'asc' | 'desc') => {
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('limit', limit.toString());
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+  
+  return `${API_BASE_URL}/checklist-sets?${params.toString()}`;
+};
+
 /**
  * チェックリストセット一覧を取得するためのフック
  */
@@ -16,13 +27,7 @@ export const useCheckListSets = (
   sortBy?: string,
   sortOrder?: 'asc' | 'desc'
 ) => {
-  const params = new URLSearchParams();
-  params.append('page', page.toString());
-  params.append('limit', limit.toString());
-  if (sortBy) params.append('sortBy', sortBy);
-  if (sortOrder) params.append('sortOrder', sortOrder);
-
-  const url = `${API_BASE_URL}/checklist-sets?${params.toString()}`;
+  const url = getCheckListSetsKey(page, limit, sortBy, sortOrder);
   
   const fetcher = async (url: string) => {
     const response = await fetch(url);
@@ -37,12 +42,16 @@ export const useCheckListSets = (
     fetcher
   );
 
+  // 明示的にデータを再取得する関数
+  const revalidate = () => mutate();
+
   return {
     checkListSets: data?.data.checkListSets,
     total: data?.data.total,
     isLoading,
     isError: error,
     mutate,
+    revalidate,
   };
 };
 
@@ -65,11 +74,15 @@ export const useCheckListSet = (id: string | null) => {
     fetcher
   );
 
+  // 明示的にデータを再取得する関数
+  const revalidate = () => mutate();
+
   return {
     checkListSet: data?.data,
     isLoading,
     isError: error,
     mutate,
+    revalidate,
   };
 };
 
@@ -105,8 +118,19 @@ export const useCheckListSetActions = () => {
     
     const result = await response.json();
     
-    // キャッシュを更新
-    mutate(`${API_BASE_URL}/checklist-sets`);
+    // チェックリスト一覧のキャッシュを無効化して再取得を強制
+    // 正規表現を使用して、ページ番号やソート順に関わらずすべてのチェックリスト一覧キャッシュを無効化
+    const checklistSetsPattern = new RegExp(`^${API_BASE_URL}/checklist-sets\\?`);
+    const keys = Array.from((window as any).SWR?._keys || [])
+      .filter((key: string) => checklistSetsPattern.test(key));
+    
+    // すべてのキャッシュを無効化
+    keys.forEach((key: string) => {
+      mutate(key);
+    });
+    
+    // デフォルトのキャッシュも無効化
+    mutate(getCheckListSetsKey());
     
     return result;
   };
