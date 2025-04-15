@@ -25,7 +25,10 @@ function App() {
         shouldRetryOnError: true,
       }}
     >
-      <BrowserRouter>
+      <BrowserRouter future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}>
         <Routes>
           {/* ルートパスへのアクセスをチェックリストページにリダイレクト */}
           <Route path="/" element={<Navigate to="/checklist" replace />} />
