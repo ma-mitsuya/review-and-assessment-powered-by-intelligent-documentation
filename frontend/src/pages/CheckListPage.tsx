@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCheckListSets } from '../features/checklist/hooks/useCheckListSets';
 import CheckListSetList from '../features/checklist/components/CheckListSetList';
+import { deleteData } from '../hooks/useFetch';
 
 /**
  * チェックリスト一覧ページ
@@ -10,10 +11,22 @@ export default function CheckListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   
-  const { checkListSets, total, isLoading, isError, mutate } = useChecklistSets(
+  const { checkListSets, total, isLoading, isError, mutate } = useCheckListSets(
     currentPage,
     itemsPerPage
   );
+  
+  // チェックリストセットの削除処理
+  const handleDelete = async (id: string, name: string) => {
+    try {
+      await deleteData(`/api/v1/checklist-sets/${id}`);
+      // 削除後にリストを再取得
+      mutate();
+    } catch (error) {
+      console.error('削除に失敗しました', error);
+      alert('チェックリストセットの削除に失敗しました');
+    }
+  };
   
   return (
     <div>
@@ -35,24 +48,17 @@ export default function CheckListPage() {
         </Link>
       </div>
       
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-fastPulse rounded-full h-12 w-12 border-t-2 border-b-2 border-aws-sea-blue-light dark:border-aws-sea-blue-dark"></div>
-        </div>
-      ) : isError ? (
-        <div className="bg-light-red border border-red text-red px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">エラー: </strong>
-          <span className="block sm:inline">チェックリストセットの取得に失敗しました。</span>
-          <button 
-            onClick={() => mutate()} 
-            className="underline ml-2 text-red hover:text-aws-sea-blue-light"
-          >
-            再試行
-          </button>
-        </div>
-      ) : (
-        <CheckListSetList checkListSets={checkListSets || []} />
-      )}
+      <CheckListSetList 
+        checkListSets={checkListSets || []} 
+        isLoading={isLoading}
+        error={isError}
+        onDelete={handleDelete}
+        meta={{
+          page: currentPage,
+          limit: itemsPerPage,
+          total: total
+        }}
+      />
     </div>
   );
 }

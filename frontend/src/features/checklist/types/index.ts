@@ -68,6 +68,7 @@ export type CheckListSet = {
   name: string;
   description?: string;
   processing_status: 'pending' | 'in_progress' | 'completed';
+  documents?: Document[];
 };
 
 /**
@@ -177,4 +178,19 @@ export type ChecklistCreationState = {
   items: CheckListItem[];
   selectedItemId: string | null;
   isEditing: boolean;
+};
+
+/**
+ * チェックリストセットリストのProps
+ */
+export type CheckListSetListProps = {
+  checkListSets: CheckListSet[];
+  isLoading?: boolean;
+  error?: Error;
+  onDelete?: (id: string, name: string) => Promise<void>;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+  };
 };

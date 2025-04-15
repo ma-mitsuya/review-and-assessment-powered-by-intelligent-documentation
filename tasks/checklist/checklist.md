@@ -1,14 +1,13 @@
+## /checklist にアクセスできない
+
+## リファクタリング
+
+- frontend で、root の Pages と、features/checklist の pages と両方あり、散財しています。チェックリスト関連はすべて features/checklist に統一せよ
+-
+
 ## アイコン
 
 サイドバーのアイコン（BEACON の左）を asset/icon.png に変更せよ
-
-## フロントエンド整理
-
-冗長で内容が重複しているファイルがいくつもあります（下記は例）。網羅的に調査し、重複している場合は統廃合せよ。具体的には修正するファイル名・パス、削除するファイル名・パスを洗い出せ。なお既存の機能を破壊することを厳格に禁止します。
-
-- frontend/src/components/checklist, frontend/src/features/checklist/components
-- frontend/src/components/FileUploader.tsx, frontend/src/features/checklist/components/CheckListFlowChart.tsx
-- frontend/src/features/checklist/hooks/useCheckListSets.ts,frontend/src/features/checklist/hooks/useCheckListSetActions.ts
 
 ## React warning
 

@@ -1,31 +1,31 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useChecklistSets } from '../hooks/useChecklistSets';
+import { Link } from 'react-router-dom';
+import { CheckListSetListProps } from '../types';
 import { deleteData } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット一覧コンポーネント
  */
-export default function CheckListSetList() {
-  const { data: checkListSets, error, isLoading, meta, mutate } = useCheckListSets();
-  const navigate = useNavigate();
-
+export default function CheckListSetList({ 
+  checkListSets, 
+  isLoading, 
+  error, 
+  onDelete,
+  meta 
+}: CheckListSetListProps) {
   // チェックリストセットの削除処理
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`チェックリストセット「${name}」を削除してもよろしいですか？`)) {
       try {
-        await deleteData(`/checklist-sets/${id}`);
-        // 削除後にリストを再取得
-        mutate();
+        if (onDelete) {
+          await onDelete(id, name);
+        } else {
+          await deleteData(`/checklist-sets/${id}`);
+        }
       } catch (error) {
         console.error('削除に失敗しました', error);
         alert('チェックリストセットの削除に失敗しました');
       }
     }
-  };
-
-  // 新規作成ページへ遷移
-  const handleCreateNew = () => {
-    navigate('/checklist/new');
   };
 
   if (isLoading) {
@@ -101,19 +101,6 @@ export default function CheckListSetList() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-semibold text-aws-squid-ink-light">チェックリストセット一覧</h2>
-        <button
-          onClick={handleCreateNew}
-          className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          新規作成
-        </button>
-      </div>
-
       <div className="bg-white shadow-md rounded-lg overflow-hidden border border-light-gray">
         <table className="min-w-full divide-y divide-light-gray">
           <thead className="bg-aws-paper-light">
