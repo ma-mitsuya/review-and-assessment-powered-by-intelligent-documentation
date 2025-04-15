@@ -108,7 +108,7 @@ export const Button = (props: CombinedButtonProps) => {
 
   // リンクボタンかどうかで出力を分ける
   if (isLinkButton(props)) {
-    const { to, ...linkRest } = props;
+    const { to, icon, iconPosition, variant, size, fullWidth, ...linkRest } = props;
     return (
       <Link to={to} className={buttonClasses} {...linkRest}>
         {renderContent()}
@@ -116,8 +116,11 @@ export const Button = (props: CombinedButtonProps) => {
     );
   }
 
+  // 不要なpropsをrestから除外
+  const { icon: _, iconPosition: __, variant: ___, size: ____, fullWidth: _____, ...buttonRest } = rest;
+  
   return (
-    <button className={buttonClasses} {...rest}>
+    <button className={buttonClasses} {...buttonRest}>
       {renderContent()}
     </button>
   );
