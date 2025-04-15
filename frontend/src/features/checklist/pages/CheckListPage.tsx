@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCheckListSets } from '../hooks/useCheckListSets';
 import { useCheckListSetActions } from '../hooks/useCheckListSetActions';
-import { useToast } from '../../../components/Toast';
+import { useToast } from '../../../contexts/ToastContext';
 import CheckListSetList from '../components/CheckListSetList';
 import CreateChecklistButton from '../components/CreateChecklistButton';
 

@@ -3,6 +3,7 @@ import { useCheckListSet } from '../hooks/useCheckListSets';
 import { useCheckListItems } from '../hooks/useCheckListItems';
 import CheckListViewer from '../components/CheckListViewer';
 import { deleteData } from '../../../hooks/useFetch';
+import { useToast } from '../../../contexts/ToastContext';
 
 /**
  * チェックリストセット詳細ページ
@@ -10,6 +11,7 @@ import { deleteData } from '../../../hooks/useFetch';
 export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const { data: checkListSet, error: setError, isLoading: setLoading } = useCheckListSet(id);
   const { data: checkListItems, error: itemsError, isLoading: itemsLoading } = useCheckListItems(id);
 
@@ -19,10 +21,11 @@ export function CheckListSetDetailPage() {
     if (confirm(`チェックリストセット「${checkListSet.name}」を削除してもよろしいですか？`)) {
       try {
         await deleteData(`/checklist-sets/${id}`);
+        addToast(`チェックリスト「${checkListSet.name}」を削除しました`, 'success');
         navigate('/checklist', { replace: true });
       } catch (error) {
         console.error('削除に失敗しました', error);
-        alert('チェックリストセットの削除に失敗しました');
+        addToast('チェックリストセットの削除に失敗しました', 'error');
       }
     }
   };

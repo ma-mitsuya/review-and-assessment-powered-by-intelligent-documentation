@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCheckListSet } from '../hooks/useCheckListSets';
 import { postData, putData } from '../../../hooks/useFetch';
+import { useToast } from '../../../contexts/ToastContext';
 
 /**
  * チェックリストセット作成・編集ページ
@@ -9,6 +10,7 @@ import { postData, putData } from '../../../hooks/useFetch';
 export function CheckListSetFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const isEditMode = !!id;
   
   // 編集モードの場合、既存のデータを取得
@@ -83,15 +85,17 @@ export function CheckListSetFormPage() {
       if (isEditMode && id) {
         // 更新処理
         await putData(`/checklist-sets/${id}`, formData);
+        addToast(`チェックリスト「${formData.name}」を更新しました`, 'success');
         navigate(`/checklist/${id}`, { replace: true });
       } else {
         // 新規作成処理
         const response = await postData('/checklist-sets', formData);
+        addToast(`チェックリスト「${formData.name}」を作成しました`, 'success');
         navigate(`/checklist/${response.data.check_list_set_id}`, { replace: true });
       }
     } catch (error) {
       console.error('保存に失敗しました', error);
-      alert('チェックリストセットの保存に失敗しました');
+      addToast(`チェックリストの${isEditMode ? '更新' : '作成'}に失敗しました`, 'error');
     } finally {
       setIsSubmitting(false);
     }

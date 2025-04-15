@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { CheckListSetListProps } from '../types';
-import { deleteData } from '../../../hooks/useFetch';
 
 /**
  * チェックリストセット一覧コンポーネント
@@ -16,11 +15,8 @@ export default function CheckListSetList({
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`チェックリストセット「${name}」を削除してもよろしいですか？`)) {
       try {
-        if (onDelete) {
-          await onDelete(id, name);
-        } else {
-          await deleteData(`/checklist-sets/${id}`);
-        }
+        // 削除ロジックは親コンポーネントに委譲
+        await onDelete(id, name);
       } catch (error) {
         console.error('削除に失敗しました', error);
         alert('チェックリストセットの削除に失敗しました');

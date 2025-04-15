@@ -224,7 +224,7 @@ export type CheckListSetListProps = {
   checkListSets: CheckListSet[];
   isLoading?: boolean;
   error?: Error;
-  onDelete?: (id: string, name: string) => Promise<void>;
+  onDelete: (id: string, name: string) => Promise<void>; // 必須プロパティに変更
   meta?: {
     page?: number;
     limit?: number;
