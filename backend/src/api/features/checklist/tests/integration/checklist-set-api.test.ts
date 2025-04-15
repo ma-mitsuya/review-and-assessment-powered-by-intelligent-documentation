@@ -20,7 +20,7 @@ describe('ChecklistSet API Integration Tests', () => {
   // テスト終了後のクリーンアップ
   afterAll(async () => {
     await prisma.checkList.deleteMany();
-    await prisma.document.deleteMany();
+    await prisma.checkListDocument.deleteMany();
     await prisma.checkListSet.deleteMany();
     await app.close();
     resetPrismaClient();

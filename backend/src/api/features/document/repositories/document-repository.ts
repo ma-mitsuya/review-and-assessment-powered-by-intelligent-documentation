@@ -14,7 +14,7 @@ export class DocumentRepository {
    */
   async documentExists(documentId: string): Promise<boolean> {
     const prisma = getPrismaClient();
-    const document = await prisma.document.findUnique({
+    const document = await prisma.checkListDocument.findUnique({
       where: { id: documentId }
     });
     return !!document;
@@ -27,7 +27,7 @@ export class DocumentRepository {
    */
   async getDocument(documentId: string) {
     const prisma = getPrismaClient();
-    return prisma.document.findUnique({
+    return prisma.checkListDocument.findUnique({
       where: { id: documentId }
     });
   }
@@ -46,7 +46,7 @@ export class DocumentRepository {
     userId?: string;
   }) {
     const prisma = getPrismaClient();
-    return prisma.document.create({
+    return prisma.checkListDocument.create({
       data: {
         id: params.id,
         filename: params.filename,
@@ -67,7 +67,7 @@ export class DocumentRepository {
    */
   async deleteDocument(documentId: string): Promise<boolean> {
     const prisma = getPrismaClient();
-    await prisma.document.delete({
+    await prisma.checkListDocument.delete({
       where: { id: documentId }
     });
     return true;
@@ -80,7 +80,7 @@ export class DocumentRepository {
    */
   async getDocumentsByChecklistSetId(checkListSetId: string) {
     const prisma = getPrismaClient();
-    return prisma.document.findMany({
+    return prisma.checkListDocument.findMany({
       where: { checkListSetId }
     });
   }

@@ -1,7 +1,7 @@
 /**
  * チェックリストセット関連のサービス
  */
-import { Document } from '@prisma/client';
+import { CheckListDocument } from '@prisma/client';
 import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
 import { DocumentRepository } from '../../document/repositories/document-repository';
 import { deleteS3Object } from '../../../core/aws';
@@ -172,7 +172,7 @@ export class ChecklistSetService {
    * @param documents ドキュメント配列
    * @returns 処理状態
    */
-  private calculateProcessingStatus(documents: Document[]): 'pending' | 'in_progress' | 'completed' {
+  private calculateProcessingStatus(documents: CheckListDocument[]): 'pending' | 'in_progress' | 'completed' {
     if (documents.length === 0) {
       return 'pending';
     }

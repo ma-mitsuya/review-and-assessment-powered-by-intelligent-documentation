@@ -1,7 +1,7 @@
 /**
  * チェックリストセットリポジトリ
  */
-import { PrismaClient, Document, CheckListSet } from '@prisma/client';
+import { PrismaClient, CheckListDocument, CheckListSet } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { DocumentInfo } from '../services/checklist-set-service';
 import { ulid } from 'ulid';
@@ -19,7 +19,7 @@ export interface GetChecklistSetsParams {
  * ドキュメント付きチェックリストセット
  */
 export interface ChecklistSetWithDocuments extends CheckListSet {
-  documents: Document[];
+  documents: CheckListDocument[];
 }
 
 /**
@@ -113,7 +113,7 @@ export class ChecklistSetRepository {
       });
 
       // 関連するドキュメントを削除
-      await tx.document.deleteMany({
+      await tx.checkListDocument.deleteMany({
         where: { checkListSetId: checklistSetId }
       });
 
