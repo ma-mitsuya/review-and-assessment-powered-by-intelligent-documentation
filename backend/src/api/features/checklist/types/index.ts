@@ -1,36 +1,26 @@
 /**
- * チェックリスト機能の型定義
+ * チェックリスト関連の型定義
  */
 
 /**
- * チェックリストセットの処理状態
+ * 処理状態
  */
 export type ProcessingStatus = 'pending' | 'in_progress' | 'completed';
 
 /**
- * チェックリスト項目のタイプ
+ * チェックリストセット
  */
-export type ChecklistItemType = 'simple' | 'flow';
-
-/**
- * フロー条件のタイプ
- */
-export type FlowConditionType = 'YES_NO' | 'MULTI_CHOICE';
-
-/**
- * フローデータの型定義
- */
-export interface FlowData {
-  condition_type: FlowConditionType;
-  next_if_yes?: string;
-  next_if_no?: string;
-  choices?: Array<{
-    value: string;
-    next_id: string;
-  }>;
+export interface ChecklistSet {
+  check_list_set_id: string;
+  name: string;
+  description: string | null;
+  processing_status: ProcessingStatus;
 }
 
 /**
- * ドキュメントの処理状態
+ * チェックリストセット一覧レスポンス
  */
-export type DocumentStatus = 'pending' | 'processing' | 'completed' | 'error';
+export interface ChecklistSetsResponse {
+  checkListSets: ChecklistSet[];
+  total: number;
+}

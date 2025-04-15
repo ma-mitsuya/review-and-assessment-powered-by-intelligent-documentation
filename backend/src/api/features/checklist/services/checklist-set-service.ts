@@ -1,7 +1,8 @@
 /**
  * チェックリストセット関連のサービス
  */
-import { ChecklistSetRepository } from '../repositories/checklist-set-repository';
+import { Document } from '@prisma/client';
+import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
 
 /**
  * ドキュメント情報
@@ -23,6 +24,29 @@ export interface CreateChecklistSetParams {
 }
 
 /**
+ * チェックリストセット取得パラメータ
+ */
+export interface GetChecklistSetsParams {
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * チェックリストセット取得結果
+ */
+export interface GetChecklistSetsResult {
+  checkListSets: Array<{
+    check_list_set_id: string;
+    name: string;
+    description: string | null;
+    processing_status: 'pending' | 'in_progress' | 'completed';
+  }>;
+  total: number;
+}
+
+/**
  * チェックリストセットサービス
  */
 export class ChecklistSetService {
@@ -39,5 +63,74 @@ export class ChecklistSetService {
    */
   async createChecklistSet(params: CreateChecklistSetParams) {
     return this.repository.createChecklistSet(params);
+  }
+
+  /**
+   * チェックリストセット一覧を取得する
+   * @param params 取得パラメータ
+   * @returns チェックリストセット一覧と総数
+   */
+  async getChecklistSets(params: GetChecklistSetsParams): Promise<GetChecklistSetsResult> {
+    const { page, limit, sortBy, sortOrder } = params;
+    const skip = (page - 1) * limit;
+    
+    // ソート条件の設定
+    const orderBy: Record<string, string> = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder || 'asc';
+    } else {
+      // createdAtフィールドがないため、idでソート
+      orderBy['id'] = 'desc';
+    }
+    
+    // リポジトリからデータを取得
+    const [checklistSets, total] = await Promise.all([
+      this.repository.getChecklistSets({
+        skip,
+        take: limit,
+        orderBy
+      }),
+      this.repository.getChecklistSetsCount()
+    ]);
+    
+    // 処理状態を計算してレスポンス形式に変換
+    const checkListSets = checklistSets.map(set => {
+      const processingStatus = this.calculateProcessingStatus(set.documents);
+      
+      return {
+        check_list_set_id: set.id,
+        name: set.name,
+        description: set.description,
+        processing_status: processingStatus
+      };
+    });
+    
+    return {
+      checkListSets,
+      total
+    };
+  }
+
+  /**
+   * ドキュメントの状態からチェックリストセットの処理状態を計算
+   * @param documents ドキュメント配列
+   * @returns 処理状態
+   */
+  private calculateProcessingStatus(documents: Document[]): 'pending' | 'in_progress' | 'completed' {
+    if (documents.length === 0) {
+      return 'pending';
+    }
+    
+    const hasProcessing = documents.some(doc => doc.status === 'processing');
+    if (hasProcessing) {
+      return 'in_progress';
+    }
+    
+    const allCompleted = documents.every(doc => doc.status === 'completed');
+    if (allCompleted) {
+      return 'completed';
+    }
+    
+    return 'pending';
   }
 }

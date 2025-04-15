@@ -7,7 +7,7 @@ import CheckListSetFormPage from './pages/CheckListSetFormPage';
 import CheckListItemFormPage from './pages/CheckListItemFormPage';
 import ReviewPage from './pages/ReviewPage';
 import NotFoundPage from './pages/NotFoundPage';
-import { CreateChecklistPage } from './features/checklist-creation';
+import { CreateChecklistPage } from './features/checklist';
 import './App.css';
 
 /**

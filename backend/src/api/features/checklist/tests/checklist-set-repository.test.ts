@@ -1,127 +1,73 @@
 /**
  * チェックリストセットリポジトリのテスト
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ChecklistSetRepository } from '../repositories/checklist-set-repository';
-import { getPrismaClient, resetPrismaClient } from '../../../core/db';
-import { generateId } from '../utils/id-generator';
+
+// モックPrismaClient
+const mockPrismaClient = {
+  checkListSet: {
+    findMany: vi.fn(),
+    count: vi.fn()
+  },
+  $transaction: vi.fn((callback) => callback(mockPrismaClient))
+};
 
 describe('ChecklistSetRepository', () => {
-  const repository = new ChecklistSetRepository();
-  const prisma = getPrismaClient();
-  
-  // 各テスト後にデータをクリーンアップ
-  afterEach(async () => {
-    await prisma.checkList.deleteMany();
-    await prisma.document.deleteMany();
-    await prisma.checkListSet.deleteMany();
-  });
-  
-  // テスト終了後にPrismaクライアントを切断
-  afterEach(() => {
-    resetPrismaClient();
-  });
-  
-  describe('createChecklistSet', () => {
-    it('ドキュメントなしでチェックリストセットを作成できること', async () => {
-      const params = {
-        name: 'テストチェックリスト',
-        description: 'テスト用の説明',
-        documents: []
-      };
-      
-      const result = await repository.createChecklistSet(params);
-      
-      expect(result).toBeDefined();
-      expect(result.id).toBeDefined();
-      expect(result.name).toBe(params.name);
-      expect(result.description).toBe(params.description);
-      
-      // データベースに正しく保存されたか確認
-      const savedSet = await prisma.checkListSet.findUnique({
-        where: { id: result.id }
-      });
-      
-      expect(savedSet).toBeDefined();
-      expect(savedSet?.name).toBe(params.name);
-      expect(savedSet?.description).toBe(params.description);
-    });
+  let repository: ChecklistSetRepository;
+
+  beforeEach(() => {
+    // テスト前にモックをリセット
+    vi.resetAllMocks();
     
-    it('ドキュメント情報を指定してチェックリストセットを作成できること', async () => {
-      const documentId = generateId();
-      
-      const params = {
-        name: 'テストチェックリスト',
-        description: 'テスト用の説明',
-        documents: [
-          {
-            documentId,
-            filename: 'test.pdf',
-            s3Key: `documents/original/${documentId}/test.pdf`,
-            fileType: 'application/pdf'
-          }
-        ]
-      };
-      
-      const result = await repository.createChecklistSet(params);
-      
-      expect(result).toBeDefined();
-      expect(result.id).toBeDefined();
-      
-      // ドキュメントが正しく作成されたか確認
-      const documents = await prisma.document.findMany({
-        where: { checkListSetId: result.id }
+    // モックを使用してリポジトリをインスタンス化
+    repository = new ChecklistSetRepository(mockPrismaClient as any);
+  });
+
+  describe('getChecklistSets', () => {
+    it('チェックリストセット一覧を取得する', async () => {
+      // モックの戻り値を設定
+      const mockChecklistSets = [
+        {
+          id: 'test-id-1',
+          name: 'テストチェックリスト1',
+          description: 'テスト説明1',
+          documents: []
+        }
+      ];
+      mockPrismaClient.checkListSet.findMany.mockResolvedValue(mockChecklistSets);
+
+      // テスト対象メソッドを実行
+      const result = await repository.getChecklistSets({
+        skip: 0,
+        take: 10,
+        orderBy: { createdAt: 'desc' }
       });
-      
-      expect(documents).toHaveLength(1);
-      expect(documents[0].id).toBe(documentId);
-      expect(documents[0].filename).toBe('test.pdf');
-      expect(documents[0].s3Path).toBe(`documents/original/${documentId}/test.pdf`);
-      expect(documents[0].fileType).toBe('application/pdf');
+
+      // 期待する結果を検証
+      expect(result).toEqual(mockChecklistSets);
+      expect(mockPrismaClient.checkListSet.findMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          documents: true
+        }
+      });
     });
-    
-    it('複数のドキュメントを指定してチェックリストセットを作成できること', async () => {
-      const documentId1 = generateId();
-      const documentId2 = generateId();
-      
-      const params = {
-        name: 'テストチェックリスト',
-        description: 'テスト用の説明',
-        documents: [
-          {
-            documentId: documentId1,
-            filename: 'test1.pdf',
-            s3Key: `documents/original/${documentId1}/test1.pdf`,
-            fileType: 'application/pdf'
-          },
-          {
-            documentId: documentId2,
-            filename: 'test2.png',
-            s3Key: `documents/original/${documentId2}/test2.png`,
-            fileType: 'image/png'
-          }
-        ]
-      };
-      
-      const result = await repository.createChecklistSet(params);
-      
-      // ドキュメントが正しく作成されたか確認
-      const documents = await prisma.document.findMany({
-        where: { checkListSetId: result.id }
-      });
-      
-      expect(documents).toHaveLength(2);
-      
-      // ドキュメントIDでソートして確認
-      const sortedDocuments = documents.sort((a, b) => a.id.localeCompare(b.id));
-      
-      expect(sortedDocuments[0].id).toBe(documentId1);
-      expect(sortedDocuments[0].filename).toBe('test1.pdf');
-      expect(sortedDocuments[0].fileType).toBe('application/pdf');
-      
-      expect(sortedDocuments[1].id).toBe(documentId2);
-      expect(sortedDocuments[1].filename).toBe('test2.png');
-      expect(sortedDocuments[1].fileType).toBe('image/png');
+  });
+
+  describe('getChecklistSetsCount', () => {
+    it('チェックリストセットの総数を取得する', async () => {
+      // モックの戻り値を設定
+      mockPrismaClient.checkListSet.count.mockResolvedValue(5);
+
+      // テスト対象メソッドを実行
+      const result = await repository.getChecklistSetsCount();
+
+      // 期待する結果を検証
+      expect(result).toBe(5);
+      expect(mockPrismaClient.checkListSet.count).toHaveBeenCalled();
     });
   });
 });

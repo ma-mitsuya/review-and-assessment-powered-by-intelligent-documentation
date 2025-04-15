@@ -14,6 +14,16 @@ interface CreateChecklistSetRequest {
 }
 
 /**
+ * チェックリストセット一覧取得リクエストの型定義
+ */
+interface GetChecklistSetsRequest {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
  * チェックリストセット作成ハンドラー
  */
 export async function createChecklistSetHandler(
@@ -45,6 +55,38 @@ export async function createChecklistSetHandler(
     reply.code(500).send({
       success: false,
       error: 'チェックリストセットの作成に失敗しました'
+    });
+  }
+}
+
+/**
+ * チェックリストセット一覧取得ハンドラー
+ */
+export async function getChecklistSetsHandler(
+  request: FastifyRequest<{ Querystring: GetChecklistSetsRequest }>,
+  reply: FastifyReply
+): Promise<void> {
+  try {
+    const { page = 1, limit = 10, sortBy, sortOrder } = request.query;
+    
+    const checklistSetService = new ChecklistSetService();
+    const result = await checklistSetService.getChecklistSets({
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    });
+
+    reply.code(200).send({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    request.log.error(error);
+    
+    reply.code(500).send({
+      success: false,
+      error: 'チェックリストセット一覧の取得に失敗しました'
     });
   }
 }
