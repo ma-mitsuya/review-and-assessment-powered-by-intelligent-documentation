@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useCheckListSets } from '../hooks/useCheckListSets';
+import { useChecklistSets } from '../hooks/useChecklistSets';
 import { deleteData } from '../../../hooks/useFetch';
 
 /**

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useChecklistSets } from '../features/checklist/hooks/useChecklistSets';
-import { CheckListSetList } from '../components/checklist/CheckListSetList';
+import { useCheckListSets } from '../features/checklist/hooks/useCheckListSets';
+import CheckListSetList from '../features/checklist/components/CheckListSetList';
 
 /**
  * チェックリスト一覧ページ

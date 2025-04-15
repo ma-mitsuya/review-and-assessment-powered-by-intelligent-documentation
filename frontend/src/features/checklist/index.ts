@@ -1,8 +1,8 @@
 // コンポーネントのエクスポート
-export * from './components/creation';
+export * from './components/ProcessingStatus';
 
 // ページのエクスポート
-export * from './pages/creation';
+export * from './pages';
 
 // フックのエクスポート
 export * from './hooks';

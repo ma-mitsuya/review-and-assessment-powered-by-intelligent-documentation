@@ -10,7 +10,7 @@ const API_BASE_URL = '/api/v1';
 /**
  * チェックリストセット一覧を取得するためのフック
  */
-export const useChecklistSets = (
+export const useCheckListSets = (
   page = 1,
   limit = 10,
   sortBy?: string,
@@ -49,7 +49,7 @@ export const useChecklistSets = (
 /**
  * チェックリストセット詳細を取得するためのフック
  */
-export const useChecklistSetDetail = (id: string | null) => {
+export const useCheckListSet = (id: string | null) => {
   const url = id ? `${API_BASE_URL}/checklist-sets/${id}` : null;
   
   const fetcher = async (url: string) => {
@@ -76,7 +76,7 @@ export const useChecklistSetDetail = (id: string | null) => {
 /**
  * チェックリストセットを作成・更新・削除するためのフック
  */
-export const useChecklistSetMutations = () => {
+export const useCheckListSetActions = () => {
   const createCheckListSet = async (
     name: string,
     description?: string,
