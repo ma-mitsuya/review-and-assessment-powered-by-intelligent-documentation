@@ -11,7 +11,7 @@ import { getPresignedUrlSchema } from '../schemas/document-schemas';
  */
 export function registerDocumentRoutes(fastify: FastifyInstance): void {
   // Presigned URL取得
-  fastify.post('/api/v1/documents/presigned-url', {
+  fastify.post('/api/documents/presigned-url', {
     schema: getPresignedUrlSchema,
     handler: getPresignedUrlHandler
   });

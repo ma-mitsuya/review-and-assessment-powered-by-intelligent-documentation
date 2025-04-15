@@ -11,13 +11,13 @@ import { createChecklistSetSchema, getChecklistSetsSchema } from '../schemas/che
  */
 export function registerChecklistSetRoutes(fastify: FastifyInstance): void {
   // チェックリストセット一覧取得エンドポイント
-  fastify.get('/api/v1/checklist-sets', {
+  fastify.get('/api/checklist-sets', {
     schema: getChecklistSetsSchema,
     handler: getChecklistSetsHandler
   });
 
   // チェックリストセット作成エンドポイント
-  fastify.post('/api/v1/checklist-sets', {
+  fastify.post('/api/checklist-sets', {
     schema: createChecklistSetSchema,
     handler: createChecklistSetHandler
   });
