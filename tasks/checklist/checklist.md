@@ -1,3 +1,13 @@
+## フロントエンド整理
+
+冗長で内容が重複しているファイルがいくつもあります（下記は例）。網羅的に調査し、重複している場合は統廃合せよ。具体的には修正するファイル名・パス、削除するファイル名・パスを洗い出せ。なお既存の機能を破壊することを厳格に禁止します。
+
+- frontend/src/components/checklist, frontend/src/features/checklist/components
+- frontend/src/components/FileUploader.tsx, frontend/src/features/checklist/components/CheckListFlowChart.tsx
+- frontend/src/features/checklist/hooks/useCheckListSets.ts,frontend/src/features/checklist/hooks/useCheckListSetActions.ts
+
+## React warning
+
 フロントエド立ち上げると以下のメッセージが表示される。原因分析し、修正計画立てよ。詳細なコード例は計画に含めなくて良い。
 
 hook.js:608 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. Error Component Stack
