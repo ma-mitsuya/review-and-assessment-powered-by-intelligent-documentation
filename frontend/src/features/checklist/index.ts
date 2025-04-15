@@ -1,5 +1,6 @@
 // コンポーネントのエクスポート
 export * from './components/ProcessingStatus';
+export * from './components/CreateChecklistButton';
 
 // ページのエクスポート
 export * from './pages';

@@ -1,15 +1,26 @@
-## /checklist にアクセスできない
+## ボタンコンポーネントの作成
 
-## リファクタリング
+- 共通のコアのボタンコンポーネントを作成し、チェックリストの新規作成ボタンを Link ではなく、共通のボタンコンポーネントを継承したボタンを features/checklist/component 　に作り、それを利用するようリファクタせよ
+- まず実装計画をたてよ
 
-- frontend で、root の Pages と、features/checklist の pages と両方あり、散財しています。チェックリスト関連はすべて features/checklist に統一せよ
-- types が散財。checklist 関連のものはすべて　 features/、そうでない　共通・コアは root に集約せよ
-  - frontend/src/features/checklist/types.ts
-  - frontend/src/features/checklist/types/index.ts
-  - frontend/src/types/api.ts
-  - frontend/src/types/file.ts
-- 削除すべきファイル・パスと、修正すべきファイル・パスをすべて洗い出せ
-  - 同時に、import の修正すべき箇所もすべて洗い出せ
+## チェックリスト作成バックエンド
+
+- API 仕様書の通り、チェックリストの作成と、ドキュメントアップロードのエンドポイントを完成させよ
+- 実装計画立てよ。詳細コード全文は不要です
+
+## 審査画面の実装
+
+- /review 画面の実装
+- /review クリックすると、審査ジョブ一覧が表示
+- ジョブ作成ボタンも配置。クリックするとジョブ作成画面に遷移
+  - 左に審査ファイルアップロードコンポーネント、右にチェックリストの一覧を表示
+  - 真ん中にはそれを比較するような意味をするアイコンやコンポーネントを表示
+  - 比較実施ボタンをクリックすると、一覧に戻る
+  - API はまだ未実装のため、hook 実装は不要。まずは UI のモックだけ作成
+    - TBD の部分は「TBD」とコメントつけておく
+- 実装計画を立てよ
+
+---
 
 ## チェックリスト作成の修正
 
@@ -22,233 +33,3 @@ frontend/src/features/checklist/pages/CreateChecklistPage.tsx で、現在ファ
   - API の仕様書と異なる実装を削除せよ
   - 必要な API がまだない場合は実装せよ（backend + frontend hook）
 - 上記を実装するための実行計画を立てよ。詳細なコード例は不要です
-
-## アイコン
-
-サイドバーのアイコン（BEACON の左）を asset/icon.png に変更せよ
-
-## React warning
-
-フロントエド立ち上げると以下のメッセージが表示される。原因分析し、修正計画立てよ。詳細なコード例は計画に含めなくて良い。
-
-hook.js:608 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. Error Component Stack
-at BrowserRouter (react-router-dom.js?v=fbb14fef:5248:5)
-at SWRConfig (swr.js?v=fbb14fef:457:11)
-at App (<anonymous>)
-overrideMethod @ hook.js:608
-warnOnce @ react-router-dom.js?v=fbb14fef:4394
-logDeprecation @ react-router-dom.js?v=fbb14fef:4397
-logV6DeprecationWarnings @ react-router-dom.js?v=fbb14fef:4400
-(anonymous) @ react-router-dom.js?v=fbb14fef:5272
-commitHookEffectListMount @ chunk-PJEEZAML.js?v=fbb14fef:16915
-commitPassiveMountOnFiber @ chunk-PJEEZAML.js?v=fbb14fef:18156
-commitPassiveMountEffects_complete @ chunk-PJEEZAML.js?v=fbb14fef:18129
-commitPassiveMountEffects_begin @ chunk-PJEEZAML.js?v=fbb14fef:18119
-commitPassiveMountEffects @ chunk-PJEEZAML.js?v=fbb14fef:18109
-flushPassiveEffectsImpl @ chunk-PJEEZAML.js?v=fbb14fef:19490
-flushPassiveEffects @ chunk-PJEEZAML.js?v=fbb14fef:19447
-(anonymous) @ chunk-PJEEZAML.js?v=fbb14fef:19328
-workLoop @ chunk-PJEEZAML.js?v=fbb14fef:197
-flushWork @ chunk-PJEEZAML.js?v=fbb14fef:176
-performWorkUntilDeadline @ chunk-PJEEZAML.js?v=fbb14fef:384
-hook.js:608 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. Error Component Stack
-at BrowserRouter (react-router-dom.js?v=fbb14fef:5248:5)
-at SWRConfig (swr.js?v=fbb14fef:457:11)
-at App (<anonymous>)
-
-# 修正版：重複ファイル調査結果と統廃合計画
-
-## 1. ファイルアップローダーコンポーネント
-
-### 重複ファイル:
-
-• /frontend/src/components/FileUploader.tsx (共通コンポーネント)
-• /frontend/src/features/checklist/components/creation/FileUploader.tsx (ラッパー)
-• /frontend/src/features/checklist-creation/components/FileUploader.tsx (ラッパー)
-
-### 分析:
-
-• src/components/FileUploader.tsx が基本実装で、他の 2 つはこれをラップしているだけ
-• 両方のラッパーは同じパラメータを渡しており、機能的に違いがない
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/components/FileUploader.tsx
-2. 削除するファイル:
-   • /frontend/src/features/checklist/components/creation/FileUploader.tsx
-   • /frontend/src/features/checklist-creation/components/FileUploader.tsx
-3. 修正: 削除したファイルを参照している箇所を共通コンポーネントを直接参照するように変更
-
-## 2. 処理ステータス表示コンポーネント
-
-### 重複ファイル:
-
-• /frontend/src/features/checklist/components/creation/ProcessingStatus.tsx
-• /frontend/src/features/checklist-creation/components/ProcessingStatus.tsx
-
-### 分析:
-
-• 両方のファイルはほぼ同一のコード
-• チェックリスト機能に特化したコンポーネント
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/features/checklist/components/ProcessingStatus.tsx (移動)
-2. 削除するファイル:
-   • /frontend/src/features/checklist/components/creation/ProcessingStatus.tsx
-   • /frontend/src/features/checklist-creation/components/ProcessingStatus.tsx
-3. 修正:
-   • 機能特化コンポーネントとして features/checklist/components 直下に移動
-   • 参照を更新
-
-## 3. チェックリスト作成フック
-
-### 重複ファイル:
-
-• /frontend/src/features/checklist/hooks/useChecklistCreation.ts
-• /frontend/src/features/checklist-creation/hooks/useChecklistCreation.ts
-
-### 分析:
-
-• 両方のファイルはほぼ同一のコード
-• チェックリスト機能に特化したフック
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/features/checklist/hooks/useChecklistCreation.ts
-2. 削除するファイル:
-   • /frontend/src/features/checklist-creation/hooks/useChecklistCreation.ts
-3. 修正:
-   • 参照を更新
-   • インポートパスの修正
-
-## 4. チェックリスト作成ページ
-
-### 重複ファイル:
-
-• /frontend/src/features/checklist/pages/creation/CreateChecklistPage.tsx
-• /frontend/src/features/checklist-creation/pages/CreateChecklistPage.tsx
-
-### 分析:
-
-• 両方のファイルはほぼ同一のコード
-• チェックリスト機能に特化したページコンポーネント
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/features/checklist/pages/CreateChecklistPage.tsx (移動)
-2. 削除するファイル:
-   • /frontend/src/features/checklist/pages/creation/CreateChecklistPage.tsx
-   • /frontend/src/features/checklist-creation/pages/CreateChecklistPage.tsx
-3. 修正:
-   • features/checklist/pages 直下に移動
-   • App.tsx のルーティングを更新
-   • インポートパスの修正
-
-## 5. チェックリストセット操作フック
-
-### 重複ファイル:
-
-• /frontend/src/features/checklist/hooks/useCheckListSets.ts
-• /frontend/src/features/checklist/hooks/useCheckListSetActions.ts
-
-### 分析:
-
-• useCheckListSets.ts には useChecklistSetMutations が含まれており、useCheckListSetActions.ts と機能が重複
-• 両方とも同じ機能（チェックリストセットの作成・更新・削除）を提供
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/features/checklist/hooks/useCheckListSets.ts (統合版)
-2. 削除するファイル: /frontend/src/features/checklist/hooks/useCheckListSetActions.ts
-3. 修正: useCheckListSetActions を参照している箇所を useChecklistSetMutations に変更
-
-## 6. チェックリストセットリスト
-
-### 重複ファイル:
-
-• /frontend/src/components/checklist/CheckListSetList.tsx
-• /frontend/src/features/checklist/components/CheckListSetList.tsx
-
-### 分析:
-
-• 両方のファイルは異なる実装
-• components/checklist/CheckListSetList.tsx はシンプルなリスト表示
-• features/checklist/components/CheckListSetList.tsx はより機能的なテーブル表示
-
-### 対応策:
-
-1. 保持するファイル: /frontend/src/features/checklist/components/CheckListSetList.tsx (機能的な実装)
-2. 削除するファイル: /frontend/src/components/checklist/CheckListSetList.tsx
-3. 修正: 削除したファイルを参照している箇所を更新
-
-## 7. チェックリスト機能モジュール
-
-### 重複ディレクトリ:
-
-• /frontend/src/features/checklist
-• /frontend/src/features/checklist-creation
-
-### 分析:
-
-• checklist-creation は checklist の一部機能のみを含む
-• 両方のモジュールに重複するコンポーネントやフックが存在
-
-### 対応策:
-
-1. 保持するディレクトリ: /frontend/src/features/checklist (統合版)
-2. 削除するディレクトリ: /frontend/src/features/checklist-creation
-3. 修正: 必要なファイルを checklist に統合し、参照を更新
-
-## 8. コンポーネント構成の整理
-
-### 問題点:
-
-• /frontend/src/components/checklist と /frontend/src/components/ui の二つのディレクトリが混在
-• UI コンポーネントの配置が不統一
-
-### 対応策:
-
-1. 保持するディレクトリ: /frontend/src/components (直下に UI コンポーネントを配置)
-2. 移動するファイル:
-   • /frontend/src/components/ui/\* → /frontend/src/components/ (直下に移動)
-3. 削除するディレクトリ:
-   • /frontend/src/components/checklist (機能特化コンポーネントは features に移動済み)
-   • /frontend/src/components/ui (直下に移動後に削除)
-
-## 統廃合実施計画
-
-### 1. 削除するファイル
-
-1. /frontend/src/features/checklist/components/creation/FileUploader.tsx
-2. /frontend/src/features/checklist-creation/components/FileUploader.tsx
-3. /frontend/src/features/checklist/components/creation/ProcessingStatus.tsx
-4. /frontend/src/features/checklist-creation/components/ProcessingStatus.tsx
-5. /frontend/src/features/checklist-creation/hooks/useChecklistCreation.ts
-6. /frontend/src/features/checklist/pages/creation/CreateChecklistPage.tsx
-7. /frontend/src/features/checklist-creation/pages/CreateChecklistPage.tsx
-8. /frontend/src/features/checklist/hooks/useCheckListSetActions.ts
-9. /frontend/src/components/checklist/CheckListSetList.tsx
-10. /frontend/src/components/checklist/CheckListSetCard.tsx (関連ファイル)
-
-### 2. 新規作成/移動するファイル
-
-1. /frontend/src/features/checklist/components/ProcessingStatus.tsx (移動)
-2. /frontend/src/features/checklist/pages/CreateChecklistPage.tsx (移動)
-
-### 3. 修正が必要なファイル
-
-1. /frontend/src/App.tsx - ルーティングの更新
-2. /frontend/src/features/checklist/index.ts - エクスポートの更新
-3. 削除したファイルを参照しているすべてのファイル
-4. UI コンポーネントのインポートパスを更新
-
-### 4. ディレクトリ整理
-
-1. /frontend/src/components/ui/\* のファイルを /frontend/src/components/ 直下に移動
-2. 空になったディレクトリを削除:
-   • /frontend/src/components/ui
-   • /frontend/src/components/checklist
-   • /frontend/src/features/checklist-creation
-   • /frontend/src/features/checklist/components/creation
-   • /frontend/src/features/checklist/pages/creation

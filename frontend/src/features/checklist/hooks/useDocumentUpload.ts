@@ -1,143 +1,137 @@
+/**
+ * ドキュメントアップロード用のカスタムフック
+ * ファイル選択時にpresigned URLを取得し、S3へのアップロードを行う
+ */
 import { useState } from 'react';
-import { ApiResponse, DocumentInfo, PresignedUrlResponse } from '../types';
-
-const API_BASE_URL = '/api';
+import { postData } from '../../../hooks/useFetch';
 
 /**
- * ドキュメント関連の操作を行うためのフック
+ * Presigned URL レスポンス
  */
-export const useDocumentUpload = () => {
-  const [isLoading, setIsLoading] = useState(false);
+interface PresignedUrlResponse {
+  url: string;
+  key: string;
+  documentId: string;
+}
+
+/**
+ * ドキュメントアップロード結果
+ */
+export interface DocumentUploadResult {
+  documentId: string;
+  filename: string;
+  s3Key: string;
+  fileType: string;
+}
+
+/**
+ * ドキュメントアップロードフックの戻り値
+ */
+interface UseDocumentUploadReturn {
+  uploadDocument: (file: File) => Promise<DocumentUploadResult>;
+  uploadedDocuments: DocumentUploadResult[];
+  clearUploadedDocuments: () => void;
+  removeDocument: (documentId: string) => void;
+  isUploading: boolean;
+  error: Error | null;
+}
+
+/**
+ * ドキュメントアップロード用のカスタムフック
+ */
+export function useDocumentUpload(): UseDocumentUploadReturn {
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<DocumentUploadResult[]>([]);
 
   /**
-   * ドキュメントアップロード用のPresigned URLを取得
+   * Presigned URLを取得する
    */
-  const getPresignedUrl = async (
-    filename: string,
-    contentType: string
-  ): Promise<PresignedUrlResponse | null> => {
-    setIsLoading(true);
-    setError(null);
+  const getPresignedUrl = async (file: File): Promise<PresignedUrlResponse> => {
+    const response = await postData('/documents/presigned-url', {
+      filename: file.name,
+      contentType: file.type
+    });
     
-    try {
-      const response = await fetch(`${API_BASE_URL}/documents/presigned-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filename,
-          contentType,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to get presigned URL: ${response.statusText}`);
-      }
-      
-      const result = await response.json() as ApiResponse<PresignedUrlResponse>;
-      return result.data;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      return null;
-    } finally {
-      setIsLoading(false);
+    if (!response.success) {
+      throw new Error(`Presigned URLの取得に失敗しました: ${file.name}`);
+    }
+    
+    return response.data;
+  };
+
+  /**
+   * S3にファイルをアップロードする
+   */
+  const uploadToS3 = async (url: string, file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`ファイルのアップロードに失敗しました: ${file.name}`);
     }
   };
 
   /**
-   * ドキュメント処理を開始
+   * ファイルをアップロードする
+   * ファイル選択時に呼び出す
    */
-  const startDocumentProcessing = async (
-    id: string,
-    fileName: string
-  ): Promise<{ started: boolean; document: DocumentInfo } | null> => {
-    setIsLoading(true);
+  const uploadDocument = async (file: File): Promise<DocumentUploadResult> => {
+    setIsUploading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/documents/${id}/start-processing`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName,
-        }),
-      });
+      // Presigned URLを取得
+      const presignedUrl = await getPresignedUrl(file);
       
-      if (!response.ok) {
-        throw new Error(`Failed to start document processing: ${response.statusText}`);
-      }
+      // S3にファイルをアップロード
+      await uploadToS3(presignedUrl.url, file);
       
-      const result = await response.json() as ApiResponse<{ started: boolean; document: DocumentInfo }>;
-      return result.data;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      return null;
+      const result = {
+        documentId: presignedUrl.documentId,
+        filename: file.name,
+        s3Key: presignedUrl.key,
+        fileType: file.type
+      };
+      
+      // アップロード済みドキュメントリストに追加
+      setUploadedDocuments(prev => [...prev, result]);
+      
+      return result;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(`ファイル ${file.name} のアップロードに失敗しました`);
+      setError(err);
+      throw err;
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
   /**
-   * S3にファイルをアップロード
+   * アップロード済みドキュメントリストをクリアする
    */
-  const uploadFileToS3 = async (
-    presignedUrl: string,
-    file: File,
-    fields?: Record<string, string>
-  ): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      if (fields) {
-        // S3 Form POSTの場合
-        const formData = new FormData();
-        Object.entries(fields).forEach(([key, value]) => {
-          formData.append(key, value);
-        });
-        formData.append('file', file);
+  const clearUploadedDocuments = () => {
+    setUploadedDocuments([]);
+  };
 
-        const response = await fetch(presignedUrl, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload file: ${response.statusText}`);
-        }
-      } else {
-        // PUT方式の場合
-        const response = await fetch(presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload file: ${response.statusText}`);
-        }
-      }
-      
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+  /**
+   * 特定のドキュメントを削除する
+   */
+  const removeDocument = (documentId: string) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.documentId !== documentId));
   };
 
   return {
-    getPresignedUrl,
-    startDocumentProcessing,
-    uploadFileToS3,
-    isLoading,
-    error,
+    uploadDocument,
+    uploadedDocuments,
+    clearUploadedDocuments,
+    removeDocument,
+    isUploading,
+    error
   };
-};
+}

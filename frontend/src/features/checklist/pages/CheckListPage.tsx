@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useCheckListSets } from '../hooks/useCheckListSets';
 import CheckListSetList from '../components/CheckListSetList';
 import { deleteData } from '../../../hooks/useFetch';
+import CreateChecklistButton from '../components/CreateChecklistButton';
 
 /**
  * チェックリスト一覧ページ
@@ -37,15 +37,7 @@ export function CheckListPage() {
             不動産書類のチェックリストセットを管理します
           </p>
         </div>
-        <Link
-          to="/checklist/new"
-          className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light dark:bg-aws-sea-blue-dark dark:hover:bg-aws-sea-blue-hover-dark text-aws-font-color-white-light px-4 py-2 rounded-md flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          新規作成
-        </Link>
+        <CreateChecklistButton />
       </div>
       
       <CheckListSetList 

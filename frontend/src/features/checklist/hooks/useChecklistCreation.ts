@@ -4,9 +4,7 @@
 
 import { useState } from 'react';
 import { postData } from '../../../hooks/useFetch';
-import { useFileUpload } from '../../../hooks/useFileUpload';
-import { DocumentStatus } from '../types';
-import { DocumentStatusItem } from '../components/ProcessingStatus';
+import { DocumentUploadResult } from './useDocumentUpload';
 
 /**
  * チェックリスト作成リクエスト
@@ -14,7 +12,7 @@ import { DocumentStatusItem } from '../components/ProcessingStatus';
 export interface CreateChecklistRequest {
   name: string;
   description?: string;
-  files: File[];
+  documents: DocumentUploadResult[];
 }
 
 /**
@@ -24,9 +22,7 @@ export interface CreateChecklistResponse {
   check_list_set_id: string;
   name: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
-  documents: DocumentStatusItem[];
+  processing_status: string;
 }
 
 /**
@@ -44,40 +40,33 @@ interface UseChecklistCreationReturn {
 export function useChecklistCreation(): UseChecklistCreationReturn {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { uploadFiles } = useFileUpload();
   
   /**
    * チェックリストを作成する
+   * アップロード済みのドキュメント情報を使用
    */
   const createChecklist = async (data: CreateChecklistRequest): Promise<CreateChecklistResponse> => {
     setIsCreating(true);
     setError(null);
     
     try {
-      // 1. チェックリストセットを作成
-      const checklistSetResponse = await postData('/checklist-sets', {
+      // チェックリストセットを作成
+      const response = await postData('/checklist-sets', {
         name: data.name,
-        description: data.description
+        description: data.description,
+        documents: data.documents.map(doc => ({
+          documentId: doc.documentId,
+          filename: doc.filename,
+          s3Key: doc.s3Key,
+          fileType: doc.fileType
+        }))
       });
       
-      if (!checklistSetResponse.success) {
-        throw new Error(checklistSetResponse.error || 'チェックリストセットの作成に失敗しました');
+      if (!response.success) {
+        throw new Error(response.error || 'チェックリストセットの作成に失敗しました');
       }
       
-      const checkListSetId = checklistSetResponse.data.check_list_set_id;
-      
-      // 2. ファイルをアップロードして処理を開始
-      const uploadResults = await uploadFiles(data.files, checkListSetId);
-      
-      // 結果を返す
-      return {
-        ...checklistSetResponse.data,
-        documents: uploadResults.map(result => ({
-          document_id: result.documentId,
-          filename: result.fileName,
-          status: result.status
-        }))
-      };
+      return response.data;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('チェックリストの作成に失敗しました');
       setError(err);
