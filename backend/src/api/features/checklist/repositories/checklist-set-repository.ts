@@ -58,6 +58,20 @@ export class ChecklistSetRepository {
       }
     });
   }
+  
+  /**
+   * 特定のチェックリストセットを取得する
+   * @param id チェックリストセットID
+   * @returns チェックリストセット
+   */
+  async getChecklistSetById(id: string): Promise<ChecklistSetWithDocuments | null> {
+    return this.prisma.checkListSet.findUnique({
+      where: { id },
+      include: {
+        documents: true
+      }
+    });
+  }
 
   /**
    * チェックリストセットの総数を取得する
