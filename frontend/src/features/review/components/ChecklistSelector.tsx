@@ -1,10 +1,10 @@
 import React from 'react';
-import { Checklist } from '../types';
+import { CheckListSet } from '../../../features/checklist/types';
 
 interface ChecklistSelectorProps {
-  checklists: Checklist[];
+  checklists: CheckListSet[];
   selectedChecklistId: string | null;
-  onSelectChecklist: (checklist: Checklist) => void;
+  onSelectChecklist: (checklist: CheckListSet) => void;
 }
 
 export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
@@ -26,9 +26,9 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
       <div className="divide-y divide-light-gray">
         {checklists.map((checklist) => (
           <div
-            key={checklist.id}
+            key={checklist.check_list_set_id}
             className={`p-4 cursor-pointer transition-colors ${
-              selectedChecklistId === checklist.id
+              selectedChecklistId === checklist.check_list_set_id
                 ? 'bg-aws-sea-blue-light bg-opacity-10'
                 : 'hover:bg-aws-paper-light'
             }`}
@@ -37,14 +37,14 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
             <div className="flex items-center">
               <input
                 type="radio"
-                id={`checklist-${checklist.id}`}
+                id={`checklist-${checklist.check_list_set_id}`}
                 name="checklist"
-                checked={selectedChecklistId === checklist.id}
+                checked={selectedChecklistId === checklist.check_list_set_id}
                 onChange={() => onSelectChecklist(checklist)}
                 className="h-4 w-4 text-aws-sea-blue-light focus:ring-aws-sea-blue-light"
               />
               <label
-                htmlFor={`checklist-${checklist.id}`}
+                htmlFor={`checklist-${checklist.check_list_set_id}`}
                 className="ml-3 block text-aws-squid-ink-light dark:text-aws-font-color-white-dark cursor-pointer"
               >
                 <span className="font-medium">{checklist.name}</span>
@@ -52,7 +52,7 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
                   {checklist.description}
                 </p>
                 <p className="text-xs text-aws-font-color-gray mt-1">
-                  項目数: {checklist.itemCount}
+                  ステータス: {checklist.processing_status}
                 </p>
               </label>
             </div>

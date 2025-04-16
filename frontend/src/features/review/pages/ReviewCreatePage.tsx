@@ -6,15 +6,15 @@ import FormTextField from "../../../components/FormTextField";
 import FormFileUpload from "../../../components/FormFileUpload";
 import ChecklistSelector from "../components/ChecklistSelector";
 import ComparisonIndicator from "../components/ComparisonIndicator";
-import { mockChecklists } from "../mockData";
-import { Checklist } from "../types";
 import { useReviewCreation } from "../hooks/useReviewCreation";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
+import { useCheckListSets } from "../../checklist/hooks/useCheckListSets";
+import { CheckListSet } from "../../checklist/types";
 
 export const ReviewCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(
+  const [selectedChecklist, setSelectedChecklist] = useState<CheckListSet | null>(
     null
   );
   const [jobName, setJobName] = useState("");
@@ -22,6 +22,13 @@ export const ReviewCreatePage: React.FC = () => {
     name: "",
     files: "",
   });
+
+  // チェックリストセット一覧を取得
+  const { 
+    checkListSets, 
+    isLoading: isLoadingCheckListSets, 
+    isError: checkListSetsError 
+  } = useCheckListSets();
 
   // 審査ジョブ作成フック
   const {
@@ -130,7 +137,7 @@ export const ReviewCreatePage: React.FC = () => {
   };
 
   // チェックリスト選択ハンドラ
-  const handleChecklistSelect = (checklist: Checklist) => {
+  const handleChecklistSelect = (checklist: CheckListSet) => {
     setSelectedChecklist(checklist);
   };
 
@@ -164,7 +171,7 @@ export const ReviewCreatePage: React.FC = () => {
       const result = await createReviewJob({
         name: jobName,
         document: uploadedDocuments[0], // 審査では1ファイルのみ
-        checkListSetId: selectedChecklist.id,
+        checkListSetId: selectedChecklist.check_list_set_id,
       });
 
       // アップロード済みドキュメントリストをクリア
@@ -253,11 +260,21 @@ export const ReviewCreatePage: React.FC = () => {
 
             {/* 右側: チェックリスト選択 */}
             <div className="lg:col-span-3">
-              <ChecklistSelector
-                checklists={mockChecklists}
-                selectedChecklistId={selectedChecklist?.id || null}
-                onSelectChecklist={handleChecklistSelect}
-              />
+              {isLoadingCheckListSets ? (
+                <div className="flex items-center justify-center h-full p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : checkListSetsError ? (
+                <div className="text-red p-4 border border-red rounded-md">
+                  チェックリストの読み込みに失敗しました
+                </div>
+              ) : (
+                <ChecklistSelector
+                  checklists={checkListSets || []}
+                  selectedChecklistId={selectedChecklist?.check_list_set_id || null}
+                  onSelectChecklist={handleChecklistSelect}
+                />
+              )}
             </div>
           </div>
 

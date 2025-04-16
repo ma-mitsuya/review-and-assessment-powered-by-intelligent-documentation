@@ -77,7 +77,7 @@ export interface GetReviewJobsParams {
   page: number;
   limit: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   status?: string;
 }
 
@@ -88,6 +88,9 @@ export interface CreateReviewJobParams {
   name: string;
   documentId: string;
   checkListSetId: string;
+  filename: string;
+  s3Key: string;
+  fileType: string;
   userId?: string;
 }
 

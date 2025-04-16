@@ -1,80 +1,83 @@
 /**
  * 審査ジョブ関連のスキーマ定義
  */
-import { FastifySchema } from 'fastify';
+import { FastifySchema } from "fastify";
 
 /**
  * 審査ジョブ一覧取得リクエストのスキーマ
  */
 export const getReviewJobsSchema: FastifySchema = {
   querystring: {
-    type: 'object',
+    type: "object",
     properties: {
-      page: { type: 'number', default: 1 },
-      limit: { type: 'number', default: 10 },
-      sortBy: { type: 'string' },
-      sortOrder: { type: 'string', enum: ['asc', 'desc'] },
-      status: { type: 'string' }
-    }
+      page: { type: "number", default: 1 },
+      limit: { type: "number", default: 10 },
+      sortBy: { type: "string" },
+      sortOrder: { type: "string", enum: ["asc", "desc"] },
+      status: { type: "string" },
+    },
   },
   response: {
     200: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
+        success: { type: "boolean" },
         data: {
-          type: 'object',
+          type: "object",
           properties: {
             reviewJobs: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  review_job_id: { type: 'string' },
-                  name: { type: 'string' },
-                  status: { type: 'string' },
+                  review_job_id: { type: "string" },
+                  name: { type: "string" },
+                  status: { type: "string" },
                   document: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                      document_id: { type: 'string' },
-                      filename: { type: 'string' }
-                    }
+                      document_id: { type: "string" },
+                      filename: { type: "string" },
+                    },
                   },
                   check_list_set: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                      check_list_set_id: { type: 'string' },
-                      name: { type: 'string' }
-                    }
+                      check_list_set_id: { type: "string" },
+                      name: { type: "string" },
+                    },
                   },
-                  created_at: { type: 'string', format: 'date-time' },
-                  updated_at: { type: 'string', format: 'date-time' },
-                  completed_at: { type: ['string', 'null'], format: 'date-time' },
+                  created_at: { type: "string", format: "date-time" },
+                  updated_at: { type: "string", format: "date-time" },
+                  completed_at: {
+                    type: ["string", "null"],
+                    format: "date-time",
+                  },
                   summary: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                      total: { type: 'number' },
-                      passed: { type: 'number' },
-                      failed: { type: 'number' },
-                      processing: { type: 'number' }
-                    }
-                  }
-                }
-              }
+                      total: { type: "number" },
+                      passed: { type: "number" },
+                      failed: { type: "number" },
+                      processing: { type: "number" },
+                    },
+                  },
+                },
+              },
             },
-            total: { type: 'number' }
-          }
-        }
-      }
+            total: { type: "number" },
+          },
+        },
+      },
     },
     500: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
-    }
-  }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
+    },
+  },
 };
 
 /**
@@ -82,61 +85,71 @@ export const getReviewJobsSchema: FastifySchema = {
  */
 export const createReviewJobSchema: FastifySchema = {
   body: {
-    type: 'object',
-    required: ['name', 'documentId', 'checkListSetId'],
+    type: "object",
+    required: [
+      "name",
+      "documentId",
+      "checkListSetId",
+      "fileType",
+      "filename",
+      "s3Key",
+    ],
     properties: {
-      name: { type: 'string' },
-      documentId: { type: 'string' },
-      checkListSetId: { type: 'string' }
-    }
+      name: { type: "string" },
+      documentId: { type: "string" },
+      checkListSetId: { type: "string" },
+      fileType: { type: "string" },
+      filename: { type: "string" },
+      s3Key: { type: "string" },
+    },
   },
   response: {
     201: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
+        success: { type: "boolean" },
         data: {
-          type: 'object',
+          type: "object",
           properties: {
-            review_job_id: { type: 'string' },
-            name: { type: 'string' },
-            status: { type: 'string' },
+            review_job_id: { type: "string" },
+            name: { type: "string" },
+            status: { type: "string" },
             document: {
-              type: 'object',
+              type: "object",
               properties: {
-                document_id: { type: 'string' },
-                filename: { type: 'string' }
-              }
+                document_id: { type: "string" },
+                filename: { type: "string" },
+              },
             },
             check_list_set: {
-              type: 'object',
+              type: "object",
               properties: {
-                check_list_set_id: { type: 'string' },
-                name: { type: 'string' }
-              }
+                check_list_set_id: { type: "string" },
+                name: { type: "string" },
+              },
             },
-            created_at: { type: 'string', format: 'date-time' },
-            updated_at: { type: 'string', format: 'date-time' },
-            completed_at: { type: ['string', 'null'], format: 'date-time' }
-          }
-        }
-      }
+            created_at: { type: "string", format: "date-time" },
+            updated_at: { type: "string", format: "date-time" },
+            completed_at: { type: ["string", "null"], format: "date-time" },
+          },
+        },
+      },
     },
     400: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
     },
     500: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
-    }
-  }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
+    },
+  },
 };
 
 /**
@@ -144,38 +157,38 @@ export const createReviewJobSchema: FastifySchema = {
  */
 export const deleteReviewJobSchema: FastifySchema = {
   params: {
-    type: 'object',
-    required: ['id'],
+    type: "object",
+    required: ["id"],
     properties: {
-      id: { type: 'string' }
-    }
+      id: { type: "string" },
+    },
   },
   response: {
     200: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
+        success: { type: "boolean" },
         data: {
-          type: 'object',
+          type: "object",
           properties: {
-            deleted: { type: 'boolean' }
-          }
-        }
-      }
+            deleted: { type: "boolean" },
+          },
+        },
+      },
     },
     404: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
     },
     500: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
-    }
-  }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
+    },
+  },
 };

@@ -46,7 +46,10 @@ export function useReviewCreation(): UseReviewCreationReturn {
       const response = await postData('/review-jobs', {
         name: data.name,
         documentId: data.document.documentId,
-        checkListSetId: data.checkListSetId
+        checkListSetId: data.checkListSetId,
+        filename: data.document.filename,
+        s3Key: data.document.s3Key,
+        fileType: data.document.fileType
       });
       
       if (!response.success) {
