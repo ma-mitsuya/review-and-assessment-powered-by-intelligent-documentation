@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { CheckListItem } from '../../../types/api';
+import { HierarchicalCheckListItem } from '../types';
 
 /**
  * チェックリストのフロー表示に関するカスタムフック
  */
-export function useCheckListFlow(items: CheckListItem[], initialItemId?: string) {
+export function useCheckListFlow(items: HierarchicalCheckListItem[], initialItemId?: string) {
   // 現在選択されているチェックリスト項目のID
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>(initialItemId);
   

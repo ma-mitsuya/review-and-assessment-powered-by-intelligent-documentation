@@ -1,6 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useCheckListSet } from '../hooks/useCheckListSets';
-import { useCheckListItems } from '../hooks/useCheckListItems';
+import { useCheckListItemHierarchy } from '../hooks/useCheckListSets';
 import CheckListViewer from '../components/CheckListViewer';
 import { deleteData } from '../../../hooks/useFetch';
 import { useToast } from '../../../contexts/ToastContext';
@@ -12,16 +11,15 @@ export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { data: checkListSet, error: setError, isLoading: setLoading } = useCheckListSet(id);
-  const { data: checkListItems, error: itemsError, isLoading: itemsLoading } = useCheckListItems(id);
+  const { hierarchyItems, isError, isLoading } = useCheckListItemHierarchy(id);
 
   const handleDelete = async () => {
-    if (!id || !checkListSet) return;
+    if (!id) return;
     
-    if (confirm(`チェックリストセット「${checkListSet.name}」を削除してもよろしいですか？`)) {
+    if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
       try {
         await deleteData(`/checklist-sets/${id}`);
-        addToast(`チェックリスト「${checkListSet.name}」を削除しました`, 'success');
+        addToast(`チェックリスト #${id} を削除しました`, 'success');
         navigate('/checklist', { replace: true });
       } catch (error) {
         console.error('削除に失敗しました', error);
@@ -30,7 +28,7 @@ export function CheckListSetDetailPage() {
     }
   };
 
-  if (setLoading || itemsLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-fastPulse rounded-full h-12 w-12 border-t-2 border-b-2 border-aws-sea-blue-light"></div>
@@ -38,7 +36,7 @@ export function CheckListSetDetailPage() {
     );
   }
 
-  if (setError || !checkListSet) {
+  if (isError) {
     return (
       <div className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm" role="alert">
         <div className="flex items-center">
@@ -46,7 +44,7 @@ export function CheckListSetDetailPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <strong className="font-medium">エラー: </strong>
-          <span className="ml-2">チェックリストセットの取得に失敗しました。</span>
+          <span className="ml-2">チェックリスト情報の取得に失敗しました。</span>
         </div>
       </div>
     );
@@ -62,8 +60,8 @@ export function CheckListSetDetailPage() {
             </svg>
             チェックリスト一覧に戻る
           </Link>
-          <h1 className="text-3xl font-bold text-aws-squid-ink-light">{checkListSet.name}</h1>
-          <p className="text-aws-font-color-gray mt-2">{checkListSet.description}</p>
+          <h1 className="text-3xl font-bold text-aws-squid-ink-light">チェックリスト #{id}</h1>
+          <p className="text-aws-font-color-gray mt-2">チェックリスト項目: {hierarchyItems.length}件</p>
         </div>
         <div className="flex space-x-3">
           <Link
@@ -90,7 +88,7 @@ export function CheckListSetDetailPage() {
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray mb-8">
         <h2 className="text-2xl font-semibold text-aws-squid-ink-light mb-4">チェックリスト項目</h2>
         
-        {itemsError ? (
+        {isError ? (
           <div className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm" role="alert">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +98,7 @@ export function CheckListSetDetailPage() {
               <span className="ml-2">チェックリスト項目の取得に失敗しました。</span>
             </div>
           </div>
-        ) : !checkListItems || checkListItems.length === 0 ? (
+        ) : !hierarchyItems || hierarchyItems.length === 0 ? (
           <div className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm" role="alert">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,7 +108,7 @@ export function CheckListSetDetailPage() {
             </div>
           </div>
         ) : (
-          <CheckListViewer items={checkListItems} />
+          <CheckListViewer items={hierarchyItems} />
         )}
         
         <div className="mt-6 flex justify-end">

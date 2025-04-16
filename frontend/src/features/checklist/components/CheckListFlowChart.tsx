@@ -10,10 +10,10 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { CheckListItem } from '../../../types/api';
+import { HierarchicalCheckListItem } from '../types';
 
 type CheckListFlowChartProps = {
-  items: CheckListItem[];
+  items: HierarchicalCheckListItem[];
   selectedItemId?: string;
 };
 

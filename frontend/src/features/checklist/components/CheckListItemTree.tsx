@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckListItem } from '../../../types/api';
+import { HierarchicalCheckListItem } from '../types';
 
 type CheckListItemTreeProps = {
-  items: CheckListItem[];
+  items: HierarchicalCheckListItem[];
 };
 
 /**
@@ -19,7 +19,6 @@ export default function CheckListItemTree({ items }: CheckListItemTreeProps) {
         <CheckListItemNode 
           key={item.check_id} 
           item={item} 
-          allItems={items} 
           level={0} 
         />
       ))}
@@ -28,20 +27,18 @@ export default function CheckListItemTree({ items }: CheckListItemTreeProps) {
 }
 
 type CheckListItemNodeProps = {
-  item: CheckListItem;
-  allItems: CheckListItem[];
+  item: HierarchicalCheckListItem;
   level: number;
 };
 
 /**
  * チェックリスト項目の個別ノードコンポーネント
  */
-function CheckListItemNode({ item, allItems, level }: CheckListItemNodeProps) {
+function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   const [expanded, setExpanded] = useState(true);
   
-  // この項目の子項目を抽出
-  const children = allItems.filter(child => child.parent_id === item.check_id);
-  const hasChildren = children.length > 0;
+  // 子項目は階層構造データから直接取得
+  const hasChildren = item.children && item.children.length > 0;
   
   // インデントのスタイル
   const indentStyle = {
@@ -133,13 +130,13 @@ function CheckListItemNode({ item, allItems, level }: CheckListItemNodeProps) {
             {item.flow_data.next_if_yes && (
               <div className="flex items-center">
                 <span className="font-medium mr-2">Yes の場合:</span>
-                <span>{allItems.find(i => i.check_id === item.flow_data?.next_if_yes)?.name || item.flow_data.next_if_yes}</span>
+                <span>{item.flow_data.next_if_yes}</span>
               </div>
             )}
             {item.flow_data.next_if_no && (
               <div className="flex items-center">
                 <span className="font-medium mr-2">No の場合:</span>
-                <span>{allItems.find(i => i.check_id === item.flow_data?.next_if_no)?.name || item.flow_data.next_if_no}</span>
+                <span>{item.flow_data.next_if_no}</span>
               </div>
             )}
           </div>
@@ -149,11 +146,10 @@ function CheckListItemNode({ item, allItems, level }: CheckListItemNodeProps) {
       {/* 子項目を表示（展開時のみ） */}
       {expanded && hasChildren && (
         <div className="mt-2 space-y-2">
-          {children.map(child => (
+          {item.children.map(child => (
             <CheckListItemNode 
               key={child.check_id} 
               item={child} 
-              allItems={allItems} 
               level={level + 1} 
             />
           ))}

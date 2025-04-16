@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { CheckListItem } from '../../../types/api';
+import { HierarchicalCheckListItem } from '../types';
 import CheckListItemTree from './CheckListItemTree';
 import CheckListFlowChart from './CheckListFlowChart';
 import { useCheckListFlow } from '../hooks/useCheckListFlow';
 
 type CheckListViewerProps = {
-  items: CheckListItem[];
+  items: HierarchicalCheckListItem[];
   initialItemId?: string;
 };
 

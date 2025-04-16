@@ -1,7 +1,8 @@
 import useSWR, { mutate } from 'swr';
 import { 
   CheckListSet, 
-  CheckListSetDetail, 
+  CheckListSetDetail,
+  HierarchicalCheckListItem,
   ApiResponse 
 } from '../types';
 
@@ -48,6 +49,37 @@ export const useCheckListSets = (
   return {
     checkListSets: data?.data.checkListSets,
     total: data?.data.total,
+    isLoading,
+    isError: error,
+    mutate,
+    revalidate,
+  };
+};
+
+/**
+ * チェックリスト項目の階層構造を取得するためのフック
+ */
+export const useCheckListItemHierarchy = (setId: string | null) => {
+  const url = setId ? `${API_BASE_URL}/checklist-sets/${setId}/items/hierarchy` : null;
+  
+  const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch checklist item hierarchy: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<HierarchicalCheckListItem[]>>(
+    url,
+    fetcher
+  );
+
+  // 明示的にデータを再取得する関数
+  const revalidate = () => mutate();
+
+  return {
+    hierarchyItems: data?.data || [],
     isLoading,
     isError: error,
     mutate,
