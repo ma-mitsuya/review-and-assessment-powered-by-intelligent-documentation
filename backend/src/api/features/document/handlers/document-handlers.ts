@@ -3,7 +3,7 @@
  */
 import { FastifyReply, FastifyRequest } from "fastify";
 import { DocumentService } from "../services/document-service";
-import { generateId } from "../../checklist/utils/id-generator";
+import { generateId } from "../../../core/utils/id-generator";
 import { getPresignedUrl } from "../../../core/aws";
 import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
 

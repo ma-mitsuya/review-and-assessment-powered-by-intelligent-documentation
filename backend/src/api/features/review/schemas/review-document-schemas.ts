@@ -1,43 +1,43 @@
 /**
  * 審査ドキュメント関連のスキーマ定義
  */
-import { FastifySchema } from 'fastify';
+import { FastifySchema } from "fastify";
 
 /**
  * Presigned URL取得リクエストのスキーマ
  */
 export const getReviewPresignedUrlSchema: FastifySchema = {
   body: {
-    type: 'object',
-    required: ['filename', 'contentType'],
+    type: "object",
+    required: ["filename", "contentType"],
     properties: {
-      filename: { type: 'string' },
-      contentType: { type: 'string' }
-    }
+      filename: { type: "string" },
+      contentType: { type: "string" },
+    },
   },
   response: {
     200: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
+        success: { type: "boolean" },
         data: {
-          type: 'object',
+          type: "object",
           properties: {
-            url: { type: 'string' },
-            key: { type: 'string' },
-            documentId: { type: 'string' }
-          }
-        }
-      }
+            url: { type: "string" },
+            key: { type: "string" },
+            documentId: { type: "string" },
+          },
+        },
+      },
     },
     500: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' }
-      }
-    }
-  }
+        success: { type: "boolean" },
+        error: { type: "string" },
+      },
+    },
+  },
 };
 
 /**
@@ -45,37 +45,37 @@ export const getReviewPresignedUrlSchema: FastifySchema = {
  */
 export const deleteReviewDocumentSchema: FastifySchema = {
   params: {
-    type: 'object',
-    required: ['id'],
+    type: "object",
+    required: ["key"],
     properties: {
-      id: { type: 'string' },
+      key: { type: "string" },
     },
   },
   response: {
     200: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
+        success: { type: "boolean" },
         data: {
-          type: 'object',
+          type: "object",
           properties: {
-            deleted: { type: 'boolean' },
+            deleted: { type: "boolean" },
           },
         },
       },
     },
     404: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' },
+        success: { type: "boolean" },
+        error: { type: "string" },
       },
     },
     500: {
-      type: 'object',
+      type: "object",
       properties: {
-        success: { type: 'boolean' },
-        error: { type: 'string' },
+        success: { type: "boolean" },
+        error: { type: "string" },
       },
     },
   },

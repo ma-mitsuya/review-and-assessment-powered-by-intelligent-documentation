@@ -4,6 +4,7 @@
 import { PrismaClient } from '@prisma/client';
 import { getPrismaClient } from '../../../core/db';
 import { CreateReviewJobParams, GetReviewJobsParams, ReviewJobDto } from '../types';
+import { generateId } from '../../../core/utils/id-generator';
 
 /**
  * 審査ジョブリポジトリ
@@ -20,24 +21,96 @@ export class ReviewJobRepository {
    * @param params 審査ジョブ作成パラメータ
    * @returns 作成された審査ジョブ
    */
-  async createReviewJob(params: CreateReviewJobParams & { id: string }): Promise<ReviewJobDto> {
+  async createReviewJob(params: CreateReviewJobParams & { 
+    id: string;
+    // 追加のパラメータ
+    filename?: string;
+    s3Path?: string;
+    fileType?: string;
+  }): Promise<ReviewJobDto> {
     const now = new Date();
-    return this.prisma.reviewJob.create({
-      data: {
-        id: params.id,
-        name: params.name,
-        status: 'pending',
-        documentId: params.documentId,
-        checkListSetId: params.checkListSetId,
-        createdAt: now,
-        updatedAt: now,
-        userId: params.userId
-      },
-      include: {
-        document: true,
-        checkListSet: true
-      }
-    });
+
+    // ドキュメントアップロード情報がある場合はトランザクションで処理
+    if (params.filename && params.s3Path && params.fileType) {
+      // 型アサーションで型エラーを解決
+      const filename: string = params.filename;
+      const s3Path: string = params.s3Path;
+      const fileType: string = params.fileType;
+      
+      return this.prisma.$transaction(async (tx) => {
+        // 審査ドキュメントを作成
+        await tx.reviewDocument.create({
+          data: {
+            id: params.documentId,
+            filename: filename,
+            s3Path: s3Path,
+            fileType: fileType,
+            uploadDate: now,
+            status: 'processing'
+          }
+        });
+
+        // 審査ジョブを作成
+        const job = await tx.reviewJob.create({
+          data: {
+            id: params.id,
+            name: params.name,
+            status: 'pending',
+            documentId: params.documentId,
+            checkListSetId: params.checkListSetId,
+            createdAt: now,
+            updatedAt: now,
+            userId: params.userId
+          },
+          include: {
+            document: true,
+            checkListSet: true
+          }
+        });
+
+        // チェックリスト項目を取得して審査結果を作成
+        const checkListSet = await tx.checkListSet.findUnique({
+          where: { id: params.checkListSetId },
+          include: { checkLists: true }
+        });
+
+        if (checkListSet) {
+          for (const checkList of checkListSet.checkLists) {
+            await tx.reviewResult.create({
+              data: {
+                id: generateId(),
+                reviewJobId: params.id,
+                checkId: checkList.id,
+                status: 'pending',
+                userOverride: false,
+                createdAt: now,
+                updatedAt: now
+              }
+            });
+          }
+        }
+
+        return job;
+      });
+    } else {
+      // 既存の処理（既に DB に登録されているドキュメントを使用）
+      return this.prisma.reviewJob.create({
+        data: {
+          id: params.id,
+          name: params.name,
+          status: 'pending',
+          documentId: params.documentId,
+          checkListSetId: params.checkListSetId,
+          createdAt: now,
+          updatedAt: now,
+          userId: params.userId
+        },
+        include: {
+          document: true,
+          checkListSet: true
+        }
+      });
+    }
   }
 
   /**

@@ -5,7 +5,7 @@ import { ReviewJobRepository } from '../repositories/review-job-repository';
 import { ReviewResultRepository } from '../repositories/review-result-repository';
 import { ReviewDocumentService } from './review-document-service';
 import { CreateReviewJobParams, GetReviewJobsParams, ReviewJobDto, ReviewJobSummary } from '../types';
-import { generateId } from '../../checklist/utils/id-generator';
+import { generateId } from '../../../core/utils/id-generator';
 import { getPrismaClient } from '../../../core/db';
 import { REVIEW_JOB_STATUS } from '../constants';
 import { startStateMachineExecution } from '../../../core/sfn';
@@ -29,91 +29,77 @@ export class ReviewJobService {
    * @param params 審査ジョブ作成パラメータ
    * @returns 作成された審査ジョブ
    */
-  async createReviewJob(params: CreateReviewJobParams): Promise<ReviewJobDto> {
-    const prisma = getPrismaClient();
+  async createReviewJob(params: CreateReviewJobParams & {
+    // 追加のパラメータ
+    filename?: string;
+    s3Key?: string;
+    fileType?: string;
+  }): Promise<ReviewJobDto> {
+    // 審査ジョブIDの生成
+    const jobId = generateId();
     
-    // 審査ドキュメントとチェックリストセットの存在確認
-    const document = await prisma.reviewDocument.findUnique({
-      where: { id: params.documentId }
-    });
-    
-    if (!document) {
-      throw new Error(`Review document not found: ${params.documentId}`);
-    }
-    
-    const checkListSet = await prisma.checkListSet.findUnique({
-      where: { id: params.checkListSetId },
-      include: { checkLists: true }
+    // チェックリストセットの存在確認
+    const checkListSet = await getPrismaClient().checkListSet.findUnique({
+      where: { id: params.checkListSetId }
     });
     
     if (!checkListSet) {
       throw new Error(`CheckList set not found: ${params.checkListSetId}`);
     }
     
-    // 審査ジョブIDの生成
-    const jobId = generateId();
-    
-    // トランザクションで審査ジョブと審査結果を作成
-    const job = await prisma.$transaction(async (tx) => {
-      // 審査ジョブを作成
-      const job = await tx.reviewJob.create({
-        data: {
-          id: jobId,
-          name: params.name,
-          status: REVIEW_JOB_STATUS.PENDING,
-          documentId: params.documentId,
-          checkListSetId: params.checkListSetId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userId: params.userId
-        },
-        include: {
-          document: true,
-          checkListSet: true
-        }
+    // ドキュメントアップロード情報がある場合
+    if (params.filename && params.s3Key && params.fileType) {
+      // 審査ジョブと審査ドキュメントを作成
+      const job = await this.jobRepository.createReviewJob({
+        id: jobId,
+        name: params.name,
+        documentId: params.documentId,
+        checkListSetId: params.checkListSetId,
+        userId: params.userId,
+        filename: params.filename,
+        s3Path: params.s3Key,
+        fileType: params.fileType
       });
       
-      // チェックリスト項目ごとに審査結果を作成
-      for (const checkList of checkListSet.checkLists) {
-        await tx.reviewResult.create({
-          data: {
-            id: generateId(),
-            reviewJobId: jobId,
-            checkId: checkList.id,
-            status: REVIEW_JOB_STATUS.PENDING,
-            userOverride: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        });
+      // 非同期で審査処理を開始
+      const stateMachineArn = process.env.REVIEW_PROCESSING_STATE_MACHINE_ARN;
+      if (stateMachineArn) {
+        try {
+          await startStateMachineExecution(
+            stateMachineArn,
+            {
+              reviewJobId: jobId,
+              documentId: params.documentId,
+              fileName: params.filename
+            }
+          );
+          
+          // ステータスを処理中に更新
+          await this.jobRepository.updateReviewJobStatus(jobId, REVIEW_JOB_STATUS.PROCESSING);
+        } catch (error) {
+          console.error(`Failed to start processing for review job ${jobId}:`, error);
+        }
       }
       
       return job;
-    });
-    
-    // 非同期で審査処理を開始（TBD）
-    // この部分は後で実装する
-    const stateMachineArn = process.env.REVIEW_PROCESSING_STATE_MACHINE_ARN;
-    if (stateMachineArn) {
-      try {
-        await startStateMachineExecution(
-          stateMachineArn,
-          {
-            reviewJobId: jobId
-          }
-        );
-        
-        // ステータスを処理中に更新
-        await this.jobRepository.updateReviewJobStatus(jobId, REVIEW_JOB_STATUS.PROCESSING);
-      } catch (error) {
-        console.error(`Failed to start processing for review job ${jobId}:`, error);
-        // エラーが発生しても処理を続行
-      }
     } else {
-      console.warn('REVIEW_PROCESSING_STATE_MACHINE_ARN environment variable is not set. Review processing will not start.');
+      // 既存の処理（既に DB に登録されているドキュメントを使用）
+      const document = await getPrismaClient().reviewDocument.findUnique({
+        where: { id: params.documentId }
+      });
+      
+      if (!document) {
+        throw new Error(`Review document not found: ${params.documentId}`);
+      }
+      
+      return this.jobRepository.createReviewJob({
+        id: jobId,
+        name: params.name,
+        documentId: params.documentId,
+        checkListSetId: params.checkListSetId,
+        userId: params.userId
+      });
     }
-    
-    return job;
   }
   
   /**

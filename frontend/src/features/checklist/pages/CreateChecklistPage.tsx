@@ -13,7 +13,7 @@ import { useChecklistCreation } from "../hooks/useChecklistCreation";
 import {
   useDocumentUpload,
   DocumentUploadResult,
-} from "../hooks/useDocumentUpload";
+} from "../../../hooks/useDocumentUpload";
 import { ProcessingStatus } from "../components/ProcessingStatus";
 
 /**
@@ -44,7 +44,10 @@ export function CreateChecklistPage() {
     deleteDocument,
     isUploading,
     error: uploadError,
-  } = useDocumentUpload();
+  } = useDocumentUpload({
+    presignedUrlEndpoint: '/documents/presigned-url',
+    deleteEndpointPrefix: '/documents/'
+  });
 
   // 入力値の変更ハンドラ
   const handleInputChange = (

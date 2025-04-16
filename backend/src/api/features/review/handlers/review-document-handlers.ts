@@ -1,8 +1,8 @@
 /**
  * 審査ドキュメント関連のハンドラー
  */
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { ReviewDocumentService } from '../services/review-document-service';
+import { FastifyReply, FastifyRequest } from "fastify";
+import { ReviewDocumentService } from "../services/review-document-service";
 
 /**
  * Presigned URL取得リクエストの型定義
@@ -21,19 +21,19 @@ export async function getReviewPresignedUrlHandler(
 ): Promise<void> {
   try {
     const { filename, contentType } = request.body;
-    
+
     const documentService = new ReviewDocumentService();
     const result = await documentService.getPresignedUrl(filename, contentType);
-    
+
     reply.code(200).send({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     request.log.error(error);
     reply.code(500).send({
       success: false,
-      error: 'Presigned URLの生成に失敗しました'
+      error: "Presigned URLの生成に失敗しました",
     });
   }
 }
@@ -42,38 +42,27 @@ export async function getReviewPresignedUrlHandler(
  * 審査ドキュメント削除ハンドラー
  */
 export async function deleteReviewDocumentHandler(
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: { key: string } }>,
   reply: FastifyReply
 ): Promise<void> {
   try {
-    const { id } = request.params;
+    const { key } = request.params;
     const documentService = new ReviewDocumentService();
 
-    try {
-      // ドキュメントを削除
-      await documentService.deleteDocument(id);
-      
-      reply.code(200).send({
-        success: true,
-        data: {
-          deleted: true
-        }
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        reply.code(404).send({
-          success: false,
-          error: `ドキュメントが見つかりません: ${id}`
-        });
-      } else {
-        throw error; // 他のエラーは外側のcatchブロックで処理
-      }
-    }
+    // S3からファイルを削除
+    await documentService.deleteS3File(key);
+
+    reply.code(200).send({
+      success: true,
+      data: {
+        deleted: true,
+      },
+    });
   } catch (error) {
     request.log.error(error);
     reply.code(500).send({
       success: false,
-      error: "ドキュメントの削除に失敗しました"
+      error: "ファイルの削除に失敗しました",
     });
   }
 }

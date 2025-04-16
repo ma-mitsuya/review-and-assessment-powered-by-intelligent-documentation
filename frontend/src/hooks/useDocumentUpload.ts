@@ -3,7 +3,7 @@
  * ファイル選択時にpresigned URLを取得し、S3へのアップロードを行う
  */
 import { useState } from 'react';
-import { postData, deleteData } from '../../../hooks/useFetch';
+import { postData, deleteData } from './useFetch';
 
 /**
  * Presigned URL レスポンス
@@ -25,6 +25,14 @@ export interface DocumentUploadResult {
 }
 
 /**
+ * ドキュメントアップロードフックのオプション
+ */
+export interface DocumentUploadOptions {
+  presignedUrlEndpoint: string;
+  deleteEndpointPrefix: string;
+}
+
+/**
  * ドキュメントアップロードフックの戻り値
  */
 interface UseDocumentUploadReturn {
@@ -39,8 +47,11 @@ interface UseDocumentUploadReturn {
 
 /**
  * ドキュメントアップロード用のカスタムフック
+ * @param options APIエンドポイント設定
  */
-export function useDocumentUpload(): UseDocumentUploadReturn {
+export function useDocumentUpload(options: DocumentUploadOptions): UseDocumentUploadReturn {
+  const { presignedUrlEndpoint, deleteEndpointPrefix } = options;
+  
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [uploadedDocuments, setUploadedDocuments] = useState<DocumentUploadResult[]>([]);
@@ -49,7 +60,7 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
    * Presigned URLを取得する
    */
   const getPresignedUrl = async (file: File): Promise<PresignedUrlResponse> => {
-    const response = await postData('/documents/presigned-url', {
+    const response = await postData(presignedUrlEndpoint, {
       filename: file.name,
       contentType: file.type
     });
@@ -89,7 +100,7 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
   const deleteFromS3 = async (s3Key: string): Promise<boolean> => {
     try {
       const response = await deleteData(
-        `/documents/${encodeURIComponent(s3Key)}`
+        `${deleteEndpointPrefix}${encodeURIComponent(s3Key)}`
       );
 
       if (!response.success) {

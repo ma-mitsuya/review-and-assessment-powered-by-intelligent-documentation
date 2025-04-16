@@ -4,8 +4,8 @@
 import { CheckListDocument } from '@prisma/client';
 import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
 import { DocumentRepository } from '../../document/repositories/document-repository';
-import { deleteS3Object } from '../../../core/aws';
 import { startStateMachineExecution } from '../../../core/sfn';
+import { CoreDocumentService } from '../../../core/document/document-service';
 
 /**
  * ドキュメント情報
@@ -55,10 +55,12 @@ export interface GetChecklistSetsResult {
 export class ChecklistSetService {
   private repository: ChecklistSetRepository;
   private documentRepository: DocumentRepository;
+  private coreDocumentService: CoreDocumentService;
   
   constructor() {
     this.repository = new ChecklistSetRepository();
     this.documentRepository = new DocumentRepository();
+    this.coreDocumentService = new CoreDocumentService();
   }
   
   /**
@@ -157,7 +159,7 @@ export class ChecklistSetService {
     const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
     for (const document of documents) {
       try {
-        await deleteS3Object(bucketName, document.s3Path);
+        await this.coreDocumentService.deleteS3File(bucketName, document.s3Path);
       } catch (s3Error) {
         console.error(`S3 deletion failed for document ${document.id}:`, s3Error);
         // S3削除エラーは致命的ではないので続行

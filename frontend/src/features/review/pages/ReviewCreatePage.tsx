@@ -1,68 +1,135 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from '../../../components/Button';
-import PageHeader from '../../../components/PageHeader';
-import FormTextField from '../../../components/FormTextField';
-import FormFileUpload from '../../../components/FormFileUpload';
-import ChecklistSelector from '../components/ChecklistSelector';
-import ComparisonIndicator from '../components/ComparisonIndicator';
-import { mockChecklists } from '../mockData';
-import { Checklist } from '../types';
-import { useReviewJobActions } from '../hooks/useReviewJobActions';
-import { useReviewDocumentUpload } from '../hooks/useReviewDocumentUpload';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../../../components/Button";
+import PageHeader from "../../../components/PageHeader";
+import FormTextField from "../../../components/FormTextField";
+import FormFileUpload from "../../../components/FormFileUpload";
+import ChecklistSelector from "../components/ChecklistSelector";
+import ComparisonIndicator from "../components/ComparisonIndicator";
+import { mockChecklists } from "../mockData";
+import { Checklist } from "../types";
+import { useReviewCreation } from "../hooks/useReviewCreation";
+import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 
 export const ReviewCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const [files, setFiles] = useState<File[]>([]);
-  const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
-  const [jobName, setJobName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(
+    null
+  );
+  const [jobName, setJobName] = useState("");
   const [errors, setErrors] = useState({
-    name: '',
-    files: '',
+    name: "",
+    files: "",
   });
 
-  const { createReviewJob } = useReviewJobActions();
-  const { getPresignedUrl } = useReviewDocumentUpload();
+  // 審査ジョブ作成フック
+  const {
+    createReviewJob,
+    isCreating,
+    error: createError,
+  } = useReviewCreation();
+
+  // ドキュメントアップロードフック
+  const {
+    uploadDocument,
+    uploadedDocuments,
+    clearUploadedDocuments,
+    removeDocument,
+    deleteDocument,
+    isUploading,
+    error: uploadError,
+  } = useDocumentUpload({
+    presignedUrlEndpoint: '/documents/review/presigned-url',
+    deleteEndpointPrefix: '/documents/review/'
+  });
 
   // ファイルが選択されチェックリストも選択されているかチェック
-  const isReady = files.length > 0 && selectedChecklist !== null && jobName.trim() !== '';
+  const isReady =
+    uploadedDocuments.length > 0 && selectedChecklist !== null && jobName.trim() !== "";
 
+  // 入力値の変更ハンドラ
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'jobName') {
+    if (name === "jobName") {
       setJobName(value);
     }
-    
+
     // 入力時にエラーをクリア
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: '',
+        [name]: "",
       }));
     }
   };
 
-  const handleFilesChange = (newFiles: File[]) => {
-    setFiles(newFiles);
-    
-    // ファイル名をジョブ名の初期値として設定（ファイルが1つの場合）
-    if (newFiles.length === 1 && !jobName) {
-      // 拡張子を除いたファイル名を設定
-      const fileName = newFiles[0].name;
-      const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-      setJobName(`${nameWithoutExtension}の審査`);
+  // ファイル変更ハンドラ
+  const handleFilesChange = async (newFiles: File[]) => {
+    setSelectedFiles(newFiles);
+
+    // 新しく追加されたファイルのみをアップロード
+    const existingFilenames = uploadedDocuments.map((doc) => doc.filename);
+    const filesToUpload = newFiles.filter(
+      (file) => !existingFilenames.includes(file.name)
+    );
+
+    if (filesToUpload.length === 0) return;
+
+    try {
+      // 各ファイルを個別にアップロード (審査では1ファイルのみ)
+      const file = filesToUpload[0];
+      const uploadResult = await uploadDocument(file);
+
+      // ファイル名をジョブ名の初期値として設定（ファイルが1つの場合）
+      if (newFiles.length === 1 && !jobName) {
+        // 拡張子を除いたファイル名を設定
+        const fileName = file.name;
+        const nameWithoutExtension =
+          fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+        setJobName(`${nameWithoutExtension}の審査`);
+      }
+
+      // ファイル選択時にエラーをクリア
+      if (errors.files) {
+        setErrors((prev) => ({
+          ...prev,
+          files: "",
+        }));
+      }
+    } catch (error) {
+      console.error("ファイルアップロードエラー:", error);
     }
-    
-    // ファイル選択時にエラーをクリア
-    if (errors.files) {
-      setErrors(prev => ({
+  };
+
+  // ファイル削除ハンドラ
+  const handleFileRemove = async (index: number) => {
+    const fileToRemove = selectedFiles[index];
+
+    // 選択済みファイルリストから削除
+    const newSelectedFiles = [...selectedFiles];
+    newSelectedFiles.splice(index, 1);
+    setSelectedFiles(newSelectedFiles);
+
+    // アップロード済みドキュメントリストからも削除
+    const docToRemove = uploadedDocuments.find(
+      (doc) => doc.filename === fileToRemove.name
+    );
+    if (docToRemove) {
+      // S3からも削除
+      await deleteDocument(docToRemove.documentId);
+    }
+
+    // ファイルがなくなった場合はエラーを表示
+    if (newSelectedFiles.length === 0) {
+      setErrors((prev) => ({
         ...prev,
-        files: '',
+        files: "少なくとも1つのファイルを選択してください",
       }));
     }
   };
 
+  // チェックリスト選択ハンドラ
   const handleChecklistSelect = (checklist: Checklist) => {
     setSelectedChecklist(checklist);
   };
@@ -70,48 +137,48 @@ export const ReviewCreatePage: React.FC = () => {
   // バリデーション
   const validate = () => {
     const newErrors = {
-      name: '',
-      files: '',
+      name: "",
+      files: "",
     };
-    
+
     if (!jobName.trim()) {
-      newErrors.name = 'ジョブ名は必須です';
+      newErrors.name = "ジョブ名は必須です";
     }
-    
-    if (files.length === 0) {
-      newErrors.files = '少なくとも1つのファイルを選択してください';
+
+    if (uploadedDocuments.length === 0) {
+      newErrors.files = "少なくとも1つのファイルを選択してください";
     }
-    
+
     setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error);
+    return !Object.values(newErrors).some((error) => error);
   };
 
+  // フォーム送信ハンドラ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validate()) return;
-    
-    setIsSubmitting(true);
-    
+
+    if (!validate() || !selectedChecklist) return;
+
     try {
-      // TBD: 実際のAPIを使用してジョブを作成する実装
-      console.log('Creating job with:', {
+      // 審査ジョブを作成
+      const result = await createReviewJob({
         name: jobName,
-        files,
-        checklist: selectedChecklist
+        document: uploadedDocuments[0], // 審査では1ファイルのみ
+        checkListSetId: selectedChecklist.id,
       });
-      
-      // 処理成功を模擬（実際はAPIレスポンスを待つ）
-      setTimeout(() => {
-        // 一覧画面に戻る
-        navigate('/review');
-      }, 1000);
+
+      // アップロード済みドキュメントリストをクリア
+      clearUploadedDocuments();
+
+      // 作成成功後、一覧ページに遷移
+      navigate("/review", { replace: true });
     } catch (error) {
-      console.error('Error creating job:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error("審査ジョブ作成エラー:", error);
     }
   };
+
+  // 表示するエラー
+  const displayError = uploadError || createError;
 
   return (
     <div>
@@ -120,9 +187,35 @@ export const ReviewCreatePage: React.FC = () => {
         description="新しい審査ジョブを作成し、ドキュメントとチェックリストを比較します"
         backLink={{
           to: "/review",
-          label: "審査ジョブ一覧に戻る"
+          label: "審査ジョブ一覧に戻る",
         }}
       />
+
+      {displayError && (
+        <div
+          className="bg-light-red border border-red text-red px-6 py-4 rounded-md shadow-sm mb-6"
+          role="alert"
+        >
+          <div className="flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <strong className="font-medium">エラー: </strong>
+            <span className="ml-2">{displayError.message}</span>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <form onSubmit={handleSubmit}>
@@ -142,12 +235,14 @@ export const ReviewCreatePage: React.FC = () => {
             <div className="lg:col-span-3">
               <FormFileUpload
                 label="審査対象ファイル"
-                files={files}
+                files={selectedFiles}
                 onFilesChange={handleFilesChange}
                 required
                 error={errors.files}
-                isUploading={isSubmitting}
+                isUploading={isUploading}
                 multiple={false}
+                uploadedDocuments={uploadedDocuments}
+                onDeleteFile={handleFileRemove}
               />
             </div>
 
@@ -167,26 +262,41 @@ export const ReviewCreatePage: React.FC = () => {
           </div>
 
           <div className="flex justify-end space-x-3 mt-8">
-            <Button
-              variant="outline"
-              to="/review"
-            >
+            <Button variant="outline" to="/review">
               キャンセル
             </Button>
             <Button
               variant="primary"
               type="submit"
-              disabled={!isReady || isSubmitting}
+              disabled={!isReady || isCreating || isUploading}
             >
-              {isSubmitting ? (
+              {(isCreating || isUploading) ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   処理中...
                 </>
-              ) : '比較実施'}
+              ) : (
+                "比較実施"
+              )}
             </Button>
           </div>
         </form>

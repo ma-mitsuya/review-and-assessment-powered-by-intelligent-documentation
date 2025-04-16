@@ -3,18 +3,21 @@
  */
 import { ReviewDocumentRepository } from "../repositories/review-document-repository";
 import { ReviewDocumentDto } from "../types";
-import { deleteS3Object, getPresignedUrl } from "../../../core/aws";
 import { getReviewDocumentKey } from "../../../../checklist-workflow/common/storage-paths";
-import { generateId } from "../../checklist/utils/id-generator";
+import { generateId } from "../../../core/utils/id-generator";
+import { CoreDocumentService } from "../../../core/document/document-service";
+import { deleteS3Object } from "../../../core/aws";
 
 /**
  * 審査ドキュメントサービス
  */
 export class ReviewDocumentService {
   private repository: ReviewDocumentRepository;
+  private coreDocumentService: CoreDocumentService;
 
   constructor() {
     this.repository = new ReviewDocumentRepository();
+    this.coreDocumentService = new CoreDocumentService();
   }
 
   /**
@@ -50,23 +53,15 @@ export class ReviewDocumentService {
     key: string;
     documentId: string;
   }> {
-    // 審査ドキュメントIDの生成
-    const documentId = generateId();
-
-    // S3のキーを生成
-    const key = getReviewDocumentKey(documentId, filename);
-
     // バケット名を取得
     const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
-
-    // Presigned URLを生成
-    const url = await getPresignedUrl(bucketName, key, contentType);
-
-    return {
-      url,
-      key,
-      documentId,
-    };
+    
+    return this.coreDocumentService.getPresignedUrl(
+      bucketName,
+      getReviewDocumentKey,
+      filename,
+      contentType
+    );
   }
 
   /**
@@ -115,8 +110,7 @@ export class ReviewDocumentService {
    */
   async deleteS3File(s3Key: string): Promise<boolean> {
     const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
-    await deleteS3Object(bucketName, s3Key);
-    return true;
+    return this.coreDocumentService.deleteS3File(bucketName, s3Key);
   }
 
   /**

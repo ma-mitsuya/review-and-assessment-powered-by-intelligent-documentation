@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { postData } from '../../../hooks/useFetch';
-import { DocumentUploadResult } from './useDocumentUpload';
+import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 import { getCheckListSetsKey } from './useCheckListSets';
 import { mutate } from 'swr';
 
