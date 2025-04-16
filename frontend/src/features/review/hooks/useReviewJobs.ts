@@ -1,69 +1,63 @@
-import { useState } from 'react';
+/**
+ * 審査ジョブ一覧を取得するためのカスタムフック
+ */
+import useSWR from 'swr';
+import { fetcher } from '../../../hooks/useFetch';
 import { ReviewJob } from '../types';
-import { mockReviewJobs } from '../mockData';
 
 /**
- * 審査ジョブを管理するためのカスタムフック
- * 
- * 注意: 現在はモックデータを使用しています。
- * 将来的にはAPIと連携する実装に置き換える予定です。
- * 
- * @returns 審査ジョブ関連の状態と操作関数
+ * 審査ジョブ一覧のキャッシュキーを生成する関数
  */
-export const useReviewJobs = () => {
-  const [jobs, setJobs] = useState<ReviewJob[]>(mockReviewJobs);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  // ジョブ一覧を取得する関数
-  const fetchJobs = async () => {
-    // TBD: 実際のAPIからデータを取得する実装に置き換える
-    setLoading(true);
-    try {
-      // モックデータを使用
-      setJobs(mockReviewJobs);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 新しいジョブを作成する関数
-  const createJob = async (jobData: Partial<ReviewJob>) => {
-    // TBD: 実際のAPIを使用してジョブを作成する実装に置き換える
-    setLoading(true);
-    try {
-      // モックの新規ジョブ作成
-      const newJob: ReviewJob = {
-        id: `new-${Date.now()}`,
-        name: jobData.name || '新規審査ジョブ',
-        status: 'pending',
-        documentName: jobData.documentName || 'document.pdf',
-        checklistName: jobData.checklistName || 'チェックリスト',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      setJobs([newJob, ...jobs]);
-      setError(null);
-      return newJob;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to create job'));
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return {
-    jobs,
-    loading,
-    error,
-    fetchJobs,
-    createJob,
-  };
+export const getReviewJobsKey = (
+  page: number = 1,
+  limit: number = 10,
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
+  status?: string
+) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+  if (status) params.append('status', status);
+  
+  return `/review-jobs?${params.toString()}`;
 };
 
-export default useReviewJobs;
+/**
+ * 審査ジョブ一覧を取得するためのカスタムフック
+ * @param page ページ番号
+ * @param limit 1ページあたりの件数
+ * @param sortBy ソート項目
+ * @param sortOrder ソート順序
+ * @param status ステータスでフィルタリング
+ * @returns 審査ジョブ一覧と総数、ローディング状態、エラー
+ */
+export const useReviewJobs = (
+  page: number = 1,
+  limit: number = 10,
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
+  status?: string
+): {
+  reviewJobs: ReviewJob[];
+  total: number;
+  isLoading: boolean;
+  isError: boolean;
+  mutate: () => void;
+} => {
+  const key = getReviewJobsKey(page, limit, sortBy, sortOrder, status);
+  
+  const { data, error, mutate } = useSWR(key, fetcher);
+  
+  return {
+    reviewJobs: data?.data.reviewJobs || [],
+    total: data?.data.total || 0,
+    isLoading: !error && !data,
+    isError: !!error,
+    mutate
+  };
+};
