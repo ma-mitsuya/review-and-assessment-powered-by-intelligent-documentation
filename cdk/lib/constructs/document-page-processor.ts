@@ -80,7 +80,10 @@ export class DocumentPageProcessor extends Construct {
     this.backendLambda = new nodejs.NodejsFunction(this, "BackendFunction", {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "handler",
-      entry: path.join(__dirname, "../../../backend/src/handlers/index.ts"),
+      entry: path.join(
+        __dirname,
+        "../../../backend/src/checklist-workflow/index.ts"
+      ),
       timeout: Duration.minutes(15),
       memorySize: 1024,
       environment: {
@@ -119,7 +122,6 @@ export class DocumentPageProcessor extends Construct {
           action: "processDocument",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
           fileName: sfn.JsonPath.stringAt("$.fileName"),
-          fileType: sfn.JsonPath.stringAt("$.fileType"),
         }),
         outputPath: "$.Payload",
       }
@@ -132,7 +134,6 @@ export class DocumentPageProcessor extends Construct {
         action: "extractText",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
-        fileType: sfn.JsonPath.stringAt("$.fileType"),
       }),
       resultPath: "$.textExtraction",
       outputPath: "$",
@@ -145,7 +146,6 @@ export class DocumentPageProcessor extends Construct {
         action: "processWithLLM",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
-        fileType: sfn.JsonPath.stringAt("$.fileType"),
       }),
       resultPath: "$.llmProcessing",
       outputPath: "$",
@@ -237,7 +237,6 @@ export class DocumentPageProcessor extends Construct {
       itemSelector: {
         pageNumber: sfn.JsonPath.stringAt("$$.Map.Item.Value.pageNumber"),
         documentId: sfn.JsonPath.stringAt("$.documentId"),
-        fileType: sfn.JsonPath.stringAt("$.metadata.fileType"),
       },
     });
     inlineMapState.itemProcessor(processPageFlow);
