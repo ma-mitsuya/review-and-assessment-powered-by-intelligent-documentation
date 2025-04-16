@@ -20,16 +20,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  // チェックリストセットの作成
-  const checkListSetId = ulid();
-  const checkListSet = await prisma.checkListSet.create({
+  // 1. 基本契約書チェックリストセットの作成
+  const contractCheckListSetId = ulid();
+  const contractCheckListSet = await prisma.checkListSet.create({
     data: {
-      id: checkListSetId,
+      id: contractCheckListSetId,
       name: '基本契約書チェックリスト',
       description: '契約書の基本的な項目をチェックするためのセット'
     }
   });
-  console.log(`チェックリストセットを作成しました: ${checkListSet.name}`);
+  console.log(`チェックリストセットを作成しました: ${contractCheckListSet.name}`);
 
   // 親チェックリスト項目の作成
   const parentCheckId = ulid();
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
       description: '契約書の基本的な情報が正しく記載されているかの確認',
       itemType: 'SIMPLE',
       isConclusion: false,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
   console.log(`親チェックリスト項目を作成しました: ${parentCheck.name}`);
@@ -54,7 +54,7 @@ async function main(): Promise<void> {
       parentId: parentCheckId,
       itemType: 'SIMPLE',
       isConclusion: false,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
   console.log(`子チェックリスト項目を作成しました: ${childCheck1.name}`);
@@ -67,7 +67,7 @@ async function main(): Promise<void> {
       parentId: parentCheckId,
       itemType: 'SIMPLE',
       isConclusion: false,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
   console.log(`子チェックリスト項目を作成しました: ${childCheck2.name}`);
@@ -87,7 +87,7 @@ async function main(): Promise<void> {
       description: 'この契約書がリース契約に該当するかの判断フロー',
       itemType: 'FLOW',
       isConclusion: false,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       flowData: {
         condition_type: 'YES_NO',
         next_if_yes: yesNodeId,
@@ -106,7 +106,7 @@ async function main(): Promise<void> {
       parentId: flowStartId,
       itemType: 'FLOW',
       isConclusion: false,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       flowData: {
         condition_type: 'YES_NO',
         next_if_yes: conclusionYesId,
@@ -125,7 +125,7 @@ async function main(): Promise<void> {
       parentId: flowStartId,
       itemType: 'FLOW',
       isConclusion: false,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       flowData: {
         condition_type: 'YES_NO',
         next_if_yes: yesNodeId,
@@ -144,7 +144,7 @@ async function main(): Promise<void> {
       parentId: flowStartId,
       itemType: 'FLOW',
       isConclusion: true,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       metaData: {
         document_id: "01HFR0N599QPC0DA14F0V42FE3",
         page_number: 1
@@ -162,7 +162,7 @@ async function main(): Promise<void> {
       parentId: flowStartId,
       itemType: 'FLOW',
       isConclusion: true,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       metaData: {
         document_id: "01HFR0N599QPC0DA14F0V42FE3",
         page_number: 2
@@ -185,7 +185,7 @@ async function main(): Promise<void> {
       description: '使用期間全体を通じて特定された資産の使用方法を指図する権利を有しているのは誰か',
       itemType: 'FLOW',
       isConclusion: false,
-      checkListSetId: checkListSetId,
+      checkListSetId: contractCheckListSetId,
       flowData: {
         condition_type: 'MULTI_CHOICE',
         next_options: {
@@ -207,7 +207,7 @@ async function main(): Promise<void> {
       parentId: multiChoiceFlowId,
       itemType: 'FLOW',
       isConclusion: true,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
 
@@ -219,7 +219,7 @@ async function main(): Promise<void> {
       parentId: multiChoiceFlowId,
       itemType: 'FLOW',
       isConclusion: true,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
 
@@ -231,13 +231,265 @@ async function main(): Promise<void> {
       parentId: multiChoiceFlowId,
       itemType: 'FLOW',
       isConclusion: true,
-      checkListSetId: checkListSetId
+      checkListSetId: contractCheckListSetId
     }
   });
   console.log(`複数選択肢の結論ノードを作成しました`);
 
+  // 2. 建築確認申請チェックリストの追加
+  console.log('建築確認申請チェックリストの作成を開始します...');
+  
+  // チェックリストセットの作成
+  const buildingCheckListSetId = ulid();
+  const buildingCheckListSet = await prisma.checkListSet.create({
+    data: {
+      id: buildingCheckListSetId,
+      name: '建築確認申請チェックリスト',
+      description: '建築確認申請書類の審査用チェックリスト'
+    }
+  });
+  console.log(`建築確認申請チェックリストセットを作成しました: ${buildingCheckListSet.name}`);
+
+  // 親チェックリスト項目の作成
+  const applicantInfoId = ulid();
+  const buildingOverviewId = ulid();
+  const drawingsId = ulid();
+  const legalComplianceId = ulid();
+
+  // 申請者情報
+  const applicantInfo = await prisma.checkList.create({
+    data: {
+      id: applicantInfoId,
+      name: '申請者情報',
+      description: '申請者の基本情報が正しく記載されているかの確認',
+      itemType: 'SIMPLE',
+      isConclusion: false,
+      checkListSetId: buildingCheckListSetId
+    }
+  });
+  console.log(`親チェックリスト項目を作成しました: ${applicantInfo.name}`);
+
+  // 建築物の概要
+  const buildingOverview = await prisma.checkList.create({
+    data: {
+      id: buildingOverviewId,
+      name: '建築物の概要',
+      description: '建築物の基本情報が正しく記載されているかの確認',
+      itemType: 'SIMPLE',
+      isConclusion: false,
+      checkListSetId: buildingCheckListSetId
+    }
+  });
+  console.log(`親チェックリスト項目を作成しました: ${buildingOverview.name}`);
+
+  // 図面
+  const drawings = await prisma.checkList.create({
+    data: {
+      id: drawingsId,
+      name: '図面',
+      description: '必要な図面が添付されているかの確認',
+      itemType: 'SIMPLE',
+      isConclusion: false,
+      checkListSetId: buildingCheckListSetId
+    }
+  });
+  console.log(`親チェックリスト項目を作成しました: ${drawings.name}`);
+
+  // 法適合性
+  const legalCompliance = await prisma.checkList.create({
+    data: {
+      id: legalComplianceId,
+      name: '法適合性',
+      description: '建築基準法などの法規制に適合しているかの確認',
+      itemType: 'SIMPLE',
+      isConclusion: false,
+      checkListSetId: buildingCheckListSetId
+    }
+  });
+  console.log(`親チェックリスト項目を作成しました: ${legalCompliance.name}`);
+
+  // 子チェックリスト項目の作成
+  // 申請者情報の子項目
+  const applicantChildren = [
+    { name: '氏名の記載', description: '申請者の氏名が正確に記載されているか' },
+    { name: '住所の記載', description: '申請者の住所が正確に記載されているか' },
+    { name: '連絡先の記載', description: '申請者の連絡先が正確に記載されているか' }
+  ];
+
+  for (const child of applicantChildren) {
+    await prisma.checkList.create({
+      data: {
+        id: ulid(),
+        name: child.name,
+        description: child.description,
+        parentId: applicantInfoId,
+        itemType: 'SIMPLE',
+        isConclusion: false,
+        checkListSetId: buildingCheckListSetId
+      }
+    });
+    console.log(`子チェックリスト項目を作成しました: ${child.name}`);
+  }
+
+  // 建築物の概要の子項目
+  const buildingChildren = [
+    { name: '建築場所の記載', description: '建築物の所在地が正確に記載されているか' },
+    { name: '用途の記載', description: '建築物の用途が正確に記載されているか' },
+    { name: '構造の記載', description: '建築物の構造が正確に記載されているか' },
+    { name: '階数の記載', description: '建築物の階数が正確に記載されているか' }
+  ];
+
+  for (const child of buildingChildren) {
+    await prisma.checkList.create({
+      data: {
+        id: ulid(),
+        name: child.name,
+        description: child.description,
+        parentId: buildingOverviewId,
+        itemType: 'SIMPLE',
+        isConclusion: false,
+        checkListSetId: buildingCheckListSetId
+      }
+    });
+    console.log(`子チェックリスト項目を作成しました: ${child.name}`);
+  }
+
+  // 図面の子項目
+  const drawingChildren = [
+    { name: '配置図の添付', description: '建築物の配置図が添付されているか' },
+    { name: '平面図の添付', description: '建築物の平面図が添付されているか' },
+    { name: '立面図の添付', description: '建築物の立面図が添付されているか' }
+  ];
+
+  for (const child of drawingChildren) {
+    await prisma.checkList.create({
+      data: {
+        id: ulid(),
+        name: child.name,
+        description: child.description,
+        parentId: drawingsId,
+        itemType: 'SIMPLE',
+        isConclusion: false,
+        checkListSetId: buildingCheckListSetId
+      }
+    });
+    console.log(`子チェックリスト項目を作成しました: ${child.name}`);
+  }
+
+  // 法適合性の子項目
+  const legalChildren = [
+    { name: '用途地域の適合', description: '建築物の用途が用途地域の規制に適合しているか' },
+    { name: '建ぺい率の適合', description: '建築物の建ぺい率が規制に適合しているか' },
+    { name: '容積率の適合', description: '建築物の容積率が規制に適合しているか' },
+    { name: '高さ制限の適合', description: '建築物の高さが規制に適合しているか' }
+  ];
+
+  for (const child of legalChildren) {
+    await prisma.checkList.create({
+      data: {
+        id: ulid(),
+        name: child.name,
+        description: child.description,
+        parentId: legalComplianceId,
+        itemType: 'SIMPLE',
+        isConclusion: false,
+        checkListSetId: buildingCheckListSetId
+      }
+    });
+    console.log(`子チェックリスト項目を作成しました: ${child.name}`);
+  }
+
+  // 結論項目の作成
+  const conclusionItems = [
+    { name: '申請書類の完全性', description: '申請書類が完全に揃っているか' },
+    { name: '法規制への適合性', description: '建築計画が法規制に適合しているか' }
+  ];
+
+  for (const item of conclusionItems) {
+    await prisma.checkList.create({
+      data: {
+        id: ulid(),
+        name: item.name,
+        description: item.description,
+        itemType: 'SIMPLE',
+        isConclusion: true,
+        checkListSetId: buildingCheckListSetId
+      }
+    });
+    console.log(`結論チェックリスト項目を作成しました: ${item.name}`);
+  }
+
+  // 3. Review関連データの追加
+  console.log('Review関連データの作成を開始します...');
+
+  // ReviewDocument（審査対象ドキュメント）の作成
+  const reviewDocumentId = ulid();
+  const reviewDocument = await prisma.reviewDocument.create({
+    data: {
+      id: reviewDocumentId,
+      filename: '建築確認申請書_サンプル.pdf',
+      s3Path: 'review-documents/building-application-sample.pdf',
+      fileType: 'application/pdf',
+      uploadDate: new Date(),
+      userId: 'user123',
+      status: 'uploaded'
+    }
+  });
+  console.log(`ReviewDocumentを作成しました: ${reviewDocument.filename}`);
+
+  // ReviewJob（審査ジョブ）の作成
+  const reviewJobId = ulid();
+  const reviewJob = await prisma.reviewJob.create({
+    data: {
+      id: reviewJobId,
+      name: '建築確認申請書審査',
+      status: 'pending',
+      documentId: reviewDocumentId,
+      checkListSetId: buildingCheckListSetId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: 'user123',
+      metaData: {
+        priority: 'high',
+        notes: '初回審査'
+      }
+    }
+  });
+  console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
+
+  // 建築確認申請チェックリストの全項目を取得
+  const allBuildingCheckItems = await prisma.checkList.findMany({
+    where: {
+      checkListSetId: buildingCheckListSetId
+    }
+  });
+
+  // ReviewResult（審査結果）の作成
+  for (const checkItem of allBuildingCheckItems) {
+    await prisma.reviewResult.create({
+      data: {
+        id: ulid(),
+        reviewJobId: reviewJobId,
+        checkId: checkItem.id,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+  }
+  console.log(`ReviewResultを作成しました: ${allBuildingCheckItems.length}件`);
+
   console.log('シードデータの投入が完了しました');
 }
+
+main()
+  .catch((e) => {
+    console.error('シードデータの投入中にエラーが発生しました:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
 
 main()
   .catch((e) => {

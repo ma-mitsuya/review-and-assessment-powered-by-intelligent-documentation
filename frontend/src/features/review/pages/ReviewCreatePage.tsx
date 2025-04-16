@@ -8,6 +8,8 @@ import ChecklistSelector from '../components/ChecklistSelector';
 import ComparisonIndicator from '../components/ComparisonIndicator';
 import { mockChecklists } from '../mockData';
 import { Checklist } from '../types';
+import { useReviewJobActions } from '../hooks/useReviewJobActions';
+import { useReviewDocumentUpload } from '../hooks/useReviewDocumentUpload';
 
 export const ReviewCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +21,9 @@ export const ReviewCreatePage: React.FC = () => {
     name: '',
     files: '',
   });
+
+  const { createReviewJob } = useReviewJobActions();
+  const { getPresignedUrl } = useReviewDocumentUpload();
 
   // ファイルが選択されチェックリストも選択されているかチェック
   const isReady = files.length > 0 && selectedChecklist !== null && jobName.trim() !== '';

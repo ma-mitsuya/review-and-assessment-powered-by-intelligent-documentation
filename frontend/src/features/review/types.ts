@@ -1,24 +1,94 @@
+/**
+ * 審査機能の型定義
+ */
+
+/**
+ * 審査ドキュメント
+ */
+export interface ReviewDocument {
+  document_id: string;
+  filename: string;
+  s3_path: string;
+  file_type: string;
+  upload_date: string;
+  status: string;
+}
+
+/**
+ * 審査ジョブ
+ */
 export interface ReviewJob {
-  id: string;
+  review_job_id: string;
   name: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  documentName: string;
-  checklistName: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
+  document: {
+    document_id: string;
+    filename: string;
+  };
+  check_list_set: {
+    check_list_set_id: string;
+    name: string;
+  };
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  summary: ReviewJobSummary;
 }
 
-export interface Checklist {
-  id: string;
-  name: string;
-  description: string;
-  itemCount: number;
+/**
+ * 審査ジョブサマリー
+ */
+export interface ReviewJobSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  processing?: number;
 }
 
-export interface UploadedFile {
-  id: string;
+/**
+ * 審査結果
+ */
+export interface ReviewResult {
+  review_result_id: string;
+  check_id: string;
+  status: string;
+  result: string | null;
+  confidence_score: number | null;
+  explanation: string | null;
+  extracted_text: string | null;
+  user_override: boolean;
+  user_comment: string | null;
+  check_list: {
+    check_id: string;
+    name: string;
+    description: string | null;
+    parent_id: string | null;
+    item_type: string;
+    is_conclusion: boolean;
+    flow_data?: any;
+  };
+}
+
+/**
+ * 審査結果階層構造
+ */
+export interface ReviewResultHierarchy extends ReviewResult {
+  children: ReviewResultHierarchy[];
+}
+
+/**
+ * 審査ジョブ作成パラメータ
+ */
+export interface CreateReviewJobParams {
   name: string;
-  size: number;
-  type: string;
-  uploadedAt: string;
+  documentId: string;
+  checkListSetId: string;
+}
+
+/**
+ * 審査結果更新パラメータ
+ */
+export interface UpdateReviewResultParams {
+  result: string;
+  userComment?: string;
 }

@@ -4,6 +4,7 @@
 import { createApp } from './core/app';
 import { registerChecklistRoutes } from './features/checklist';
 import { registerDocumentRoutes } from './features/document';
+import { registerReviewRoutes } from './features/review';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -16,6 +17,7 @@ async function startApp() {
   // ルートの登録
   registerChecklistRoutes(app);
   registerDocumentRoutes(app);
+  registerReviewRoutes(app);
   
   // アプリケーションの起動
   try {

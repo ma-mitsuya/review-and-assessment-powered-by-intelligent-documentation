@@ -9,6 +9,7 @@
 - ディレクトリ構成
   - pages, hooks,　 compoments などから構成
   - API フェッチは標準の fetch 利用
+    - useFetch を利用すること
   - SWR 利用
   - hooks などアプリ共通で使うものは src のルートに配置で良いが、基本は feature ベースを採用
     - 機能ごとに features/\*ディレクトリを作成し、その下に hooks, components, etc を配置

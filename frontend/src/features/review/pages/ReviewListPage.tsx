@@ -1,24 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button';
-import ReviewJobList from '../components/ReviewJobList';
-import useReviewJobs from '../hooks/useReviewJobs';
+import { ReviewJobList } from '../components/ReviewJobList';
+import { useReviewJobs } from '../hooks/useReviewJobs';
 
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { jobs, loading, error, fetchJobs } = useReviewJobs();
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  const handleCreateJob = () => {
-    navigate('/review/create');
-  };
+  const { reviewJobs } = useReviewJobs(1, 10, 'createdAt', 'desc');
 
   const handleJobClick = (job: any) => {
     // TBD: ジョブの詳細画面に遷移する実装
-    console.log('Job clicked:', job);
+    console.log('Job selected:', job.id || job.review_job_id);
+    navigate(`/review/${job.id || job.review_job_id}`);
   };
 
   return (
@@ -43,23 +36,7 @@ export const ReviewListPage: React.FC = () => {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-fastPulse rounded-full h-12 w-12 border-t-2 border-b-2 border-aws-sea-blue-light"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm" role="alert">
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <strong className="font-medium">エラー: </strong>
-            <span className="ml-2">{error.message}</span>
-          </div>
-        </div>
-      ) : (
-        <ReviewJobList jobs={jobs} onJobClick={handleJobClick} />
-      )}
+      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} />
     </div>
   );
 };

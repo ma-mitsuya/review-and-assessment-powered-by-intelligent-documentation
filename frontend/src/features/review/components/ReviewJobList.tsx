@@ -1,6 +1,7 @@
 import React from 'react';
 import { ReviewJob } from '../types';
 import ReviewJobItem from './ReviewJobItem';
+import { useReviewJobActions } from '../hooks/useReviewJobActions';
 
 interface ReviewJobListProps {
   jobs: ReviewJob[];
@@ -8,6 +9,22 @@ interface ReviewJobListProps {
 }
 
 export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick }) => {
+  const { deleteReviewJob } = useReviewJobActions();
+
+  const handleDelete = async (jobId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (confirm('この審査ジョブを削除してもよろしいですか？')) {
+      try {
+        await deleteReviewJob(jobId);
+        // 削除後の処理（例：親コンポーネントに通知など）
+      } catch (error) {
+        alert('審査ジョブの削除に失敗しました');
+        console.error(error);
+      }
+    }
+  };
+
   if (jobs.length === 0) {
     return (
       <div className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm" role="alert">
@@ -41,30 +58,76 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick }
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
               作成日時
             </th>
+            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
+              操作
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-light-gray">
           {jobs.map((job) => (
             <tr 
-              key={job.id} 
-              className="hover:bg-aws-paper-light transition-colors cursor-pointer"
-              onClick={() => onJobClick && onJobClick(job)}
+              key={job.review_job_id} 
+              className="hover:bg-aws-paper-light transition-colors"
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-aws-squid-ink-light">{job.name}</div>
               </td>
               <td className="px-6 py-4">
-                <div className="text-sm text-aws-font-color-gray">{job.documentName}</div>
+                <div className="text-sm text-aws-font-color-gray">{job.document.filename}</div>
               </td>
               <td className="px-6 py-4">
-                <div className="text-sm text-aws-font-color-gray">{job.checklistName}</div>
+                <div className="text-sm text-aws-font-color-gray">{job.check_list_set.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {renderStatusBadge(job.status)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-aws-font-color-gray">
-                  {formatDate(job.createdAt)}
+                  {formatDate(job.created_at)}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onJobClick && onJobClick(job);
+                    }}
+                    className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    詳細
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(job.review_job_id, e)}
+                    className="text-red hover:text-red flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    削除
+                  </button>
                 </div>
               </td>
             </tr>
@@ -113,14 +176,25 @@ const renderStatusBadge = (status: ReviewJob['status']) => {
 
 // 日付のフォーマット
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  if (!dateString) return '日付なし';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '無効な日付';
+    }
+    
+    return new Intl.DateTimeFormat('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch (error) {
+    console.error('Date formatting error:', error, dateString);
+    return '日付エラー';
+  }
 };
 
 export default ReviewJobList;

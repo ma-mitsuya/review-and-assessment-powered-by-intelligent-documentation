@@ -26,22 +26,22 @@ model CheckListSet {
 
 // チェックリスト項目
 model CheckList {
-  id             String              @id @map("check_id") @db.VarChar(26)
-  name           String              @db.VarChar(255)
-  description    String?             @db.Text
-  parentId       String?             @map("parent_id") @db.VarChar(26)
-  itemType       String              @map("item_type") @db.VarChar(20)
-  isConclusion   Boolean             @default(false) @map("is_conclusion")
-  flowData       Json?               @map("flow_data")
-  metaData       Json?               @map("meta_data")
-  checkListSetId String              @map("check_list_set_id") @db.VarChar(26)
-  checkListSet   CheckListSet        @relation(fields: [checkListSetId], references: [id])
-  parent         CheckList?          @relation("CheckListToCheckList", fields: [parentId], references: [id])
-  children       CheckList[]         @relation("CheckListToCheckList")
+  id             String             @id @map("check_id") @db.VarChar(26)
+  name           String             @db.VarChar(255)
+  description    String?            @db.Text
+  parentId       String?            @map("parent_id") @db.VarChar(26)
+  itemType       String             @map("item_type") @db.VarChar(20)
+  isConclusion   Boolean            @default(false) @map("is_conclusion")
+  flowData       Json?              @map("flow_data")
+  metaData       Json?              @map("meta_data")
+  checkListSetId String             @map("check_list_set_id") @db.VarChar(26)
+  checkListSet   CheckListSet       @relation(fields: [checkListSetId], references: [id])
+  parent         CheckList?         @relation("CheckListToCheckList", fields: [parentId], references: [id])
+  children       CheckList[]        @relation("CheckListToCheckList")
   extractedItems ExtractedItem[]
   checkResults   CheckResult[]
-  documentId     String?             @map("document_id") @db.VarChar(26)
-  document       CheckListDocument?  @relation(fields: [documentId], references: [id])
+  documentId     String?            @map("document_id") @db.VarChar(26)
+  document       CheckListDocument? @relation(fields: [documentId], references: [id])
   reviewResults  ReviewResult[]
 
   @@map("check_list")
@@ -66,54 +66,54 @@ model CheckListDocument {
 
 // 審査対象ドキュメント
 model ReviewDocument {
-  id             String      @id @map("review_document_id") @db.VarChar(26)
-  filename       String      @db.VarChar(255)
-  s3Path         String      @map("s3_path") @db.VarChar(512)
-  fileType       String      @map("file_type") @db.VarChar(50)
-  uploadDate     DateTime    @map("upload_date") @db.Timestamp()
-  userId         String?     @map("user_id") @db.VarChar(50)
-  status         String      @default("pending") @db.VarChar(20)
-  reviewJobs     ReviewJob[]
+  id         String      @id @map("review_document_id") @db.VarChar(26)
+  filename   String      @db.VarChar(255)
+  s3Path     String      @map("s3_path") @db.VarChar(512)
+  fileType   String      @map("file_type") @db.VarChar(50)
+  uploadDate DateTime    @map("upload_date") @db.Timestamp()
+  userId     String?     @map("user_id") @db.VarChar(50)
+  status     String      @default("pending") @db.VarChar(20)
+  reviewJobs ReviewJob[]
 
   @@map("review_documents")
 }
 
 // 審査ジョブ
 model ReviewJob {
-  id              String          @id @map("review_job_id") @db.VarChar(26)
-  name            String          @db.VarChar(255)
-  status          String          @default("pending") @db.VarChar(20)
-  documentId      String          @map("document_id") @db.VarChar(26)
-  checkListSetId  String          @map("check_list_set_id") @db.VarChar(26)
-  createdAt       DateTime        @map("created_at") @db.Timestamp()
-  updatedAt       DateTime        @map("updated_at") @db.Timestamp()
-  completedAt     DateTime?       @map("completed_at") @db.Timestamp()
-  userId          String?         @map("user_id") @db.VarChar(50)
-  metaData        Json?           @map("meta_data") @db.Json
-  document        ReviewDocument  @relation(fields: [documentId], references: [id])
-  checkListSet    CheckListSet    @relation(fields: [checkListSetId], references: [id])
-  reviewResults   ReviewResult[]
+  id             String         @id @map("review_job_id") @db.VarChar(26)
+  name           String         @db.VarChar(255)
+  status         String         @default("pending") @db.VarChar(20)
+  documentId     String         @map("document_id") @db.VarChar(26)
+  checkListSetId String         @map("check_list_set_id") @db.VarChar(26)
+  createdAt      DateTime       @map("created_at") @db.Timestamp()
+  updatedAt      DateTime       @map("updated_at") @db.Timestamp()
+  completedAt    DateTime?      @map("completed_at") @db.Timestamp()
+  userId         String?        @map("user_id") @db.VarChar(50)
+  metaData       Json?          @map("meta_data") @db.Json
+  document       ReviewDocument @relation(fields: [documentId], references: [id])
+  checkListSet   CheckListSet   @relation(fields: [checkListSetId], references: [id])
+  reviewResults  ReviewResult[]
 
   @@map("review_jobs")
 }
 
 // 審査結果
 model ReviewResult {
-  id              String      @id @map("review_result_id") @db.VarChar(26)
-  reviewJobId     String      @map("review_job_id") @db.VarChar(26)
-  checkId         String      @map("check_id") @db.VarChar(26)
-  status          String      @default("pending") @db.VarChar(20)
-  result          String?     @db.VarChar(20)
-  confidenceScore Float?      @map("confidence_score")
-  explanation     String?     @db.Text
-  extractedText   String?     @map("extracted_text") @db.Text
-  userOverride    Boolean     @default(false) @map("user_override")
-  userComment     String?     @map("user_comment") @db.Text
-  createdAt       DateTime    @map("created_at") @db.Timestamp()
-  updatedAt       DateTime    @map("updated_at") @db.Timestamp()
-  metaData        Json?       @map("meta_data") @db.Json
-  reviewJob       ReviewJob   @relation(fields: [reviewJobId], references: [id])
-  checkList       CheckList   @relation(fields: [checkId], references: [id])
+  id              String    @id @map("review_result_id") @db.VarChar(26)
+  reviewJobId     String    @map("review_job_id") @db.VarChar(26)
+  checkId         String    @map("check_id") @db.VarChar(26)
+  status          String    @default("pending") @db.VarChar(20)
+  result          String?   @db.VarChar(20)
+  confidenceScore Float?    @map("confidence_score")
+  explanation     String?   @db.Text
+  extractedText   String?   @map("extracted_text") @db.Text
+  userOverride    Boolean   @default(false) @map("user_override")
+  userComment     String?   @map("user_comment") @db.Text
+  createdAt       DateTime  @map("created_at") @db.Timestamp()
+  updatedAt       DateTime  @map("updated_at") @db.Timestamp()
+  metaData        Json?     @map("meta_data") @db.Json
+  reviewJob       ReviewJob @relation(fields: [reviewJobId], references: [id])
+  checkList       CheckList @relation(fields: [checkId], references: [id])
 
   @@map("review_results")
 }
