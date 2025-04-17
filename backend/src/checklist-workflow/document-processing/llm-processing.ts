@@ -15,6 +15,7 @@ import {
   getChecklistLlmOcrTextKey,
 } from "../common/storage-paths";
 import { ChecklistItem, ProcessWithLLMResult } from "../common/types";
+import { ulid } from "ulid";
 
 // 使用するモデルIDを定義
 // const MODEL_ID = "us.anthropic.claude-3-sonnet-20240229-v1:0";
@@ -230,6 +231,8 @@ export async function processWithLLM({
 
   console.log(`LLMからの応答: ${JSON.stringify(checklistItems, null, 2)}`);
 
+  const updatedChecklist = convertToUlid(checklistItems);
+
   // 結果をS3に保存
   const resultKey = getChecklistLlmOcrTextKey(documentId, pageNumber);
   await s3Client.send(
@@ -245,4 +248,80 @@ export async function processWithLLM({
     documentId,
     pageNumber,
   };
+}
+
+function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
+  // 型定義を追加
+  const idMapping: { [key: string | number]: string } = {};
+
+  // 各項目のIDをマッピング
+  checklistItems.forEach((item) => {
+    if (item.parent_id !== null) {
+      if (!idMapping[item.parent_id]) {
+        idMapping[item.parent_id] = ulid();
+      }
+    }
+  });
+
+  // 各項目を変換
+  const convertedItems = checklistItems.map((item) => {
+    // 新しいアイテムを作成
+    const newItem: ChecklistItem = {
+      ...item,
+      // 全項目に固有のIDを付与
+      id: ulid(),
+    };
+
+    // parent_idを変換（nullでない場合のみ）
+    if (newItem.parent_id !== null) {
+      newItem.parent_id = idMapping[newItem.parent_id];
+    }
+
+    // flow_dataの変換（存在する場合のみ）
+    if (newItem.flow_data) {
+      // next_if_yesの変換
+      if (
+        typeof newItem.flow_data.next_if_yes !== "undefined" &&
+        newItem.flow_data.next_if_yes !== null &&
+        idMapping[newItem.flow_data.next_if_yes]
+      ) {
+        newItem.flow_data.next_if_yes =
+          idMapping[newItem.flow_data.next_if_yes];
+      }
+
+      // next_if_noの変換
+      if (
+        typeof newItem.flow_data.next_if_no !== "undefined" &&
+        newItem.flow_data.next_if_no !== null &&
+        idMapping[newItem.flow_data.next_if_no]
+      ) {
+        newItem.flow_data.next_if_no = idMapping[newItem.flow_data.next_if_no];
+      }
+
+      // next_optionsの変換
+      if (newItem.flow_data.next_options) {
+        // 新しいnext_optionsオブジェクトを作成
+        const newNextOptions: Record<string, string | number> = {};
+
+        // 各オプションを処理
+        Object.entries(newItem.flow_data.next_options).forEach(
+          ([key, value]) => {
+            if (value !== null && idMapping[value]) {
+              newNextOptions[key] = idMapping[value];
+            } else {
+              // マッピングがない場合は元の値を保持
+              newNextOptions[key] = value;
+            }
+          }
+        );
+
+        // 変換後の値で更新
+        newItem.flow_data.next_options = newNextOptions;
+      }
+    }
+
+    return newItem;
+  });
+
+  return convertedItems;
 }
