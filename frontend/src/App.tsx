@@ -8,7 +8,7 @@ import {
   CheckListItemFormPage,
   CreateChecklistPage 
 } from './features/checklist';
-import { ReviewListPage, ReviewCreatePage } from './features/review';
+import { ReviewListPage, ReviewCreatePage, ReviewDetailPage } from './features/review';
 import NotFoundPage from './pages/NotFoundPage';
 import { ToastProvider } from './contexts/ToastContext';
 import './App.css';
@@ -48,6 +48,7 @@ function App() {
               {/* 審査関連のルート */}
               <Route path="review" element={<ReviewListPage />} />
               <Route path="review/create" element={<ReviewCreatePage />} />
+              <Route path="review/:id" element={<ReviewDetailPage />} />
               
               {/* その他のルート */}
               <Route path="documents" element={<ReviewListPage />} />
