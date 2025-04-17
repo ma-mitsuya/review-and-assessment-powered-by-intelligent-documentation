@@ -64,7 +64,7 @@ async function handleProcessWithLLM(event: any) {
  */
 async function handleCombinePageResults(event: any) {
   return await combinePageResults({
-    parallelResults: event,
+    parallelResults: event.parallelResults || [],
   });
 }
 

@@ -1,10 +1,27 @@
 /**
  * LLMを使用したチェックリスト抽出処理
  */
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-import { getChecklistPageKey, getChecklistLlmOcrTextKey } from "../common/storage-paths";
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
+import {
+  BedrockRuntimeClient,
+  ConverseCommand,
+} from "@aws-sdk/client-bedrock-runtime";
+import {
+  getChecklistPageKey,
+  getChecklistLlmOcrTextKey,
+} from "../common/storage-paths";
 import { ChecklistItem, ProcessWithLLMResult } from "../common/types";
+
+// 使用するモデルIDを定義
+// const MODEL_ID = "us.anthropic.claude-3-sonnet-20240229-v1:0";
+const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
+// const MODEL_ID = "us.anthropic.claude-3-5-haiku-20241022-v1:0";  // Haiku 3.5
+
+const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
 export const CHECKLIST_EXTRACTION_PROMPT = `
 あなたは技術文書、法律文書、表や図面から「チェックリスト」を抽出して構造化するAIアシスタントです。
@@ -91,9 +108,9 @@ export async function processWithLLM({
   pageNumber,
 }: ProcessWithLLMParams): Promise<ProcessWithLLMResult> {
   const s3Client = new S3Client({});
-  const bedrockClient = new BedrockRuntimeClient({ region: "us-east-1" }); // 適切なリージョンに変更
-  const bucketName = process.env.DOCUMENT_BUCKET || '';
-  
+  const bedrockClient = new BedrockRuntimeClient({ region: BEDROCK_REGION });
+  const bucketName = process.env.DOCUMENT_BUCKET || "";
+
   // PDFページを取得
   const pageKey = getChecklistPageKey(documentId, pageNumber, "pdf");
   const { Body } = await s3Client.send(
@@ -107,89 +124,112 @@ export async function processWithLLM({
     throw new Error(`ページが見つかりません: ${pageKey}`);
   }
 
-  // PDFをBase64エンコード
+  // PDFをバイト配列として取得
   const pdfBytes = await Body.transformToByteArray();
-  const base64Pdf = Buffer.from(pdfBytes).toString('base64');
-  
-  // Bedrock Converse APIを呼び出し
   const response = await bedrockClient.send(
-    new InvokeModelCommand({
-      modelId: "anthropic.claude-3-sonnet-20240229-v1:0", // Sonnet 3.7
-      contentType: "application/json",
-      accept: "application/json",
-      body: JSON.stringify({
-        anthropic_version: "bedrock-2023-05-31",
-        max_tokens: 4096,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: CHECKLIST_EXTRACTION_PROMPT
-              },
-              {
-                type: "image",
+    new ConverseCommand({
+      modelId: MODEL_ID,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { text: CHECKLIST_EXTRACTION_PROMPT },
+            {
+              document: {
+                name: "ChecklistDocument",
+                format: "pdf",
                 source: {
-                  type: "base64",
-                  media_type: "application/pdf",
-                  data: base64Pdf
-                }
-              }
-            ]
-          }
-        ]
-      })
+                  bytes: pdfBytes, // 実際のPDFバイナリデータ
+                },
+              },
+            },
+          ],
+        },
+      ],
+      // additionalModelRequestFields: {
+      //   thinking: {
+      //     type: "enabled",
+      //     budget_tokens: 4000, // 推論に使用する最大トークン数
+      //   },
+      // },
     })
   );
 
-  // レスポンスをパース
-  const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  const llmResponse = responseBody.content[0].text;
-  
+  // レスポンスからテキストを抽出
+  const outputMessage = response.output?.message;
+  let llmResponse = "";
+  if (outputMessage && outputMessage.content) {
+    outputMessage.content.forEach((block) => {
+      if ("text" in block) {
+        llmResponse += block.text;
+      }
+    });
+  }
+
   let checklistItems: ChecklistItem[];
   try {
     // LLMの出力をJSONとしてパース
     checklistItems = JSON.parse(llmResponse);
   } catch (error) {
+    console.error(
+      `JSONパースに失敗しました: ${error}\nLLMの応答: ${llmResponse}`
+    );
+    console.error("リトライ処理を開始します。");
     // JSONパースに失敗した場合、エラーメッセージをBedrockに送ってリトライ
     const errorMessage = error instanceof Error ? error.message : String(error);
     const retryResponse = await bedrockClient.send(
-      new InvokeModelCommand({
-        modelId: "anthropic.claude-3-sonnet-20240229-v1:0",
-        contentType: "application/json",
-        accept: "application/json",
-        body: JSON.stringify({
-          anthropic_version: "bedrock-2023-05-31",
-          max_tokens: 4096,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `${CHECKLIST_EXTRACTION_PROMPT}\n\n前回の出力はJSONとしてパースできませんでした。エラー: ${errorMessage}\n\n厳密なJSON配列形式で出力してください。`
-                },
-                {
-                  type: "image",
+      new ConverseCommand({
+        modelId: MODEL_ID,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                text: `${CHECKLIST_EXTRACTION_PROMPT}\n\n前回の出力はJSONとしてパースできませんでした。エラー: ${errorMessage}\n\n厳密なJSON配列形式で出力してください。\n\nこれはPDFファイルのページ${pageNumber}です。チェックリストを抽出してください。`,
+              },
+              {
+                document: {
+                  name: "ChecklistDocument",
+                  format: "pdf",
                   source: {
-                    type: "base64",
-                    media_type: "application/pdf",
-                    data: base64Pdf
-                  }
-                }
-              ]
-            }
-          ]
-        })
+                    bytes: pdfBytes, // 実際のPDFバイナリデータ
+                  },
+                },
+              },
+            ],
+          },
+        ],
+        // additionalModelRequestFields: {
+        //   thinking: {
+        //     type: "enabled",
+        //     budget_tokens: 4000, // 推論に使用する最大トークン数
+        //   },
+        // },
       })
     );
-    
-    const retryBody = JSON.parse(new TextDecoder().decode(retryResponse.body));
-    const retryLlmResponse = retryBody.content[0].text;
-    checklistItems = JSON.parse(retryLlmResponse);
+
+    // リトライレスポンスからテキストを抽出
+    const retryOutputMessage = retryResponse.output?.message;
+    let retryLlmResponse = "";
+    if (retryOutputMessage && retryOutputMessage.content) {
+      retryOutputMessage.content.forEach((block) => {
+        if ("text" in block) {
+          retryLlmResponse += block.text;
+        }
+      });
+    }
+    try {
+      checklistItems = JSON.parse(retryLlmResponse);
+    } catch (error) {
+      console.error(
+        `リトライ後もJSONパースに失敗しました: ${error}\nLLMの応答: ${retryLlmResponse}`
+      );
+      throw new Error("LLMからの応答が無効です。");
+    }
   }
-  
+
+  console.log(`LLMからの応答: ${JSON.stringify(checklistItems, null, 2)}`);
+
   // 結果をS3に保存
   const resultKey = getChecklistLlmOcrTextKey(documentId, pageNumber);
   await s3Client.send(
@@ -204,6 +244,5 @@ export async function processWithLLM({
   return {
     documentId,
     pageNumber,
-    checklistItems,
   };
 }

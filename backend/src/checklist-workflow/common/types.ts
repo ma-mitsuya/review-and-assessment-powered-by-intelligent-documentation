@@ -11,7 +11,6 @@ export interface ProcessDocumentResult {
 export interface ExtractTextResult {
   documentId: string;
   pageNumber: number;
-  textContent: string;
 }
 
 export interface ChecklistItem {
@@ -31,16 +30,13 @@ export interface ChecklistItem {
 export interface ProcessWithLLMResult {
   documentId: string;
   pageNumber: number;
-  checklistItems: ChecklistItem[];
 }
 
 export interface CombinePageResult {
   documentId: string;
   pageNumber: number;
-  checklistItems: ChecklistItem[];
 }
 
 export interface AggregatePageResult {
   documentId: string;
-  checklistItems: ChecklistItem[];
 }

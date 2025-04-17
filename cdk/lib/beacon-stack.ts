@@ -2,6 +2,11 @@ import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as path from "path";
+import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { DocumentPageProcessor } from "./constructs/document-page-processor";
 import { S3SqsEtlAurora } from "./constructs/s3-sqs-etl-aurora";
@@ -56,12 +61,50 @@ export class BeaconStack extends cdk.Stack {
       ],
     });
 
+    // バックエンドLambda関数の作成 (NodeJsFunctionを使用)
+    const backendLambda = new nodejs.NodejsFunction(this, "BackendFunction", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "handler",
+      entry: path.join(
+        __dirname,
+        "../../backend/src/checklist-workflow/index.ts"
+      ),
+      timeout: Duration.minutes(15),
+      memorySize: 1024,
+      environment: {
+        DOCUMENT_BUCKET: documentBucket.bucketName,
+        BEDROCK_REGION: "us-west-2",
+      },
+      bundling: {
+        // minify: true,
+        sourceMap: true,
+        externalModules: ["aws-sdk", "canvas"],
+      },
+    });
+
+    // Lambda関数にS3バケットへのアクセス権限を付与
+    documentBucket.grantReadWrite(backendLambda);
+
+    // Lambda関数にBedrockへのアクセス権限を付与
+    backendLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:CreateModelInvocationJob",
+          "bedrock:GetModelInvocationJob",
+          "bedrock:StopModelInvocationJob",
+        ],
+        resources: ["*"],
+      })
+    );
+
     // ドキュメント処理ワークフローの作成
     const documentProcessor = new DocumentPageProcessor(
       this,
       "DocumentProcessor",
       {
         documentBucket,
+        backendLambda,
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
         inlineMapConcurrency: 10,
@@ -71,10 +114,11 @@ export class BeaconStack extends cdk.Stack {
     );
 
     // バックエンドLambdaにステートマシンARNを環境変数として設定
-    documentProcessor.backendLambda.addEnvironment(
-      'DOCUMENT_PROCESSING_STATE_MACHINE_ARN',
-      documentProcessor.stateMachine.stateMachineArn
-    );
+    // -> 循環参照
+    // backendLambda.addEnvironment(
+    //   'DOCUMENT_PROCESSING_STATE_MACHINE_ARN',
+    //   documentProcessor.stateMachine.stateMachineArn
+    // );
 
     // // S3 -> SQS -> Lambda -> Aurora ETLパイプラインの作成
     // const etlPipeline = new S3SqsEtlAurora(this, "EtlPipeline", {
@@ -98,7 +142,7 @@ export class BeaconStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "BackendLambdaArn", {
-      value: documentProcessor.backendLambda.functionArn,
+      value: backendLambda.functionArn,
       description: "バックエンドLambda関数のARN",
     });
 

@@ -21,12 +21,12 @@ export async function extractText({
   pageNumber,
 }: ExtractTextParams): Promise<ExtractTextResult> {
   const s3Client = new S3Client({});
-  const bucketName = process.env.DOCUMENT_BUCKET || '';
-  
+  const bucketName = process.env.DOCUMENT_BUCKET || "";
+
   // 空文字列を保存
   const textContent = "";
   const textKey = getChecklistExtractedTextKey(documentId, pageNumber);
-  
+
   await s3Client.send(
     new PutObjectCommand({
       Bucket: bucketName,
@@ -39,6 +39,5 @@ export async function extractText({
   return {
     documentId,
     pageNumber,
-    textContent,
   };
 }

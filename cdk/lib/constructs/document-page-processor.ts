@@ -2,13 +2,11 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { Duration } from "aws-cdk-lib";
-import * as path from "path";
 
 /**
  * ドキュメント処理ワークフローのプロパティ
@@ -18,6 +16,11 @@ export interface DocumentPageProcessorProps {
    * ドキュメントを保存するS3バケット
    */
   documentBucket: s3.IBucket;
+
+  /**
+   * バックエンドLambda関数
+   */
+  backendLambda: lambda.Function;
 
   /**
    * 中規模ドキュメントのしきい値（ページ数）
@@ -76,41 +79,8 @@ export class DocumentPageProcessor extends Construct {
     const distributedMapConcurrency = props.distributedMapConcurrency || 20;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
-    // バックエンドLambda関数の作成 (NodeJsFunctionを使用)
-    this.backendLambda = new nodejs.NodejsFunction(this, "BackendFunction", {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "handler",
-      entry: path.join(
-        __dirname,
-        "../../../backend/src/checklist-workflow/index.ts"
-      ),
-      timeout: Duration.minutes(15),
-      memorySize: 1024,
-      environment: {
-        DOCUMENT_BUCKET: props.documentBucket.bucketName,
-      },
-      bundling: {
-        // minify: true,
-        sourceMap: true,
-        externalModules: ["aws-sdk", "canvas"],
-      },
-    });
-
-    // Lambda関数にS3バケットへのアクセス権限を付与
-    props.documentBucket.grantReadWrite(this.backendLambda);
-
-    // Lambda関数にBedrockへのアクセス権限を付与
-    this.backendLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "bedrock:InvokeModel",
-          "bedrock:CreateModelInvocationJob",
-          "bedrock:GetModelInvocationJob",
-          "bedrock:StopModelInvocationJob",
-        ],
-        resources: ["*"],
-      })
-    );
+    // Stack側から渡されたバックエンドLambda関数を使用
+    this.backendLambda = props.backendLambda;
 
     // ドキュメント処理Lambda (ファイル形式判定、ページ分割など)
     const documentProcessorTask = new tasks.LambdaInvoke(
@@ -335,7 +305,7 @@ export class DocumentPageProcessor extends Construct {
       this,
       "DocumentProcessingWorkflow",
       {
-        definition,
+        definitionBody: sfn.DefinitionBody.fromChainable(definition),
         role: stateMachineRole,
         timeout: Duration.hours(24),
         tracingEnabled: true,
