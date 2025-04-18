@@ -60,7 +60,8 @@ export class ReviewJobService {
     });
 
     // 非同期で審査処理を開始
-    const stateMachineArn = process.env.REVIEW_PROCESSING_STATE_MACHINE_ARN;
+    const stateMachineArn = process.env.REVIEW_PROCESSING_STATE_MACHINE_ARN || 
+      "arn:aws:states:ap-northeast-1:151364017355:stateMachine:ReviewProcessorReviewProcessingWorkflowED301F52-PC1Cl3uJSKer";
     if (stateMachineArn) {
       try {
         await startStateMachineExecution(stateMachineArn, {

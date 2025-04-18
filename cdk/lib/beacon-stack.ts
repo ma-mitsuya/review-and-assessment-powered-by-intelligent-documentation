@@ -9,6 +9,7 @@ import * as path from "path";
 import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { DocumentPageProcessor } from "./constructs/document-page-processor";
+import { ReviewProcessor } from "./constructs/review-processor";
 import { S3SqsEtlAurora } from "./constructs/s3-sqs-etl-aurora";
 
 export class BeaconStack extends cdk.Stack {
@@ -130,6 +131,20 @@ export class BeaconStack extends cdk.Stack {
     //   maxCapacity: 1,
     // });
 
+    // 審査ワークフローの作成
+    const reviewProcessor = new ReviewProcessor(this, "ReviewProcessor", {
+      documentBucket,
+      backendLambda,
+      logLevel: sfn.LogLevel.ALL,
+    });
+
+    // バックエンドLambdaにステートマシンARNを環境変数として設定
+    // -> 循環参照を避けるため、ここではコメントアウト
+    // backendLambda.addEnvironment(
+    //   "REVIEW_PROCESSING_STATE_MACHINE_ARN",
+    //   reviewProcessor.stateMachine.stateMachineArn
+    // );
+
     // 出力
     new cdk.CfnOutput(this, "DocumentBucketName", {
       value: documentBucket.bucketName,
@@ -139,6 +154,11 @@ export class BeaconStack extends cdk.Stack {
     new cdk.CfnOutput(this, "StateMachineArn", {
       value: documentProcessor.stateMachine.stateMachineArn,
       description: "ドキュメント処理ワークフローのARN",
+    });
+
+    new cdk.CfnOutput(this, "ReviewProcessingStateMachineArn", {
+      value: reviewProcessor.stateMachine.stateMachineArn,
+      description: "審査処理ワークフローのARN",
     });
 
     new cdk.CfnOutput(this, "BackendLambdaArn", {
