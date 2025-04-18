@@ -3,23 +3,42 @@
  * 特定の審査ジョブの結果を階層構造で表示する
  */
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useReviewResultHierarchy } from '../hooks/useReviewResultHierarchy';
 import { useReviewJobs } from '../hooks/useReviewJobs';
 import ReviewResultTree from '../components/ReviewResultTree';
 import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
-import Alert from '../../../components/Alert';
+import { ErrorAlert } from '../../../components/ErrorAlert';
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // 審査結果の階層構造を取得
-  const { hierarchy, isLoading: isLoadingHierarchy, isError: isErrorHierarchy } = useReviewResultHierarchy(id);
+  // 審査結果の階層構造を取得 - 明示的に文字列として渡す
+  const { 
+    hierarchy, 
+    isLoading: isLoadingHierarchy, 
+    isError: isErrorHierarchy, 
+    mutate: refreshHierarchy 
+  } = useReviewResultHierarchy(id ? String(id) : undefined);
   
   // 審査ジョブ情報を取得（ジョブ名などの表示用）
-  const { reviewJobs, isLoading: isLoadingJobs } = useReviewJobs();
+  const { 
+    reviewJobs, 
+    isLoading: isLoadingJobs, 
+    mutate: refreshJobs 
+  } = useReviewJobs();
+  
   const currentJob = reviewJobs?.find(job => job.review_job_id === id);
+  
+  // コンポーネントマウント時に明示的にデータを取得
+  useEffect(() => {
+    if (id) {
+      refreshHierarchy();
+      refreshJobs();
+    }
+  }, [id, refreshHierarchy, refreshJobs]);
   
   // 戻るボタンのハンドラー
   const handleBack = () => {
@@ -39,9 +58,14 @@ export default function ReviewDetailPage() {
   if (isErrorHierarchy) {
     return (
       <div className="mt-4">
-        <Alert type="error" title="エラーが発生しました">
-          審査結果の取得に失敗しました。再度お試しください。
-        </Alert>
+        <ErrorAlert 
+          title="エラーが発生しました" 
+          message="審査結果の取得に失敗しました。再度お試しください。"
+          retry={() => {
+            refreshHierarchy();
+            refreshJobs();
+          }}
+        />
         <div className="mt-4">
           <Button onClick={handleBack} variant="secondary">
             審査一覧に戻る
@@ -55,9 +79,10 @@ export default function ReviewDetailPage() {
   if (!currentJob) {
     return (
       <div className="mt-4">
-        <Alert type="warning" title="審査ジョブが見つかりません">
-          指定された審査ジョブは存在しないか、アクセス権限がありません。
-        </Alert>
+        <ErrorAlert 
+          title="審査ジョブが見つかりません" 
+          message="指定された審査ジョブは存在しないか、アクセス権限がありません。"
+        />
         <div className="mt-4">
           <Button onClick={handleBack} variant="secondary">
             審査一覧に戻る

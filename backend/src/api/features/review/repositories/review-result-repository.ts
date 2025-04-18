@@ -1,9 +1,9 @@
 /**
  * 審査結果リポジトリ
  */
-import { PrismaClient } from '@prisma/client';
-import { getPrismaClient } from '../../../core/db';
-import { ReviewResultDto, UpdateReviewResultParams } from '../types';
+import { PrismaClient } from "@prisma/client";
+import { getPrismaClient } from "../../../core/db";
+import { ReviewResultDto, UpdateReviewResultParams } from "../types";
 
 /**
  * 審査結果リポジトリ
@@ -31,11 +31,11 @@ export class ReviewResultRepository {
         id: params.id,
         reviewJobId: params.reviewJobId,
         checkId: params.checkId,
-        status: 'pending',
+        status: "pending",
         userOverride: false,
         createdAt: now,
-        updatedAt: now
-      }
+        updatedAt: now,
+      },
     });
   }
 
@@ -48,8 +48,8 @@ export class ReviewResultRepository {
     return this.prisma.reviewResult.findUnique({
       where: { id: resultId },
       include: {
-        checkList: true
-      }
+        checkList: true,
+      },
     });
   }
 
@@ -59,20 +59,23 @@ export class ReviewResultRepository {
    * @param result 結果でフィルタリング（オプション）
    * @returns 審査結果一覧
    */
-  async getReviewResultsByJobId(jobId: string, result?: string): Promise<ReviewResultDto[]> {
+  async getReviewResultsByJobId(
+    jobId: string,
+    result?: string
+  ): Promise<ReviewResultDto[]> {
     const where: any = { reviewJobId: jobId };
     if (result) {
       where.result = result;
     }
-    
+
     return this.prisma.reviewResult.findMany({
       where,
       include: {
-        checkList: true
+        checkList: true,
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: "asc",
+      },
     });
   }
 
@@ -82,22 +85,25 @@ export class ReviewResultRepository {
    * @param params 更新パラメータ
    * @returns 更新された審査結果
    */
-  async updateReviewResult(resultId: string, params: {
-    status?: string;
-    result?: string;
-    confidenceScore?: number;
-    explanation?: string;
-    extractedText?: string;
-  }): Promise<ReviewResultDto> {
+  async updateReviewResult(
+    resultId: string,
+    params: {
+      status?: string;
+      result?: string;
+      confidenceScore?: number;
+      explanation?: string;
+      extractedText?: string;
+    }
+  ): Promise<ReviewResultDto> {
     return this.prisma.reviewResult.update({
       where: { id: resultId },
       data: {
         ...params,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       include: {
-        checkList: true
-      }
+        checkList: true,
+      },
     });
   }
 
@@ -107,18 +113,21 @@ export class ReviewResultRepository {
    * @param params 上書きパラメータ
    * @returns 更新された審査結果
    */
-  async overrideReviewResult(resultId: string, params: UpdateReviewResultParams): Promise<ReviewResultDto> {
+  async overrideReviewResult(
+    resultId: string,
+    params: UpdateReviewResultParams
+  ): Promise<ReviewResultDto> {
     return this.prisma.reviewResult.update({
       where: { id: resultId },
       data: {
         result: params.result,
         userComment: params.userComment,
         userOverride: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       include: {
-        checkList: true
-      }
+        checkList: true,
+      },
     });
   }
 
@@ -137,38 +146,20 @@ export class ReviewResultRepository {
       where: { reviewJobId: jobId },
       select: {
         status: true,
-        result: true
-      }
+        result: true,
+      },
     });
-    
+
     const total = results.length;
-    const passed = results.filter(r => r.result === 'pass').length;
-    const failed = results.filter(r => r.result === 'fail').length;
-    const processing = results.filter(r => r.status !== 'completed').length;
-    
+    const passed = results.filter((r) => r.result === "pass").length;
+    const failed = results.filter((r) => r.result === "fail").length;
+    const processing = results.filter((r) => r.status !== "completed").length;
+
     return {
       total,
       passed,
       failed,
-      processing
+      processing,
     };
-  }
-
-  /**
-   * チェックリストの階層構造に基づいて審査結果を取得する
-   * @param jobId 審査ジョブID
-   * @returns 階層構造の審査結果
-   */
-  async getReviewResultHierarchy(jobId: string): Promise<ReviewResultDto[]> {
-    // まず、すべての審査結果を取得
-    const allResults = await this.prisma.reviewResult.findMany({
-      where: { reviewJobId: jobId },
-      include: {
-        checkList: true
-      }
-    });
-    
-    // ルートレベルの結果（親がない結果）を取得
-    return allResults.filter(result => !result.checkList?.parentId);
   }
 }

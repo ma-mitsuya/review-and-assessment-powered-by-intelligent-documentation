@@ -7,7 +7,7 @@ import { useReviewResultActions } from '../hooks/useReviewResultActions';
 import { REVIEW_RESULT } from '../constants';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
-import TextArea from '../../../components/TextArea';
+import FormTextArea from '../../../components/FormTextArea';
 import RadioGroup from '../../../components/RadioGroup';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -94,41 +94,45 @@ export default function ReviewResultOverrideModal({
       onClose={onClose}
       title="審査結果の上書き"
     >
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-medium mb-2">チェック項目</h3>
-          <p>{result.check_list.name}</p>
+      <div className="space-y-6">
+        <div className="border-b border-light-gray pb-4">
+          <h3 className="font-medium text-aws-squid-ink-light mb-2">チェック項目</h3>
+          <p className="text-aws-squid-ink-light">{result.check_list.name}</p>
           <p className="text-sm text-aws-font-color-gray mt-1">
             {result.check_list.description || '説明なし'}
           </p>
         </div>
         
-        <div>
-          <h3 className="font-medium mb-2">AI判断</h3>
-          <p>{result.explanation || '判断結果がありません'}</p>
+        <div className="border-b border-light-gray pb-4">
+          <h3 className="font-medium text-aws-squid-ink-light mb-2">AI判断</h3>
+          <p className="text-aws-font-color-gray">{result.explanation || '判断結果がありません'}</p>
         </div>
         
-        <div>
-          <h3 className="font-medium mb-2">判定結果</h3>
+        <div className="border-b border-light-gray pb-4">
+          <h3 className="font-medium text-aws-squid-ink-light mb-2">判定結果</h3>
           <RadioGroup
             name="result"
             options={resultOptions}
             value={formData.result}
             onChange={handleResultChange}
+            inline={true}
           />
         </div>
         
         <div>
-          <h3 className="font-medium mb-2">コメント</h3>
-          <TextArea
+          <FormTextArea
+            id="userComment"
+            name="userComment"
+            label="コメント"
             value={formData.userComment || ''}
             onChange={handleCommentChange}
             placeholder="上書きの理由や補足情報を入力してください"
             rows={4}
+            className="mb-0"
           />
         </div>
         
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-light-gray">
           <Button
             onClick={onClose}
             variant="secondary"

@@ -74,7 +74,7 @@ export default function Modal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* ヘッダー */}
-          <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div className="border-b border-light-gray px-6 py-4 flex justify-between items-center">
             <h3 className="text-lg font-medium text-aws-squid-ink-light">
               {title}
             </h3>

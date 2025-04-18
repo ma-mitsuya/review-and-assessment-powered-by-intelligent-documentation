@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { ReviewResultHierarchy } from '../types';
 import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
-import Badge from '../../../components/Badge';
 import Button from '../../../components/Button';
 
 interface ReviewResultItemProps {
@@ -23,27 +22,65 @@ export default function ReviewResultItem({
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // 結果に基づいてバッジの色を決定
-  const getBadgeVariant = () => {
-    if (result.status === REVIEW_RESULT_STATUS.PROCESSING) return 'warning';
-    if (result.status === REVIEW_RESULT_STATUS.FAILED) return 'error';
+  // 結果に基づいてバッジの色とテキストを決定
+  const renderStatusBadge = () => {
+    if (result.status === REVIEW_RESULT_STATUS.PROCESSING) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+          処理中
+        </span>
+      );
+    }
     
-    if (result.result === REVIEW_RESULT.PASS) return 'success';
-    if (result.result === REVIEW_RESULT.FAIL) return 'error';
+    if (result.status === REVIEW_RESULT_STATUS.FAILED) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+          エラー
+        </span>
+      );
+    }
     
-    return 'default';
+    if (result.status === REVIEW_RESULT_STATUS.PENDING) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+          未処理
+        </span>
+      );
+    }
+    
+    if (result.result === REVIEW_RESULT.PASS) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+          合格
+        </span>
+      );
+    }
+    
+    if (result.result === REVIEW_RESULT.FAIL) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+          不合格
+        </span>
+      );
+    }
+    
+    return (
+      <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+        不明
+      </span>
+    );
   };
   
-  // 結果のテキストを取得
-  const getResultText = () => {
-    if (result.status === REVIEW_RESULT_STATUS.PROCESSING) return '処理中';
-    if (result.status === REVIEW_RESULT_STATUS.PENDING) return '未処理';
-    if (result.status === REVIEW_RESULT_STATUS.FAILED) return 'エラー';
-    
-    if (result.result === REVIEW_RESULT.PASS) return '合格';
-    if (result.result === REVIEW_RESULT.FAIL) return '不合格';
-    
-    return '不明';
+  // ユーザー上書きバッジ
+  const renderUserOverrideBadge = () => {
+    if (result.user_override) {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-sea-blue-light bg-opacity-20 text-aws-sea-blue-light ml-2">
+          ユーザー上書き
+        </span>
+      );
+    }
+    return null;
   };
   
   // 信頼度スコアの表示
@@ -68,7 +105,18 @@ export default function ReviewResultItem({
   if (!result.check_list) {
     return (
       <div className="bg-white border border-light-gray rounded-md p-4">
-        <div className="text-red">データエラー: チェックリスト情報がありません</div>
+        <div className="text-red">
+          データエラー: チェックリスト情報がありません (ID: {result.check_id})
+        </div>
+        <div className="mt-2">
+          <Button
+            onClick={() => window.location.reload()}
+            variant="secondary"
+            size="sm"
+          >
+            再読み込み
+          </Button>
+        </div>
       </div>
     );
   }
@@ -100,12 +148,10 @@ export default function ReviewResultItem({
             <div className="flex-1">
               <div className="font-medium text-aws-squid-ink-light flex items-center">
                 {result.check_list.name}
-                <Badge variant={getBadgeVariant()} className="ml-2">
-                  {getResultText()}
-                </Badge>
-                {result.user_override && (
-                  <Badge variant="info" className="ml-2">ユーザー上書き</Badge>
-                )}
+                <div className="ml-2">
+                  {renderStatusBadge()}
+                  {renderUserOverrideBadge()}
+                </div>
               </div>
               
               <p className="text-sm text-aws-font-color-gray mt-1">
@@ -116,24 +162,24 @@ export default function ReviewResultItem({
               {(result.explanation || result.extracted_text || result.user_comment) && (
                 <div className="mt-3 space-y-3">
                   {result.explanation && (
-                    <div className="bg-aws-paper-light rounded p-2 text-sm">
-                      <p className="font-medium">AI判断:</p>
-                      <p>{result.explanation}</p>
+                    <div className="bg-aws-paper-light rounded p-3 text-sm">
+                      <p className="font-medium text-aws-squid-ink-light mb-1">AI判断:</p>
+                      <p className="text-aws-font-color-gray">{result.explanation}</p>
                     </div>
                   )}
                   
                   {result.extracted_text && (
-                    <div className="bg-aws-paper-light rounded p-2 text-sm">
-                      <p className="font-medium">抽出テキスト:</p>
-                      <p className="whitespace-pre-wrap">{result.extracted_text}</p>
+                    <div className="bg-aws-paper-light rounded p-3 text-sm">
+                      <p className="font-medium text-aws-squid-ink-light mb-1">抽出テキスト:</p>
+                      <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extracted_text}</p>
                     </div>
                   )}
                   
                   {/* ユーザーコメント */}
                   {result.user_comment && (
-                    <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-2 text-sm">
-                      <p className="font-medium">ユーザーコメント:</p>
-                      <p>{result.user_comment}</p>
+                    <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
+                      <p className="font-medium text-aws-squid-ink-light mb-1">ユーザーコメント:</p>
+                      <p className="text-aws-font-color-gray">{result.user_comment}</p>
                     </div>
                   )}
                 </div>
