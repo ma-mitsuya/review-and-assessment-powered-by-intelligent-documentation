@@ -2,32 +2,59 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as path from "path";
 import { Construct } from "constructs";
 import { Duration } from "aws-cdk-lib";
 
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
-  backendLambda: lambda.Function;
   logLevel?: sfn.LogLevel;
 }
 
 export class ReviewProcessor extends Construct {
   public readonly stateMachine: sfn.StateMachine;
-  public readonly backendLambda: lambda.Function;
+  public readonly reviewLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: ReviewProcessorProps) {
     super(scope, id);
 
-    // Stack側から渡されたバックエンドLambda関数を使用
-    this.backendLambda = props.backendLambda;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
+
+    // 審査処理用Lambda関数を作成
+    this.reviewLambda = new nodejs.NodejsFunction(this, "ReviewProcessorFunction", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "handler",
+      entry: path.join(__dirname, "../../../backend/src/review-workflow/index.ts"),
+      timeout: Duration.minutes(15),
+      memorySize: 1024,
+      environment: {
+        DOCUMENT_BUCKET: props.documentBucket.bucketName,
+        BEDROCK_REGION: "us-west-2",
+      },
+      bundling: {
+        sourceMap: true,
+        externalModules: ["aws-sdk", "canvas"],
+      },
+    });
+
+    // Lambda関数にS3バケットへのアクセス権限を付与
+    props.documentBucket.grantReadWrite(this.reviewLambda);
+
+    // Lambda関数にBedrockへのアクセス権限を付与
+    this.reviewLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     // 審査準備Lambda - チェックリスト項目を取得し、処理項目を準備
     const prepareReviewTask = new tasks.LambdaInvoke(this, "PrepareReview", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.reviewLambda,
       payload: sfn.TaskInput.fromObject({
         action: "prepareReview",
         reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
@@ -42,7 +69,7 @@ export class ReviewProcessor extends Construct {
       this,
       "ProcessReviewItem",
       {
-        lambdaFunction: this.backendLambda,
+        lambdaFunction: this.reviewLambda,
         payload: sfn.TaskInput.fromObject({
           action: "processReviewItem",
           reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
@@ -74,7 +101,7 @@ export class ReviewProcessor extends Construct {
 
     // 審査結果を集計するLambda
     const finalizeReviewTask = new tasks.LambdaInvoke(this, "FinalizeReview", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.reviewLambda,
       payload: sfn.TaskInput.fromObject({
         action: "finalizeReview",
         reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
@@ -85,7 +112,7 @@ export class ReviewProcessor extends Construct {
 
     // エラーハンドリングLambda
     const handleErrorTask = new tasks.LambdaInvoke(this, "HandleError", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.reviewLambda,
       payload: sfn.TaskInput.fromObject({
         action: "handleReviewError",
         reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),

@@ -2,9 +2,11 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as path from "path";
 import { Construct } from "constructs";
 import { Duration } from "aws-cdk-lib";
 
@@ -16,11 +18,6 @@ export interface DocumentPageProcessorProps {
    * ドキュメントを保存するS3バケット
    */
   documentBucket: s3.IBucket;
-
-  /**
-   * バックエンドLambda関数
-   */
-  backendLambda: lambda.Function;
 
   /**
    * 中規模ドキュメントのしきい値（ページ数）
@@ -65,9 +62,9 @@ export class DocumentPageProcessor extends Construct {
   public readonly stateMachine: sfn.StateMachine;
 
   /**
-   * バックエンドLambda関数
+   * ドキュメント処理用Lambda関数
    */
-  public readonly backendLambda: lambda.Function;
+  public readonly documentLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: DocumentPageProcessorProps) {
     super(scope, id);
@@ -79,15 +76,45 @@ export class DocumentPageProcessor extends Construct {
     const distributedMapConcurrency = props.distributedMapConcurrency || 20;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
-    // Stack側から渡されたバックエンドLambda関数を使用
-    this.backendLambda = props.backendLambda;
+    // ドキュメント処理用Lambda関数を作成
+    this.documentLambda = new nodejs.NodejsFunction(this, "DocumentProcessorFunction", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "handler",
+      entry: path.join(__dirname, "../../../backend/src/checklist-workflow/index.ts"),
+      timeout: Duration.minutes(15),
+      memorySize: 1024,
+      environment: {
+        DOCUMENT_BUCKET: props.documentBucket.bucketName,
+        BEDROCK_REGION: "us-west-2",
+      },
+      bundling: {
+        sourceMap: true,
+        externalModules: ["aws-sdk", "canvas"],
+      },
+    });
+
+    // Lambda関数にS3バケットへのアクセス権限を付与
+    props.documentBucket.grantReadWrite(this.documentLambda);
+
+    // Lambda関数にBedrockへのアクセス権限を付与
+    this.documentLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:CreateModelInvocationJob",
+          "bedrock:GetModelInvocationJob",
+          "bedrock:StopModelInvocationJob",
+        ],
+        resources: ["*"],
+      })
+    );
 
     // ドキュメント処理Lambda (ファイル形式判定、ページ分割など)
     const documentProcessorTask = new tasks.LambdaInvoke(
       this,
       "ProcessDocument",
       {
-        lambdaFunction: this.backendLambda,
+        lambdaFunction: this.documentLambda,
         payload: sfn.TaskInput.fromObject({
           action: "processDocument",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
@@ -99,7 +126,7 @@ export class DocumentPageProcessor extends Construct {
 
     // テキスト抽出用のLambda Invoke Task
     const extractTextTask = new tasks.LambdaInvoke(this, "ExtractText", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.documentLambda,
       payload: sfn.TaskInput.fromObject({
         action: "extractText",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
@@ -111,7 +138,7 @@ export class DocumentPageProcessor extends Construct {
 
     // LLM処理用のLambda Invoke Task
     const processWithLLMTask = new tasks.LambdaInvoke(this, "ProcessWithLLM", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.documentLambda,
       payload: sfn.TaskInput.fromObject({
         action: "processWithLLM",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
@@ -137,7 +164,7 @@ export class DocumentPageProcessor extends Construct {
       this,
       "CombinePageResults",
       {
-        lambdaFunction: this.backendLambda,
+        lambdaFunction: this.documentLambda,
         payload: sfn.TaskInput.fromObject({
           action: "combinePageResults",
           // 配列データを直接渡す
@@ -160,7 +187,7 @@ export class DocumentPageProcessor extends Construct {
 
     // エラーハンドリングLambda
     const handleErrorTask = new tasks.LambdaInvoke(this, "HandleError", {
-      lambdaFunction: this.backendLambda,
+      lambdaFunction: this.documentLambda,
       payload: sfn.TaskInput.fromObject({
         action: "handleError",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
@@ -174,7 +201,7 @@ export class DocumentPageProcessor extends Construct {
       this,
       "HandleParallelError",
       {
-        lambdaFunction: this.backendLambda,
+        lambdaFunction: this.documentLambda,
         payload: sfn.TaskInput.fromObject({
           action: "handleError",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
@@ -236,7 +263,7 @@ export class DocumentPageProcessor extends Construct {
       this,
       "AggregateResults",
       {
-        lambdaFunction: this.backendLambda,
+        lambdaFunction: this.documentLambda,
         payload: sfn.TaskInput.fromObject({
           action: "aggregatePageResults",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
