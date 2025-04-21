@@ -5,6 +5,7 @@ import { ChecklistItemRepository, CreateChecklistItemParams, UpdateChecklistItem
 import { DocumentRepository } from '../../document/repositories/document-repository';
 import { ChecklistSetRepository } from '../repositories/checklist-set-repository';
 import { HierarchicalChecklistItem } from '../types/checklist-item-types';
+import { ulid } from 'ulid'; // ulid をインポート
 
 /**
  * チェックリスト項目サービス
@@ -102,7 +103,7 @@ export class ChecklistItemService {
    * @returns 作成されたチェックリスト項目
    * @throws 親項目が存在しない場合、ドキュメントが存在しない場合
    */
-  async createChecklistItem(params: Omit<CreateChecklistItemParams, 'checkListSetId'>, checkListSetId: string) {
+  async createChecklistItem(params: Omit<CreateChecklistItemParams, 'checkListSetId' | 'id'>, checkListSetId: string) {
     // チェックリストセットが存在するか確認
     const checklistSet = await this.checklistSetRepository.getChecklistSetById(checkListSetId);
     
@@ -136,8 +137,12 @@ export class ChecklistItemService {
       }
     }
 
+    // IDを生成
+    const id = ulid();
+
     // チェックリスト項目を作成
     return this.repository.createChecklistItem({
+      id,
       ...params,
       checkListSetId
     });

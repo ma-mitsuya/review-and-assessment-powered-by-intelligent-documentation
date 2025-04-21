@@ -6,6 +6,7 @@ import { extractText } from "./text-extraction";
 import { processWithLLM } from "./document-processing/llm-processing";
 import { combinePageResults } from "./result-combining";
 import { aggregatePageResults } from "./aggregate-results";
+import { storeChecklistItemsToDb } from "./store-to-db";
 
 export const handler = async (event: any): Promise<any> => {
   console.log("受信イベント:", JSON.stringify(event, null, 2));
@@ -22,6 +23,8 @@ export const handler = async (event: any): Promise<any> => {
       return await handleCombinePageResults(event);
     case "aggregatePageResults":
       return await handleAggregatePageResults(event);
+    case "storeToDb":
+      return await handleStoreToDb(event);
     case "handleError":
       return await handleError(event);
     default:
@@ -75,6 +78,16 @@ async function handleAggregatePageResults(event: any) {
   return await aggregatePageResults({
     documentId: event.documentId,
     processedPages: event.processedPages,
+  });
+}
+
+/**
+ * RDBへの格納ハンドラー
+ */
+async function handleStoreToDb(event: any) {
+  return await storeChecklistItemsToDb({
+    documentId: event.documentId,
+    checkListSetId: event.checkListSetId,
   });
 }
 

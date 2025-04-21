@@ -228,11 +228,38 @@ export async function processWithLLM({
     try {
       checklistItems = JSON.parse(retryLlmResponse);
       
-      // パース直後に各項目にIDを割り当て
-      checklistItems = checklistItems.map(item => ({
-        ...item,
-        id: ulid()
-      }));
+      // パース直後に各項目にIDを割り当て、数値型のIDを文字列に変換
+      checklistItems = checklistItems.map(item => {
+        // 親IDを文字列に変換
+        const parent_id = item.parent_id !== null && item.parent_id !== undefined 
+          ? String(item.parent_id) 
+          : null;
+        
+        // フローデータの参照IDを文字列に変換
+        let flow_data = item.flow_data;
+        if (flow_data) {
+          if (flow_data.next_if_yes !== undefined) {
+            flow_data.next_if_yes = String(flow_data.next_if_yes);
+          }
+          if (flow_data.next_if_no !== undefined) {
+            flow_data.next_if_no = String(flow_data.next_if_no);
+          }
+          if (flow_data.next_options) {
+            const newOptions: Record<string, string> = {};
+            for (const [key, value] of Object.entries(flow_data.next_options)) {
+              newOptions[key] = String(value);
+            }
+            flow_data.next_options = newOptions;
+          }
+        }
+        
+        return {
+          ...item,
+          id: ulid(),
+          parent_id,
+          flow_data
+        };
+      });
     } catch (error) {
       console.error(
         `リトライ後もJSONパースに失敗しました: ${error}\nLLMの応答: ${retryLlmResponse}`
@@ -264,7 +291,7 @@ export async function processWithLLM({
 
 function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
   // 型定義を追加
-  const idMapping: { [key: string | number]: string } = {};
+  const idMapping: { [key: string]: string } = {};
 
   // 各項目のIDをマッピング
   checklistItems.forEach((item) => {
@@ -315,7 +342,7 @@ function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
       // next_optionsの変換
       if (newItem.flow_data.next_options) {
         // 新しいnext_optionsオブジェクトを作成
-        const newNextOptions: Record<string, string | number> = {};
+        const newNextOptions: Record<string, string> = {};
 
         // 各オプションを処理
         Object.entries(newItem.flow_data.next_options).forEach(

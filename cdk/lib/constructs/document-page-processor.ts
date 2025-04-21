@@ -273,6 +273,31 @@ export class DocumentPageProcessor extends Construct {
       }
     );
 
+    // 新規追加: RDBに格納するLambda
+    const storeToDbTask = new tasks.LambdaInvoke(
+      this,
+      "StoreToDb",
+      {
+        lambdaFunction: this.documentLambda,
+        payload: sfn.TaskInput.fromObject({
+          action: "storeToDb",
+          documentId: sfn.JsonPath.stringAt("$.documentId"),
+          checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
+        }),
+        outputPath: "$.Payload",
+      }
+    ).addRetry({
+      errors: [
+        "Lambda.ServiceException",
+        "Lambda.AWSLambdaException",
+        "Lambda.SdkClientException",
+        "Error",
+      ],
+      interval: Duration.seconds(2),
+      backoffRate: 2,
+      maxAttempts: 5,
+    });
+
     // ページ数に基づく処理方法の選択
     const pageCountChoice = new sfn.Choice(this, "CheckPageCount")
       .when(
@@ -295,6 +320,14 @@ export class DocumentPageProcessor extends Construct {
     inlineMapState.next(aggregateResultTask);
     processMediumDocPass.next(aggregateResultTask);
     processLargeDocPass.next(aggregateResultTask);
+    
+    // 新規追加: 集約タスクからRDB格納タスクへの接続
+    aggregateResultTask.next(storeToDbTask);
+
+    // エラーハンドリングの設定
+    documentProcessorTask.addCatch(handleErrorTask);
+    aggregateResultTask.addCatch(handleErrorTask);
+    storeToDbTask.addCatch(handleErrorTask); // 新規追加
 
     // IAMロールの作成
     const stateMachineRole = new iam.Role(this, "StateMachineRole", {

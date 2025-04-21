@@ -81,7 +81,8 @@ export class ChecklistSetService {
             stateMachineArn,
             {
               documentId: doc.documentId,
-              fileName: doc.filename
+              fileName: doc.filename,
+              checkListSetId: checkListSet.id // チェックリストセットIDを追加
             }
           );
         } catch (error) {

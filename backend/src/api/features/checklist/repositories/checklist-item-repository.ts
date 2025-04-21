@@ -10,6 +10,7 @@ import { FlowData } from '../types/checklist-item-types';
  * チェックリスト項目作成パラメータ
  */
 export interface CreateChecklistItemParams {
+  id: string; // 修正: 外部からIDを指定する必須パラメータに変更
   name: string;
   description?: string;
   parentId?: string | null;
@@ -75,11 +76,9 @@ export class ChecklistItemRepository {
    * @returns 作成されたチェックリスト項目
    */
   async createChecklistItem(params: CreateChecklistItemParams): Promise<CheckList> {
-    const checkId = ulid();
-    
     return this.prisma.checkList.create({
       data: {
-        id: checkId,
+        id: params.id,
         name: params.name,
         description: params.description,
         parentId: params.parentId,
