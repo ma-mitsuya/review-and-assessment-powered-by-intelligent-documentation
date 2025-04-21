@@ -1,0 +1,12 @@
+- 既存の fastify web app にヘルスチェック用 route を追加
+  - 既存の route 実装を網羅的に調査してから、どこに追加すべきかを判断。なぜそこに追加するか理由を説明せよ
+- REST API の実装
+  - API Gateway (REST API) + Lambda の構成
+  - Lambda web adapter を利用し Fastify を呼び出す
+  - api.ts という名前で Construct を作成
+- RDB の実装
+  - Aurora MySQL serverless v2
+  - 最小スペック
+  - マネコンからクエリできるようにせよ
+  - 上記 API の Lambda、および他の StepFunctions ワークフローで使われている Lambda からもアクセス可能なようにする
+  - database.ts という名前で Construct 作成。外部からのアクセスは grant 系メソッドを生やして対応
