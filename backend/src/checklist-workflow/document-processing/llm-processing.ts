@@ -171,6 +171,12 @@ export async function processWithLLM({
   try {
     // LLMの出力をJSONとしてパース
     checklistItems = JSON.parse(llmResponse);
+    
+    // パース直後に各項目にIDを割り当て
+    checklistItems = checklistItems.map(item => ({
+      ...item,
+      id: ulid()
+    }));
   } catch (error) {
     console.error(
       `JSONパースに失敗しました: ${error}\nLLMの応答: ${llmResponse}`
@@ -221,6 +227,12 @@ export async function processWithLLM({
     }
     try {
       checklistItems = JSON.parse(retryLlmResponse);
+      
+      // パース直後に各項目にIDを割り当て
+      checklistItems = checklistItems.map(item => ({
+        ...item,
+        id: ulid()
+      }));
     } catch (error) {
       console.error(
         `リトライ後もJSONパースに失敗しました: ${error}\nLLMの応答: ${retryLlmResponse}`
@@ -256,6 +268,9 @@ function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
 
   // 各項目のIDをマッピング
   checklistItems.forEach((item) => {
+    // IDはすでに割り当て済みなので、マッピングのみ行う
+    idMapping[item.id] = item.id;
+    
     if (item.parent_id !== null) {
       if (!idMapping[item.parent_id]) {
         idMapping[item.parent_id] = ulid();
@@ -268,8 +283,7 @@ function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
     // 新しいアイテムを作成
     const newItem: ChecklistItem = {
       ...item,
-      // 全項目に固有のIDを付与
-      id: ulid(),
+      // IDはすでに割り当て済み
     };
 
     // parent_idを変換（nullでない場合のみ）

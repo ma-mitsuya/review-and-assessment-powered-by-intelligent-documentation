@@ -71,7 +71,8 @@ export async function aggregatePageResults({
     // 各項目にULIDを割り当て
     for (let i = 0; i < pageItems.length; i++) {
       const item = pageItems[i];
-      const newId = ulid();
+      // IDはすでに存在するはずなので、マッピングのみ行う
+      const newId = item.id;
       idMapping[i] = newId;
 
       // 項目をコピー

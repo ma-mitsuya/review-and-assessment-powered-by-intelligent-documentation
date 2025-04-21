@@ -19,7 +19,7 @@ export interface ChecklistItem {
   parent_id: number | string | null;
   item_type: "SIMPLE" | "FLOW";
   is_conclusion: boolean;
-  id?: string; // IDフィールドを追加
+  id: string; // IDフィールドを必須に変更
   flow_data?: {
     condition_type: "YES_NO" | "MULTI_CHOICE";
     next_if_yes?: number | string;
