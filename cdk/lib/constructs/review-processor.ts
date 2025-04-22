@@ -6,30 +6,44 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
-import { Duration } from "aws-cdk-lib";
 
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
+  vpc: ec2.IVpc;
   logLevel?: sfn.LogLevel;
 }
 
 export class ReviewProcessor extends Construct {
   public readonly stateMachine: sfn.StateMachine;
   public readonly reviewLambda: lambda.Function;
+  public readonly securityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: ReviewProcessorProps) {
     super(scope, id);
 
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
+    // セキュリティグループの作成
+    this.securityGroup = new ec2.SecurityGroup(this, "ReviewProcessorSecurityGroup", {
+      vpc: props.vpc,
+      description: "Security group for Review Processor Lambda function",
+      allowAllOutbound: true,
+    });
+
     // 審査処理用Lambda関数を作成
     this.reviewLambda = new nodejs.NodejsFunction(this, "ReviewProcessorFunction", {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "handler",
       entry: path.join(__dirname, "../../../backend/src/review-workflow/index.ts"),
-      timeout: Duration.minutes(15),
+      vpc: props.vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      securityGroups: [this.securityGroup],
+      timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
@@ -38,6 +52,11 @@ export class ReviewProcessor extends Construct {
       bundling: {
         sourceMap: true,
         externalModules: ["aws-sdk", "canvas"],
+        commandHooks: {
+          beforeInstall: () => [],
+          beforeBundling: () => [],
+          afterBundling: () => [],
+        },
       },
     });
 
@@ -161,7 +180,7 @@ export class ReviewProcessor extends Construct {
     this.stateMachine = new sfn.StateMachine(this, "ReviewProcessingWorkflow", {
       definitionBody: sfn.DefinitionBody.fromChainable(definition),
       role: stateMachineRole,
-      timeout: Duration.hours(2),
+      timeout: cdk.Duration.hours(2),
       tracingEnabled: true,
       logs: {
         destination: logGroup,

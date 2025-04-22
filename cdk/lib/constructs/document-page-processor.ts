@@ -6,6 +6,7 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
 import { Duration } from "aws-cdk-lib";
@@ -18,6 +19,11 @@ export interface DocumentPageProcessorProps {
    * ドキュメントを保存するS3バケット
    */
   documentBucket: s3.IBucket;
+
+  /**
+   * Lambda関数を配置するVPC
+   */
+  vpc: ec2.IVpc;
 
   /**
    * 中規模ドキュメントのしきい値（ページ数）
@@ -66,6 +72,11 @@ export class DocumentPageProcessor extends Construct {
    */
   public readonly documentLambda: lambda.Function;
 
+  /**
+   * Lambda関数用セキュリティグループ
+   */
+  public readonly securityGroup: ec2.SecurityGroup;
+
   constructor(scope: Construct, id: string, props: DocumentPageProcessorProps) {
     super(scope, id);
 
@@ -76,12 +87,24 @@ export class DocumentPageProcessor extends Construct {
     const distributedMapConcurrency = props.distributedMapConcurrency || 20;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
+    // セキュリティグループの作成
+    this.securityGroup = new ec2.SecurityGroup(this, "DocumentProcessorSecurityGroup", {
+      vpc: props.vpc,
+      description: "Security group for Document Processor Lambda function",
+      allowAllOutbound: true,
+    });
+
     // ドキュメント処理用Lambda関数を作成
     this.documentLambda = new nodejs.NodejsFunction(this, "DocumentProcessorFunction", {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "handler",
       entry: path.join(__dirname, "../../../backend/src/checklist-workflow/index.ts"),
-      timeout: Duration.minutes(15),
+      vpc: props.vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      securityGroups: [this.securityGroup],
+      timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
@@ -89,7 +112,14 @@ export class DocumentPageProcessor extends Construct {
       },
       bundling: {
         sourceMap: true,
-        externalModules: ["aws-sdk", "canvas"],
+        externalModules: ["aws-sdk", "canvas", "prisma", "@prisma/client"],
+        commandHooks: {
+          beforeInstall: (inputDir, outputDir) => [
+            `cp -r ${inputDir}/prisma ${outputDir}`,
+          ],
+          beforeBundling: () => [],
+          afterBundling: () => [],
+        },
       },
     });
 
@@ -154,7 +184,7 @@ export class DocumentPageProcessor extends Construct {
         // TODO: throttlingの場合に限定
         "Error",
       ],
-      interval: Duration.seconds(2),
+      interval: cdk.Duration.seconds(2),
       backoffRate: 2,
       maxAttempts: 5,
     });
@@ -180,7 +210,7 @@ export class DocumentPageProcessor extends Construct {
         // TODO: throttlingの場合に限定
         "Error",
       ],
-      interval: Duration.seconds(2),
+      interval: cdk.Duration.seconds(2),
       backoffRate: 2,
       maxAttempts: 5,
     });
@@ -293,7 +323,7 @@ export class DocumentPageProcessor extends Construct {
         "Lambda.SdkClientException",
         "Error",
       ],
-      interval: Duration.seconds(2),
+      interval: cdk.Duration.seconds(2),
       backoffRate: 2,
       maxAttempts: 5,
     });
@@ -367,7 +397,7 @@ export class DocumentPageProcessor extends Construct {
       {
         definitionBody: sfn.DefinitionBody.fromChainable(definition),
         role: stateMachineRole,
-        timeout: Duration.hours(24),
+        timeout: cdk.Duration.hours(24),
         tracingEnabled: true,
         logs: {
           destination: logGroup,
