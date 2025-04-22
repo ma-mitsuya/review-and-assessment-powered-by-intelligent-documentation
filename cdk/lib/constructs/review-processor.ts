@@ -45,9 +45,9 @@ export class ReviewProcessor extends Construct {
         __dirname,
         "../../../backend/src/review-workflow/index.ts"
       ),
-      memorySize: 256,
+      memorySize: 1024,
       runtime: lambda.Runtime.NODEJS_22_X,
-      timeout: cdk.Duration.seconds(15),
+      timeout: cdk.Duration.minutes(15),
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,

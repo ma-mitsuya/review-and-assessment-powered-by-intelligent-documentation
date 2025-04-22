@@ -109,9 +109,9 @@ export class DocumentPageProcessor extends Construct {
           __dirname,
           "../../../backend/src/checklist-workflow/index.ts"
         ),
-        memorySize: 256,
+        memorySize: 1024,
         runtime: lambda.Runtime.NODEJS_22_X,
-        timeout: cdk.Duration.seconds(15),
+        timeout: cdk.Duration.minutes(15),
         vpc: props.vpc,
         vpcSubnets: {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
@@ -155,8 +155,10 @@ export class DocumentPageProcessor extends Construct {
           action: "processDocument",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
           fileName: sfn.JsonPath.stringAt("$.fileName"),
+          checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
         }),
-        outputPath: "$.Payload",
+        // outputPath: "$.Payload",
+        resultPath: "$.processingResult",
       }
     );
 
@@ -265,11 +267,19 @@ export class DocumentPageProcessor extends Construct {
     // インラインMap State
     const inlineMapState = new sfn.Map(this, "ProcessAllPagesInline", {
       maxConcurrency: inlineMapConcurrency,
-      itemsPath: sfn.JsonPath.stringAt("$.pages"),
+      // itemsPath: sfn.JsonPath.stringAt("$.pages"),
+      itemsPath: sfn.JsonPath.stringAt("$.processingResult.pages"),
       resultPath: "$.processedPages",
       itemSelector: {
         pageNumber: sfn.JsonPath.stringAt("$$.Map.Item.Value.pageNumber"),
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
+        // documentId: sfn.JsonPath.stringAt("$.documentId"),
+        documentId: sfn.JsonPath.stringAt("$.processingResult.documentId"),
+      },
+      resultSelector: {
+        // Preserve the original input fields including checkListSetId
+        "documentId.$": "$.processingResult.documentId",
+        "processedPages.$": "$", // Map output
+        "checkListSetId.$": "$.checkListSetId", // Preserve original checkListSetId
       },
     });
     inlineMapState.itemProcessor(processPageFlow);
@@ -304,8 +314,10 @@ export class DocumentPageProcessor extends Construct {
           action: "aggregatePageResults",
           documentId: sfn.JsonPath.stringAt("$.documentId"),
           processedPages: sfn.JsonPath.stringAt("$.processedPages"),
+          checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
         }),
-        outputPath: "$.Payload",
+        // outputPath: "$.Payload",
+        resultPath: "$.aggregationResult",
       }
     );
 
@@ -317,7 +329,8 @@ export class DocumentPageProcessor extends Construct {
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
       }),
-      outputPath: "$.Payload",
+      // outputPath: "$.Payload",
+      resultPath: "$.dbStoreResult",
     }).addRetry({
       errors: [
         "Lambda.ServiceException",

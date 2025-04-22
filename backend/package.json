@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "BEACON (Building & Engineering Approval Compliance Navigator) Backend",
   "main": "dist/api/index.js",
-  "type": "module",
   "prisma": {
     "seed": "tsx src/scripts/seed-db.ts"
   },

@@ -39,20 +39,15 @@ export class Api extends Construct {
 
     // Lambda 関数の作成
     this.apiLambda = new lambda.DockerImageFunction(this, "ApiFunction", {
-      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, "../../../backend")),
+      code: lambda.DockerImageCode.fromImageAsset(
+        path.join(__dirname, "../../../backend")
+      ),
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       securityGroups: [this.securityGroup], // セキュリティグループを設定
-      environment: {
-        NODE_ENV: "production",
-        PORT: "8080",
-        AWS_LWA_READINESS_CHECK_PATH: "/health",
-        AWS_LWA_ASYNC_INIT: "true",
-        AWS_LWA_ENABLE_COMPRESSION: "true",
-        ...props?.environment,
-      },
+      environment: props?.environment,
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
     });
@@ -60,7 +55,8 @@ export class Api extends Construct {
     // API Gateway の作成
     this.api = new apigateway.RestApi(this, "BeaconApi", {
       restApiName: "BEACON API",
-      description: "BEACON (Building & Engineering Approval Compliance Navigator) API",
+      description:
+        "BEACON (Building & Engineering Approval Compliance Navigator) API",
       deployOptions: {
         stageName: "api",
         tracingEnabled: true,
@@ -124,7 +120,9 @@ export class Api extends Construct {
 
     // API Key 取得コマンドの出力
     new cdk.CfnOutput(this, "ApiKeyCommand", {
-      value: `aws apigateway get-api-key --api-key ${this.apiKey.keyId} --include-value --region ${cdk.Stack.of(this).region}`,
+      value: `aws apigateway get-api-key --api-key ${
+        this.apiKey.keyId
+      } --include-value --region ${cdk.Stack.of(this).region}`,
       description: "Command to get the API Key value",
     });
 
