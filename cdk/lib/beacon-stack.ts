@@ -80,6 +80,7 @@ export class BeaconStack extends cdk.Stack {
         inlineMapConcurrency: 10,
         distributedMapConcurrency: 20,
         logLevel: sfn.LogLevel.ALL,
+        databaseConnection: database.connection,
       }
     );
 
@@ -88,13 +89,20 @@ export class BeaconStack extends cdk.Stack {
       documentBucket,
       vpc,
       logLevel: sfn.LogLevel.ALL,
+      databaseConnection: database.connection,
     });
 
     // API Gatewayとそれに紐づくLambda関数の作成
     const api = new Api(this, "Api", {
       vpc,
       environment: {
-        DATABASE_URL: `mysql://${database.secret.secretValueFromJson("username").unsafeUnwrap()}:${database.secret.secretValueFromJson("password").unsafeUnwrap()}@${database.cluster.clusterEndpoint.hostname}:${database.cluster.clusterEndpoint.port}/${database.secret.secretValueFromJson("dbname").unsafeUnwrap()}`,
+        DATABASE_URL: `mysql://${database.secret
+          .secretValueFromJson("username")
+          .unsafeUnwrap()}:${database.secret
+          .secretValueFromJson("password")
+          .unsafeUnwrap()}@${database.cluster.clusterEndpoint.hostname}:${
+          database.cluster.clusterEndpoint.port
+        }/${database.secret.secretValueFromJson("dbname").unsafeUnwrap()}`,
       },
     });
 

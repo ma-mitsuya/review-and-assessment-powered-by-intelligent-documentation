@@ -9,10 +9,12 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
+import { DatabaseConnectionProps, PrismaFunction } from "./prisma-function";
 
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
   vpc: ec2.IVpc;
+  databaseConnection: DatabaseConnectionProps;
   logLevel?: sfn.LogLevel;
 }
 
@@ -27,37 +29,39 @@ export class ReviewProcessor extends Construct {
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
     // セキュリティグループの作成
-    this.securityGroup = new ec2.SecurityGroup(this, "ReviewProcessorSecurityGroup", {
-      vpc: props.vpc,
-      description: "Security group for Review Processor Lambda function",
-      allowAllOutbound: true,
-    });
+    this.securityGroup = new ec2.SecurityGroup(
+      this,
+      "ReviewProcessorSecurityGroup",
+      {
+        vpc: props.vpc,
+        description: "Security group for Review Processor Lambda function",
+        allowAllOutbound: true,
+      }
+    );
 
     // 審査処理用Lambda関数を作成
-    this.reviewLambda = new nodejs.NodejsFunction(this, "ReviewProcessorFunction", {
+    this.reviewLambda = new PrismaFunction(this, "ReviewProcessorFunction", {
+      entry: path.join(
+        __dirname,
+        "../../../backend/src/review-workflow/index.ts"
+      ),
+      memorySize: 256,
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "handler",
-      entry: path.join(__dirname, "../../../backend/src/review-workflow/index.ts"),
+      timeout: cdk.Duration.seconds(15),
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      securityGroups: [this.securityGroup],
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 1024,
       environment: {
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
         BEDROCK_REGION: "us-west-2",
       },
-      bundling: {
-        sourceMap: true,
-        externalModules: ["aws-sdk", "canvas"],
-        commandHooks: {
-          beforeInstall: () => [],
-          beforeBundling: () => [],
-          afterBundling: () => [],
-        },
-      },
+      securityGroups: [this.securityGroup],
+      database: props.databaseConnection,
+      depsLockFilePath: path.join(
+        __dirname,
+        "../../../backend/package-lock.json"
+      ),
     });
 
     // Lambda関数にS3バケットへのアクセス権限を付与

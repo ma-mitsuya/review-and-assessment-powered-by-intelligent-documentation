@@ -9,7 +9,8 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
-import { Duration } from "aws-cdk-lib";
+import { PrismaFunction } from "./prisma-function";
+import { DatabaseConnectionProps } from "./prisma-function";
 
 /**
  * ドキュメント処理ワークフローのプロパティ
@@ -24,6 +25,8 @@ export interface DocumentPageProcessorProps {
    * Lambda関数を配置するVPC
    */
   vpc: ec2.IVpc;
+
+  databaseConnection: DatabaseConnectionProps;
 
   /**
    * 中規模ドキュメントのしきい値（ページ数）
@@ -88,40 +91,43 @@ export class DocumentPageProcessor extends Construct {
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
     // セキュリティグループの作成
-    this.securityGroup = new ec2.SecurityGroup(this, "DocumentProcessorSecurityGroup", {
-      vpc: props.vpc,
-      description: "Security group for Document Processor Lambda function",
-      allowAllOutbound: true,
-    });
+    this.securityGroup = new ec2.SecurityGroup(
+      this,
+      "DocumentProcessorSecurityGroup",
+      {
+        vpc: props.vpc,
+        description: "Security group for Document Processor Lambda function",
+        allowAllOutbound: true,
+      }
+    );
 
-    // ドキュメント処理用Lambda関数を作成
-    this.documentLambda = new nodejs.NodejsFunction(this, "DocumentProcessorFunction", {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "handler",
-      entry: path.join(__dirname, "../../../backend/src/checklist-workflow/index.ts"),
-      vpc: props.vpc,
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-      },
-      securityGroups: [this.securityGroup],
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 1024,
-      environment: {
-        DOCUMENT_BUCKET: props.documentBucket.bucketName,
-        BEDROCK_REGION: "us-west-2",
-      },
-      bundling: {
-        sourceMap: true,
-        externalModules: ["aws-sdk", "canvas", "prisma", "@prisma/client"],
-        commandHooks: {
-          beforeInstall: (inputDir, outputDir) => [
-            `cp -r ${inputDir}/prisma ${outputDir}`,
-          ],
-          beforeBundling: () => [],
-          afterBundling: () => [],
+    this.documentLambda = new PrismaFunction(
+      this,
+      "DocumentProcessorFunction",
+      {
+        entry: path.join(
+          __dirname,
+          "../../../backend/src/checklist-workflow/index.ts"
+        ),
+        memorySize: 256,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        timeout: cdk.Duration.seconds(15),
+        vpc: props.vpc,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         },
-      },
-    });
+        environment: {
+          DOCUMENT_BUCKET: props.documentBucket.bucketName,
+          BEDROCK_REGION: "us-west-2",
+        },
+        securityGroups: [this.securityGroup],
+        database: props.databaseConnection,
+        depsLockFilePath: path.join(
+          __dirname,
+          "../../../backend/package-lock.json"
+        ),
+      }
+    );
 
     // Lambda関数にS3バケットへのアクセス権限を付与
     props.documentBucket.grantReadWrite(this.documentLambda);
@@ -304,19 +310,15 @@ export class DocumentPageProcessor extends Construct {
     );
 
     // 新規追加: RDBに格納するLambda
-    const storeToDbTask = new tasks.LambdaInvoke(
-      this,
-      "StoreToDb",
-      {
-        lambdaFunction: this.documentLambda,
-        payload: sfn.TaskInput.fromObject({
-          action: "storeToDb",
-          documentId: sfn.JsonPath.stringAt("$.documentId"),
-          checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
-        }),
-        outputPath: "$.Payload",
-      }
-    ).addRetry({
+    const storeToDbTask = new tasks.LambdaInvoke(this, "StoreToDb", {
+      lambdaFunction: this.documentLambda,
+      payload: sfn.TaskInput.fromObject({
+        action: "storeToDb",
+        documentId: sfn.JsonPath.stringAt("$.documentId"),
+        checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"),
+      }),
+      outputPath: "$.Payload",
+    }).addRetry({
       errors: [
         "Lambda.ServiceException",
         "Lambda.AWSLambdaException",
@@ -350,7 +352,7 @@ export class DocumentPageProcessor extends Construct {
     inlineMapState.next(aggregateResultTask);
     processMediumDocPass.next(aggregateResultTask);
     processLargeDocPass.next(aggregateResultTask);
-    
+
     // 新規追加: 集約タスクからRDB格納タスクへの接続
     aggregateResultTask.next(storeToDbTask);
 

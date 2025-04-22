@@ -114,6 +114,7 @@ export async function processWithLLM({
 
   // PDFページを取得
   const pageKey = getChecklistPageKey(documentId, pageNumber, "pdf");
+  console.log(`PDFページを取得: ${pageKey}`);
   const { Body } = await s3Client.send(
     new GetObjectCommand({
       Bucket: bucketName,
@@ -126,7 +127,13 @@ export async function processWithLLM({
   }
 
   // PDFをバイト配列として取得
+  console.log(`PDFをバイト配列として取得: ${pageKey}`);
   const pdfBytes = await Body.transformToByteArray();
+  console.log(`PDFのバイト配列を取得: ${pdfBytes.length} bytes`);
+
+  console.log(
+    `LLMにチェックリスト抽出をリクエスト: ${documentId}, ページ番号: ${pageNumber}`
+  );
   const response = await bedrockClient.send(
     new ConverseCommand({
       modelId: MODEL_ID,
@@ -157,6 +164,7 @@ export async function processWithLLM({
   );
 
   // レスポンスからテキストを抽出
+  console.log(`LLMからの応答を処理中...`);
   const outputMessage = response.output?.message;
   let llmResponse = "";
   if (outputMessage && outputMessage.content) {
@@ -171,11 +179,18 @@ export async function processWithLLM({
   try {
     // LLMの出力をJSONとしてパース
     checklistItems = JSON.parse(llmResponse);
-    
+    console.log(
+      `LLMの応答をJSONとしてパースしました: ${JSON.stringify(
+        checklistItems,
+        null,
+        2
+      )}`
+    );
+
     // パース直後に各項目にIDを割り当て
-    checklistItems = checklistItems.map(item => ({
+    checklistItems = checklistItems.map((item) => ({
       ...item,
-      id: ulid()
+      id: ulid(),
     }));
   } catch (error) {
     console.error(
@@ -227,14 +242,15 @@ export async function processWithLLM({
     }
     try {
       checklistItems = JSON.parse(retryLlmResponse);
-      
+
       // パース直後に各項目にIDを割り当て、数値型のIDを文字列に変換
-      checklistItems = checklistItems.map(item => {
+      checklistItems = checklistItems.map((item) => {
         // 親IDを文字列に変換
-        const parent_id = item.parent_id !== null && item.parent_id !== undefined 
-          ? String(item.parent_id) 
-          : null;
-        
+        const parent_id =
+          item.parent_id !== null && item.parent_id !== undefined
+            ? String(item.parent_id)
+            : null;
+
         // フローデータの参照IDを文字列に変換
         let flow_data = item.flow_data;
         if (flow_data) {
@@ -252,12 +268,12 @@ export async function processWithLLM({
             flow_data.next_options = newOptions;
           }
         }
-        
+
         return {
           ...item,
           id: ulid(),
           parent_id,
-          flow_data
+          flow_data,
         };
       });
     } catch (error) {
@@ -297,7 +313,7 @@ function convertToUlid(checklistItems: ChecklistItem[]): ChecklistItem[] {
   checklistItems.forEach((item) => {
     // IDはすでに割り当て済みなので、マッピングのみ行う
     idMapping[item.id] = item.id;
-    
+
     if (item.parent_id !== null) {
       if (!idMapping[item.parent_id]) {
         idMapping[item.parent_id] = ulid();

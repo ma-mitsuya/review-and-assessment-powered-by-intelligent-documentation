@@ -21,6 +21,14 @@ export interface DatabaseProps {
   autoPauseSeconds?: number;
 }
 
+export interface DatabaseConnectionProps {
+  host: string;
+  port: string;
+  engine: string;
+  username: string;
+  password: string;
+}
+
 /**
  * BEACON データベース Construct
  */
@@ -28,6 +36,7 @@ export class Database extends Construct {
   public readonly cluster: rds.DatabaseCluster;
   public readonly secret: secretsmanager.ISecret;
   public readonly securityGroup: ec2.SecurityGroup;
+  public readonly connection: DatabaseConnectionProps;
 
   constructor(scope: Construct, id: string, props: DatabaseProps) {
     super(scope, id);
@@ -54,7 +63,7 @@ export class Database extends Construct {
       securityGroups: [this.securityGroup],
       defaultDatabaseName: databaseName,
       serverlessV2MinCapacity: props.minCapacity || 0.5, // 最小容量 (ACU)
-      serverlessV2MaxCapacity: props.maxCapacity || 1,   // 最大容量 (ACU)
+      serverlessV2MaxCapacity: props.maxCapacity || 1, // 最大容量 (ACU)
       writer: rds.ClusterInstance.serverlessV2("writer", {
         autoMinorVersionUpgrade: true,
         publiclyAccessible: false,
@@ -63,12 +72,35 @@ export class Database extends Construct {
       removalPolicy: RemovalPolicy.SNAPSHOT,
       enableDataApi: false, // TCP接続のみを使用
     });
-    
+
     // シークレットローテーションの設定
     this.cluster.addRotationSingleUser();
 
     // シークレットの参照を保存
     this.secret = this.cluster.secret!;
+
+    // データベース接続情報を保存
+    this.connection = {
+      // We use direct reference for host and port because using only secret here results in failure of refreshing values.
+      // Also refer to: https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/369
+      host: this.cluster.clusterEndpoint.hostname,
+      port: cdk.Token.asString(this.cluster.clusterEndpoint.port),
+      engine: this.secret
+        .secretValueFromJson("engine")
+        .unsafeUnwrap()
+        .toString(),
+      // We use the master user only to simplify this sample.
+      // You should create a database user with minimal privileges for your application.
+      // Also refer to: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.MasterAccounts.html
+      username: this.secret
+        .secretValueFromJson("username")
+        .unsafeUnwrap()
+        .toString(),
+      password: this.secret
+        .secretValueFromJson("password")
+        .unsafeUnwrap()
+        .toString(),
+    };
 
     // マネジメントコンソールからのアクセスを許可するためのタグを追加
     cdk.Tags.of(this.cluster).add("Name", `BEACON-${databaseName}`);
