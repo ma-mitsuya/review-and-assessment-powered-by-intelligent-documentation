@@ -267,39 +267,38 @@ export class DocumentPageProcessor extends Construct {
     // インラインMap State
     const inlineMapState = new sfn.Map(this, "ProcessAllPagesInline", {
       maxConcurrency: inlineMapConcurrency,
-      // itemsPath: sfn.JsonPath.stringAt("$.pages"),
-      itemsPath: sfn.JsonPath.stringAt("$.processingResult.pages"),
+      itemsPath: sfn.JsonPath.stringAt("$.processingResult.Payload.pages"),
       resultPath: "$.processedPages",
       itemSelector: {
         pageNumber: sfn.JsonPath.stringAt("$$.Map.Item.Value.pageNumber"),
-        // documentId: sfn.JsonPath.stringAt("$.documentId"),
-        documentId: sfn.JsonPath.stringAt("$.processingResult.documentId"),
+        documentId: sfn.JsonPath.stringAt(
+          "$.processingResult.Payload.documentId"
+        ),
       },
-      resultSelector: {
-        // Preserve the original input fields including checkListSetId
-        "documentId.$": "$.processingResult.documentId",
-        "processedPages.$": "$", // Map output
-        "checkListSetId.$": "$.checkListSetId", // Preserve original checkListSetId
-      },
+      // resultSelector は Map の結果に対して適用されるので、ここでは不要です
     });
     inlineMapState.itemProcessor(processPageFlow);
 
-    // 中規模ドキュメント処理用のPass State
     const processMediumDocPass = new sfn.Pass(this, "ProcessMediumDocPass", {
       parameters: {
         status: "Processing medium document with distributed map (simplified)",
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
+        documentId: sfn.JsonPath.stringAt(
+          "$.processingResult.Payload.documentId"
+        ),
         processedPages: [],
+        checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"), // 追加
       },
       resultPath: "$.processedPages",
     });
 
-    // 大規模ドキュメント処理用のPass State
     const processLargeDocPass = new sfn.Pass(this, "ProcessLargeDocPass", {
       parameters: {
         status: "Processing large document with Bedrock Batch (simplified)",
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
+        documentId: sfn.JsonPath.stringAt(
+          "$.processingResult.Payload.documentId"
+        ),
         processedPages: [],
+        checkListSetId: sfn.JsonPath.stringAt("$.checkListSetId"), // 追加
       },
       resultPath: "$.processedPages",
     });
@@ -346,12 +345,15 @@ export class DocumentPageProcessor extends Construct {
     // ページ数に基づく処理方法の選択
     const pageCountChoice = new sfn.Choice(this, "CheckPageCount")
       .when(
-        sfn.Condition.numberGreaterThanEquals("$.pageCount", largeDocThreshold),
+        sfn.Condition.numberGreaterThanEquals(
+          "$.processingResult.Payload.pageCount",
+          largeDocThreshold
+        ),
         processLargeDocPass
       )
       .when(
         sfn.Condition.numberGreaterThanEquals(
-          "$.pageCount",
+          "$.processingResult.Payload.pageCount",
           mediumDocThreshold
         ),
         processMediumDocPass
