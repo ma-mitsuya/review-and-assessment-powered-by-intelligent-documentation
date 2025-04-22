@@ -7,9 +7,16 @@ import { DocumentPageProcessor } from "./constructs/document-page-processor";
 import { ReviewProcessor } from "./constructs/review-processor";
 import { Database } from "./constructs/database";
 import { Api } from "./constructs/api";
+import { Auth } from "./constructs/auth";
+import { Frontend } from "./constructs/frontend";
+
+export interface BeaconStackProps extends cdk.StackProps {
+  readonly webAclId: string;
+  readonly enableIpV6: boolean;
+}
 
 export class BeaconStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: BeaconStackProps) {
     super(scope, id, props);
 
     const prefix = cdk.Stack.of(this).region;
@@ -117,7 +124,25 @@ export class BeaconStack extends cdk.Stack {
     // S3バケットアクセス権限の付与
     documentBucket.grantReadWrite(api.apiLambda);
 
+    const frontend = new Frontend(this, "Frontend", {
+      accessLogBucket,
+      webAclId: props.webAclId,
+      enableIpV6: props.enableIpV6,
+      // alternateDomainName: props.alternateDomainName,
+      // hostedZoneId: props.hostedZoneId,
+    });
+
+    const auth = new Auth(this, "Auth", {});
+    frontend.buildViteApp({
+      backendApiEndpoint: api.api.url,
+      userPoolDomainPrefix: "",
+      auth,
+    });
+
     // 出力
+    new cdk.CfnOutput(this, "FrontendURL", {
+      value: frontend.getOrigin(),
+    });
     new cdk.CfnOutput(this, "DocumentBucketName", {
       value: documentBucket.bucketName,
       description: "ドキュメントを保存するS3バケット名",
