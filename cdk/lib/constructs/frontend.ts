@@ -18,6 +18,7 @@ import { NagSuppressions } from "cdk-nag";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as path from "path";
 
 export interface FrontendProps {
   readonly webAclId: string;
@@ -210,7 +211,8 @@ export class Frontend extends Construct {
     new NodejsBuild(this, "ReactBuild", {
       assets: [
         {
-          path: "../frontend",
+          // path: "../frontend",
+          path: path.join(__dirname, "../../../frontend/"),
           exclude: [
             "node_modules",
             "dist",

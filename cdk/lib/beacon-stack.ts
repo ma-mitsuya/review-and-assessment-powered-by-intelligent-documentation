@@ -9,6 +9,7 @@ import { Database } from "./constructs/database";
 import { Api } from "./constructs/api";
 import { Auth } from "./constructs/auth";
 import { Frontend } from "./constructs/frontend";
+import { PrismaMigration } from "./constructs/prisma-migration";
 
 export interface BeaconStackProps extends cdk.StackProps {
   readonly webAclId: string;
@@ -74,6 +75,16 @@ export class BeaconStack extends cdk.Stack {
       autoPause: true,
       autoPauseSeconds: 300,
     });
+
+    // Prisma マイグレーション Lambda の作成
+    const prismaMigration = new PrismaMigration(this, "PrismaMigration", {
+      vpc,
+      databaseConnection: database.connection,
+    });
+
+    // データベース接続権限の付与
+    database.grantConnect(prismaMigration.securityGroup);
+    database.grantSecretAccess(prismaMigration.migrationLambda);
 
     // ドキュメント処理ワークフローの作成
     const documentProcessor = new DocumentPageProcessor(
@@ -186,6 +197,11 @@ export class BeaconStack extends cdk.Stack {
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
       value: database.secret.secretArn,
       description: "データベース認証情報のシークレットARN",
+    });
+
+    new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
+      value: prismaMigration.migrationLambda.functionArn,
+      description: "Prisma マイグレーション Lambda 関数の ARN",
     });
   }
 }
