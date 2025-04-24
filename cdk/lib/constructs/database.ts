@@ -54,7 +54,7 @@ export class Database extends Construct {
     // Aurora MySQL Serverless v2 クラスターの作成
     this.cluster = new rds.DatabaseCluster(this, "Database", {
       engine: rds.DatabaseClusterEngine.auroraMysql({
-        version: rds.AuroraMysqlEngineVersion.VER_3_04_0,
+        version: rds.AuroraMysqlEngineVersion.VER_3_08_1,
       }),
       vpc: props.vpc,
       vpcSubnets: {
@@ -70,7 +70,7 @@ export class Database extends Construct {
       }),
       storageEncrypted: true,
       removalPolicy: RemovalPolicy.SNAPSHOT,
-      enableDataApi: false, // TCP接続のみを使用
+      enableDataApi: true, // Allow access from Management Console
     });
 
     // シークレットローテーションの設定

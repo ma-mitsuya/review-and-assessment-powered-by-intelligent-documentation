@@ -22,6 +22,9 @@ coverage
 # API keys and secrets
 .env
 
+# Ignore prisma env files
+!prisma/.env
+
 # Dependency directory
 node_modules
 bower_components
@@ -42,5 +45,5 @@ yarn.lock
 
 # Prisma
 prisma/migrations
-
+prisma/client
 

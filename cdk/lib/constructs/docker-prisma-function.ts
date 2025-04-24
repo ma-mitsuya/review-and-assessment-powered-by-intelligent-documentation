@@ -1,6 +1,7 @@
 // Ref: https://github.com/aws-samples/prisma-lambda-cdk/blob/main/lib/construct/prisma-function.ts
 
-import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
+// import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 
@@ -12,12 +13,12 @@ export interface DatabaseConnectionProps {
   password: string;
 }
 
-interface PrismaFunctionProps extends lambdanode.NodejsFunctionProps {
+interface DockerPrismaFunctionProps extends lambda.DockerImageFunctionProps {
   database: DatabaseConnectionProps;
 }
 
-export class PrismaFunction extends lambdanode.NodejsFunction {
-  constructor(scope: Construct, id: string, props: PrismaFunctionProps) {
+export class DockerPrismaFunction extends lambda.DockerImageFunction {
+  constructor(scope: Construct, id: string, props: DockerPrismaFunctionProps) {
     const handlerRole =
       props.role ||
       new iam.Role(scope, "HandlerRole", {
@@ -43,31 +44,6 @@ export class PrismaFunction extends lambdanode.NodejsFunction {
         // Aurora Serverless v2 cold start takes up to 15 seconds
         // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
         DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
-      },
-      bundling: {
-        nodeModules: ["prisma", "@prisma/client"].concat(
-          props.bundling?.nodeModules ?? []
-        ),
-        commandHooks: {
-          // Ref: https://github.com/aws-samples/prisma-lambda-cdk/issues/23
-          beforeInstall: (i, o) => [
-            // Copy prisma directory to Lambda code asset
-            // the directory must be placed on the same directory as your Lambda code
-            `echo "BEFORE INSTALL"`,
-            `echo ${i}`,
-            `echo ${o}`,
-            `cp -r ${i}/prisma ${o}`,
-          ],
-          beforeBundling: (i, o) => [],
-          afterBundling: (i, o) => [
-            `echo "AFTER BUNDLING"`,
-            `echo ${i}`,
-            `echo ${o}`,
-            `ls -la ${i}`,
-            // `npx run prisma:generate`,
-            `cp -r ${i}/node_modules/.prisma node_modules`,
-          ],
-        },
       },
     });
   }

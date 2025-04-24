@@ -5,8 +5,13 @@ import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
-import { PrismaFunction, DatabaseConnectionProps } from "./prisma-function";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+// import { PrismaFunction, DatabaseConnectionProps } from "./prisma-function";
+import {
+  DockerPrismaFunction,
+  DatabaseConnectionProps,
+} from "./docker-prisma-function";
+import { DockerImageCode, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 
 /**
  * PrismaMigration Constructのプロパティ
@@ -20,7 +25,7 @@ export interface PrismaMigrationProps {
  * Prisma マイグレーション実行用 Lambda Construct
  */
 export class PrismaMigration extends Construct {
-  public readonly migrationLambda: PrismaFunction;
+  public readonly migrationLambda: DockerPrismaFunction;
   public readonly securityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: PrismaMigrationProps) {
@@ -34,10 +39,13 @@ export class PrismaMigration extends Construct {
     });
 
     // Lambda 関数の作成
-    this.migrationLambda = new PrismaFunction(this, "MigrationFunction", {
-      entry: path.join(
-        __dirname,
-        "../../../backend/src/handlers/migration-runner.ts"
+    this.migrationLambda = new DockerPrismaFunction(this, "MigrationFunction", {
+      code: DockerImageCode.fromImageAsset(
+        path.join(__dirname, "../../../backend/"),
+        {
+          file: "Dockerfile.prisma.lambda",
+          platform: Platform.LINUX_AMD64,
+        }
       ),
       vpc: props.vpc,
       vpcSubnets: {
@@ -47,11 +55,6 @@ export class PrismaMigration extends Construct {
       database: props.databaseConnection,
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
-      runtime: Runtime.NODEJS_22_X,
-      depsLockFilePath: path.join(
-        __dirname,
-        "../../../backend/package-lock.json"
-      ),
     });
 
     // CLI コマンドの出力

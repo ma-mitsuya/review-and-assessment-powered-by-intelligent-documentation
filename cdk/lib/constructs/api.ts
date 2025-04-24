@@ -37,8 +37,20 @@ export class Api extends Construct {
       allowAllOutbound: true,
     });
 
+    // Role
+    const handlerRole = new iam.Role(scope, "HandlerRole", {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    });
+    // Add VPC access to the Lambda function
+    handlerRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        "service-role/AWSLambdaVPCAccessExecutionRole"
+      )
+    );
+
     // Lambda 関数の作成
     this.apiLambda = new lambda.DockerImageFunction(this, "ApiFunction", {
+      role: handlerRole,
       code: lambda.DockerImageCode.fromImageAsset(
         path.join(__dirname, "../../../backend")
       ),

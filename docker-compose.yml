@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mysql:
@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: beacon_db
+      MYSQL_DATABASE: beacon
       MYSQL_USER: beacon_user
       MYSQL_PASSWORD: beacon_password
     ports:
