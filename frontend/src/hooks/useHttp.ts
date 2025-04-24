@@ -2,6 +2,7 @@ import useSWR, { SWRConfiguration, Fetcher } from "swr";
 
 const API_ENDPOINT =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_KEY = import.meta.env.VITE_X_API_KEY || "";
 
 // Define a response interface similar to AxiosResponse
 interface FetchResponse<T = any> {
@@ -20,9 +21,13 @@ const getAuthHeaders = async () => {
   // const session = await fetchAuthSession();
   // const idToken = session.tokens?.idToken;
   const idToken = "dummy";
+  const apiKey = API_KEY;
 
   if (idToken) {
     headers["Authorization"] = `Bearer ${idToken.toString()}`;
+  }
+  if (apiKey) {
+    headers["x-api-key"] = apiKey.toString();
   }
 
   return headers;
