@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCheckListSet } from '../hooks/useCheckListSets';
-import { postData, putData } from '../../../hooks/useFetch';
+import { useCheckListSet, useCheckListSetActions } from '../hooks/useCheckListSets';
 import { useToast } from '../../../contexts/ToastContext';
 
 /**
@@ -82,14 +81,16 @@ export function CheckListSetFormPage() {
     setIsSubmitting(true);
     
     try {
+      const { createCheckListSet, updateCheckListSet } = useCheckListSetActions();
+      
       if (isEditMode && id) {
         // 更新処理
-        await putData(`/checklist-sets/${id}`, formData);
+        await updateCheckListSet(id, formData.name, formData.description);
         addToast(`チェックリスト「${formData.name}」を更新しました`, 'success');
         navigate(`/checklist/${id}`, { replace: true });
       } else {
         // 新規作成処理
-        const response = await postData('/checklist-sets', formData);
+        const response = await createCheckListSet(formData.name, formData.description);
         addToast(`チェックリスト「${formData.name}」を作成しました`, 'success');
         navigate(`/checklist/${response.data.check_list_set_id}`, { replace: true });
       }

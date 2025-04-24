@@ -2,25 +2,26 @@
  * 審査ジョブの作成・削除などのアクションを提供するカスタムフック
  */
 import { useState } from 'react';
-import { postData, deleteData } from '../../../hooks/useFetch';
-import { CreateReviewJobParams, ReviewJob } from '../types';
-import { mutate } from 'swr';
+import useHttp from '../../../hooks/useHttp';
+import { CreateReviewJobParams, ReviewJob, ApiResponse } from '../types';
+import { getReviewJobsKey } from './useReviewJobs';
 
 export function useReviewJobActions() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const http = useHttp();
   
   const createReviewJob = async (params: CreateReviewJobParams): Promise<ReviewJob> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await postData('/review-jobs', params);
+      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', params);
       
-      // キャッシュを更新
-      mutate((key: string) => key.startsWith('/review-jobs?'));
+      // キャッシュを無効化 - 全てのreview-jobsクエリを無効化
+      http.get(getReviewJobsKey()).mutate();
       
-      return response.data;
+      return response.data.data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create review job');
       setError(error);
@@ -35,12 +36,12 @@ export function useReviewJobActions() {
     setError(null);
     
     try {
-      const response = await deleteData(`/review-jobs/${jobId}`);
+      const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/review-jobs/${jobId}`);
       
-      // キャッシュを更新
-      mutate((key: string) => key.startsWith('/review-jobs?'));
+      // キャッシュを無効化
+      http.get(getReviewJobsKey()).mutate();
       
-      return response.data.deleted;
+      return response.data.data.deleted;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete review job');
       setError(error);

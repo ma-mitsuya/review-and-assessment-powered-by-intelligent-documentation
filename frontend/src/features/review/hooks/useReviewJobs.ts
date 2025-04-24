@@ -1,9 +1,8 @@
 /**
  * 審査ジョブ一覧を取得するためのカスタムフック
  */
-import useSWR from 'swr';
-import { fetcher } from '../../../hooks/useFetch';
-import { ReviewJob } from '../types';
+import useHttp from '../../../hooks/useHttp';
+import { ReviewJob, ApiResponse } from '../types';
 
 /**
  * 審査ジョブ一覧のキャッシュキーを生成する関数
@@ -49,14 +48,15 @@ export const useReviewJobs = (
   isError: boolean;
   mutate: () => void;
 } => {
+  const http = useHttp();
   const key = getReviewJobsKey(page, limit, sortBy, sortOrder, status);
   
-  const { data, error, mutate } = useSWR(key, fetcher);
+  const { data, error, isLoading, mutate } = http.get<ApiResponse<{ reviewJobs: ReviewJob[]; total: number }>>(key);
   
   return {
     reviewJobs: data?.data.reviewJobs || [],
     total: data?.data.total || 0,
-    isLoading: !error && !data,
+    isLoading,
     isError: !!error,
     mutate
   };

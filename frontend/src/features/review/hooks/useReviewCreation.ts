@@ -3,10 +3,10 @@
  */
 
 import { useState } from 'react';
-import { postData } from '../../../hooks/useFetch';
+import useHttp from '../../../hooks/useHttp';
 import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
-import { ReviewJob } from '../types';
-import { mutate } from 'swr';
+import { ReviewJob, ApiResponse } from '../types';
+import { getReviewJobsKey } from './useReviewJobs';
 
 /**
  * 審査ジョブ作成リクエスト
@@ -32,6 +32,7 @@ interface UseReviewCreationReturn {
 export function useReviewCreation(): UseReviewCreationReturn {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const http = useHttp();
   
   /**
    * 審査ジョブを作成する
@@ -43,7 +44,7 @@ export function useReviewCreation(): UseReviewCreationReturn {
     
     try {
       // 審査ジョブを作成
-      const response = await postData('/review-jobs', {
+      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', {
         name: data.name,
         documentId: data.document.documentId,
         checkListSetId: data.checkListSetId,
@@ -52,14 +53,14 @@ export function useReviewCreation(): UseReviewCreationReturn {
         fileType: data.document.fileType
       });
       
-      if (!response.success) {
-        throw new Error(response.error || '審査ジョブの作成に失敗しました');
+      if (!response.data.success) {
+        throw new Error(response.data.error || '審査ジョブの作成に失敗しました');
       }
       
-      // 審査ジョブ一覧のキャッシュを無効化して再取得を強制
-      mutate((key: string) => key.startsWith('/review-jobs'));
+      // キャッシュを無効化
+      http.get(getReviewJobsKey()).mutate();
       
-      return response.data;
+      return response.data.data;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('審査ジョブの作成に失敗しました');
       setError(err);

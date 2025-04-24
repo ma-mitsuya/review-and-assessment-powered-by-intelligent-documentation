@@ -2,13 +2,14 @@
  * 審査結果の更新アクションを提供するカスタムフック
  */
 import { useState } from 'react';
-import { putData } from '../../../hooks/useFetch';
-import { UpdateReviewResultParams } from '../types';
-import { mutate } from 'swr';
+import useHttp from '../../../hooks/useHttp';
+import { UpdateReviewResultParams, ApiResponse } from '../types';
+import { getReviewResultHierarchyKey } from './useReviewResultHierarchy';
 
 export function useReviewResultActions() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const http = useHttp();
   
   const updateReviewResult = async (
     jobId: string,
@@ -19,12 +20,12 @@ export function useReviewResultActions() {
     setError(null);
     
     try {
-      const response = await putData(`/review-jobs/${jobId}/results/${resultId}`, params);
+      const response = await http.put<ApiResponse<any>>(`/review-jobs/${jobId}/results/${resultId}`, params);
       
-      // キャッシュを更新
-      mutate(`/review-jobs/${jobId}/results/hierarchy`);
+      // キャッシュを無効化
+      http.get(getReviewResultHierarchyKey(jobId)).mutate();
       
-      return response.data;
+      return response.data.data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update review result');
       setError(error);

@@ -1,30 +1,18 @@
-import useSWR, { mutate } from 'swr';
+import useHttp from '../../../hooks/useHttp';
 import { 
   CheckListItem, 
   HierarchicalCheckListItem, 
   ApiResponse 
 } from '../types';
 
-const API_BASE_URL = '/api';
-
 /**
  * チェックリスト項目の階層構造を取得するためのフック
  */
 export const useCheckListItems = (setId: string | null) => {
-  const url = setId ? `${API_BASE_URL}/checklist-sets/${setId}/items/hierarchy` : null;
+  const http = useHttp();
+  const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
   
-  const fetcher = async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch checklist hierarchy: ${response.statusText}`);
-    }
-    return response.json();
-  };
-
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<HierarchicalCheckListItem[]>>(
-    url,
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = http.get<ApiResponse<HierarchicalCheckListItem[]>>(url);
 
   return {
     hierarchy: data?.data,
@@ -38,20 +26,10 @@ export const useCheckListItems = (setId: string | null) => {
  * チェックリスト項目詳細を取得するためのフック
  */
 export const useCheckListItem = (setId: string | null, itemId: string | null) => {
-  const url = setId && itemId ? `${API_BASE_URL}/checklist-sets/${setId}/items/${itemId}` : null;
+  const http = useHttp();
+  const url = setId && itemId ? `/checklist-sets/${setId}/items/${itemId}` : null;
   
-  const fetcher = async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch checklist item: ${response.statusText}`);
-    }
-    return response.json();
-  };
-
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CheckListItem>>(
-    url,
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = http.get<ApiResponse<CheckListItem>>(url);
 
   return {
     checkListItem: data?.data,
@@ -85,25 +63,14 @@ export const createCheckListItem = async (
     documentId?: string;
   }
 ): Promise<ApiResponse<CheckListItem>> => {
-  const response = await fetch(`${API_BASE_URL}/checklist-sets/${setId}/items`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(item),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to create checklist item: ${response.statusText}`);
-  }
-  
-  const result = await response.json();
+  const http = useHttp();
+  const response = await http.post<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items`, item);
   
   // キャッシュを更新
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}`);
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}/items/hierarchy`);
+  http.get(`/checklist-sets/${setId}`).mutate();
+  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
   
-  return result;
+  return response.data;
 };
 
 /**
@@ -129,26 +96,15 @@ export const updateCheckListItem = async (
     documentId?: string;
   }
 ): Promise<ApiResponse<CheckListItem>> => {
-  const response = await fetch(`${API_BASE_URL}/checklist-sets/${setId}/items/${itemId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updates),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to update checklist item: ${response.statusText}`);
-  }
-  
-  const result = await response.json();
+  const http = useHttp();
+  const response = await http.put<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items/${itemId}`, updates);
   
   // キャッシュを更新
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}`);
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}/items/hierarchy`);
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}/items/${itemId}`);
+  http.get(`/checklist-sets/${setId}`).mutate();
+  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
+  http.get(`/checklist-sets/${setId}/items/${itemId}`).mutate();
   
-  return result;
+  return response.data;
 };
 
 /**
@@ -158,21 +114,14 @@ export const deleteCheckListItem = async (
   setId: string,
   itemId: string
 ): Promise<ApiResponse<{ deleted: boolean }>> => {
-  const response = await fetch(`${API_BASE_URL}/checklist-sets/${setId}/items/${itemId}`, {
-    method: 'DELETE',
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to delete checklist item: ${response.statusText}`);
-  }
-  
-  const result = await response.json();
+  const http = useHttp();
+  const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${setId}/items/${itemId}`);
   
   // キャッシュを更新
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}`);
-  mutate(`${API_BASE_URL}/checklist-sets/${setId}/items/hierarchy`);
+  http.get(`/checklist-sets/${setId}`).mutate();
+  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
   
-  return result;
+  return response.data;
 };
 
 /**

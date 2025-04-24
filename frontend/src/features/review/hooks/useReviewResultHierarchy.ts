@@ -1,9 +1,8 @@
 /**
  * 審査結果の階層構造を取得するためのカスタムフック
  */
-import useSWR from 'swr';
-import { fetcher } from '../../../hooks/useFetch';
-import { ReviewResultHierarchy } from '../types';
+import useHttp from '../../../hooks/useHttp';
+import { ReviewResultHierarchy, ApiResponse } from '../types';
 
 /**
  * 審査結果の階層構造のキャッシュキーを生成する関数
@@ -23,13 +22,14 @@ export function useReviewResultHierarchy(jobId?: string): {
   isError: boolean;
   mutate: () => void;
 } {
+  const http = useHttp();
   const key = getReviewResultHierarchyKey(jobId);
   
-  const { data, error, mutate } = useSWR(key, fetcher);
+  const { data, error, isLoading, mutate } = http.get<ApiResponse<ReviewResultHierarchy[]>>(key);
   
   return {
     hierarchy: data?.data || [],
-    isLoading: !error && !data && !!jobId,
+    isLoading,
     isError: !!error,
     mutate
   };

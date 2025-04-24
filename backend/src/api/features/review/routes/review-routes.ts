@@ -36,41 +36,41 @@ import {
 export function registerReviewRoutes(fastify: FastifyInstance): void {
   // 審査ドキュメント関連
   fastify.post(
-    "/api/documents/review/presigned-url",
+    "/documents/review/presigned-url",
     { schema: getReviewPresignedUrlSchema },
     getReviewPresignedUrlHandler
   );
   fastify.delete(
-    "/api/documents/review/:key",
+    "/documents/review/:key",
     { schema: deleteReviewDocumentSchema },
     deleteReviewDocumentHandler
   );
 
   // 審査ジョブ関連
   fastify.get(
-    "/api/review-jobs",
+    "/review-jobs",
     { schema: getReviewJobsSchema },
     getReviewJobsHandler
   );
   fastify.post(
-    "/api/review-jobs",
+    "/review-jobs",
     { schema: createReviewJobSchema },
     createReviewJobHandler
   );
   fastify.delete(
-    "/api/review-jobs/:id",
+    "/review-jobs/:id",
     { schema: deleteReviewJobSchema },
     deleteReviewJobHandler
   );
 
   // 審査結果関連
   fastify.get(
-    "/api/review-jobs/:jobId/results/hierarchy",
+    "/review-jobs/:jobId/results/hierarchy",
     { schema: getReviewResultHierarchySchema },
     getReviewResultHierarchyHandler
   );
   fastify.put(
-    "/api/review-jobs/:jobId/results/:resultId",
+    "/review-jobs/:jobId/results/:resultId",
     { schema: updateReviewResultSchema },
     updateReviewResultHandler
   );

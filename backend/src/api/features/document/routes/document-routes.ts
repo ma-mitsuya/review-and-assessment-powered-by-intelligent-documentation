@@ -1,9 +1,15 @@
 /**
  * ドキュメント関連のルート定義
  */
-import { FastifyInstance } from 'fastify';
-import { getPresignedUrlHandler, deleteDocumentHandler } from '../handlers/document-handlers';
-import { getPresignedUrlSchema, deleteDocumentSchema } from '../schemas/document-schemas';
+import { FastifyInstance } from "fastify";
+import {
+  getPresignedUrlHandler,
+  deleteDocumentHandler,
+} from "../handlers/document-handlers";
+import {
+  getPresignedUrlSchema,
+  deleteDocumentSchema,
+} from "../schemas/document-schemas";
 
 /**
  * ドキュメント関連のルートを登録する
@@ -11,14 +17,14 @@ import { getPresignedUrlSchema, deleteDocumentSchema } from '../schemas/document
  */
 export function registerDocumentRoutes(fastify: FastifyInstance): void {
   // Presigned URL取得
-  fastify.post('/api/documents/presigned-url', {
+  fastify.post("/documents/presigned-url", {
     schema: getPresignedUrlSchema,
-    handler: getPresignedUrlHandler
+    handler: getPresignedUrlHandler,
   });
 
   // ドキュメント削除
-  fastify.delete('/api/documents/:key', {
+  fastify.delete("/documents/:key", {
     schema: deleteDocumentSchema,
-    handler: deleteDocumentHandler
+    handler: deleteDocumentHandler,
   });
 }

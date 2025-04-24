@@ -3,10 +3,10 @@
  */
 
 import { useState } from 'react';
-import { postData } from '../../../hooks/useFetch';
+import useHttp from '../../../hooks/useHttp';
 import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 import { getCheckListSetsKey } from './useCheckListSets';
-import { mutate } from 'swr';
+import { ApiResponse } from '../types';
 
 /**
  * チェックリスト作成リクエスト
@@ -42,6 +42,7 @@ interface UseChecklistCreationReturn {
 export function useChecklistCreation(): UseChecklistCreationReturn {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const http = useHttp();
   
   /**
    * チェックリストを作成する
@@ -53,7 +54,7 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
     
     try {
       // チェックリストセットを作成
-      const response = await postData('/checklist-sets', {
+      const response = await http.post<ApiResponse<CreateChecklistResponse>>('/checklist-sets', {
         name: data.name,
         description: data.description,
         documents: data.documents.map(doc => ({
@@ -64,25 +65,14 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
         }))
       });
       
-      if (!response.success) {
-        throw new Error(response.error || 'チェックリストセットの作成に失敗しました');
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'チェックリストセットの作成に失敗しました');
       }
       
-      // チェックリスト一覧のキャッシュを無効化して再取得を強制
-      // デフォルトのキャッシュキーを無効化
-      mutate(getCheckListSetsKey());
+      // キャッシュを無効化
+      http.get(getCheckListSetsKey()).mutate();
       
-      // 他のページやソート順のキャッシュも無効化
-      const checklistSetsPattern = new RegExp(`^/api/checklist-sets\\?`);
-      const keys = Array.from((window as any).SWR?._keys || [])
-        .filter((key: string) => checklistSetsPattern.test(key));
-      
-      // すべてのキャッシュを無効化
-      keys.forEach((key: string) => {
-        mutate(key);
-      });
-      
-      return response.data;
+      return response.data.data;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('チェックリストの作成に失敗しました');
       setError(err);

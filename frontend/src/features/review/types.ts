@@ -3,6 +3,15 @@
  */
 
 /**
+ * API レスポンスの型
+ */
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
+/**
  * 審査ドキュメント
  */
 export interface ReviewDocument {

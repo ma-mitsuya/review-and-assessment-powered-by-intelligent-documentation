@@ -1,7 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useCheckListItemHierarchy } from '../hooks/useCheckListSets';
+import { useCheckListItemHierarchy, useCheckListSetActions } from '../hooks/useCheckListSets';
 import CheckListViewer from '../components/CheckListViewer';
-import { deleteData } from '../../../hooks/useFetch';
 import { useToast } from '../../../contexts/ToastContext';
 
 /**
@@ -18,7 +17,8 @@ export function CheckListSetDetailPage() {
     
     if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
       try {
-        await deleteData(`/checklist-sets/${id}`);
+        const { deleteCheckListSet } = useCheckListSetActions();
+        await deleteCheckListSet(id);
         addToast(`チェックリスト #${id} を削除しました`, 'success');
         navigate('/checklist', { replace: true });
       } catch (error) {
