@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react';
 import { DocumentStatus } from '../types';
+import { HiClock, HiRefresh, HiCheck, HiX, HiQuestionMarkCircle } from 'react-icons/hi';
 
 export interface DocumentStatusItem {
   document_id: string;
@@ -26,35 +27,35 @@ const getStatusInfo = (status: DocumentStatus) => {
         label: '待機中',
         bgColor: 'bg-yellow-100',
         textColor: 'text-yellow-800',
-        icon: '⏳',
+        icon: <HiClock className="mr-1" />,
       };
     case 'processing':
       return {
         label: '処理中',
         bgColor: 'bg-blue-100',
         textColor: 'text-blue-800',
-        icon: '🔄',
+        icon: <HiRefresh className="mr-1" />,
       };
     case 'completed':
       return {
         label: '完了',
         bgColor: 'bg-green-100',
         textColor: 'text-green-800',
-        icon: '✅',
+        icon: <HiCheck className="mr-1" />,
       };
     case 'failed':
       return {
         label: '失敗',
         bgColor: 'bg-red-100',
         textColor: 'text-red-800',
-        icon: '❌',
+        icon: <HiX className="mr-1" />,
       };
     default:
       return {
         label: '不明',
         bgColor: 'bg-gray-100',
         textColor: 'text-gray-800',
-        icon: '❓',
+        icon: <HiQuestionMarkCircle className="mr-1" />,
       };
   }
 };
@@ -99,7 +100,7 @@ export function ProcessingStatus({ documents, onAllCompleted }: ProcessingStatus
               </div>
               
               <div className={`px-3 py-1 rounded-full ${statusInfo.bgColor} ${statusInfo.textColor} text-xs flex items-center`}>
-                <span className="mr-1">{statusInfo.icon}</span>
+                {statusInfo.icon}
                 <span>{statusInfo.label}</span>
               </div>
             </div>

@@ -28,30 +28,37 @@ export interface DocumentUploadResult {
   fileType: string;
 }
 
+interface UseDocumentUploadOptions {
+  presignedUrlEndpoint?: string;
+  deleteEndpointPrefix?: string;
+}
+
 /**
  * ドキュメントアップロード用のカスタムフック
  */
-export function useDocumentUpload() {
+export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
-  const [uploadedDocument, setUploadedDocument] = useState<DocumentUploadResult | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<DocumentUploadResult[]>([]);
   const http = useHttp();
+
+  const presignedUrlEndpoint = options.presignedUrlEndpoint || '/documents/presigned-url';
+  const deleteEndpointPrefix = options.deleteEndpointPrefix || '/documents/';
 
   /**
    * ファイルをアップロードする
    * @param file アップロードするファイル
    * @returns アップロード結果
    */
-  const uploadFile = async (file: File): Promise<DocumentUploadResult> => {
+  const uploadDocument = async (file: File): Promise<DocumentUploadResult> => {
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
-    setUploadedDocument(null);
     
     try {
       // Presigned URLを取得
-      const presignedResponse = await http.post<PresignedUrlResponse>('/documents/presigned-url', {
+      const presignedResponse = await http.post<PresignedUrlResponse>(presignedUrlEndpoint, {
         filename: file.name,
         contentType: file.type
       });
@@ -83,7 +90,7 @@ export function useDocumentUpload() {
         fileType: file.type
       };
       
-      setUploadedDocument(result);
+      setUploadedDocuments(prev => [...prev, result]);
       setUploadProgress(100);
       
       return result;
@@ -108,12 +115,12 @@ export function useDocumentUpload() {
   /**
    * アップロードしたドキュメントを削除する
    */
-  const deleteUploadedDocument = async (documentId: string): Promise<boolean> => {
+  const deleteDocument = async (documentId: string): Promise<boolean> => {
     try {
-      const response = await http.delete<{success: boolean}>(`/documents/${documentId}`);
+      const response = await http.delete<{success: boolean}>(`${deleteEndpointPrefix}${documentId}`);
       
-      if (uploadedDocument?.documentId === documentId) {
-        setUploadedDocument(null);
+      if (response.data.success) {
+        removeDocument(documentId);
       }
       
       return response.data.success;
@@ -122,14 +129,30 @@ export function useDocumentUpload() {
       return false;
     }
   };
+
+  /**
+   * アップロードしたドキュメントをリストから削除する（S3からは削除しない）
+   */
+  const removeDocument = (documentId: string) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.documentId !== documentId));
+  };
+
+  /**
+   * アップロードしたドキュメントリストをクリアする
+   */
+  const clearUploadedDocuments = () => {
+    setUploadedDocuments([]);
+  };
   
   return {
-    uploadFile,
+    uploadDocument,
     cancelUpload,
-    deleteUploadedDocument,
+    deleteDocument,
+    removeDocument,
+    clearUploadedDocuments,
     isUploading,
     uploadProgress,
     error,
-    uploadedDocument
+    uploadedDocuments
   };
 }

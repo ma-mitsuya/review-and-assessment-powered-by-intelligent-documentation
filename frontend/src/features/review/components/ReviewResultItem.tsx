@@ -6,6 +6,7 @@ import { ReviewResultHierarchy } from '../types';
 import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
 import Button from '../../../components/Button';
+import { HiChevronDown, HiChevronRight, HiPencil } from 'react-icons/hi';
 
 interface ReviewResultItemProps {
   result: ReviewResultHierarchy;
@@ -133,13 +134,9 @@ export default function ReviewResultItem({
                 className="mr-2 text-aws-font-color-gray hover:text-aws-squid-ink-light transition-colors"
               >
                 {isExpanded ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
+                  <HiChevronDown className="h-5 w-5" />
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
+                  <HiChevronRight className="h-5 w-5" />
                 )}
               </button>
             )}
@@ -196,11 +193,7 @@ export default function ReviewResultItem({
                 onClick={() => setIsModalOpen(true)}
                 variant="secondary"
                 size="sm"
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                }
+                icon={<HiPencil className="h-4 w-4" />}
               >
                 結果を上書き
               </Button>

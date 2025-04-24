@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import iconImage from '../assets/icon.png';
+import { HiX, HiMenu, HiCheck, HiDocumentText, HiDocumentSearch, HiInformationCircle } from 'react-icons/hi';
 
 /**
  * サイドバーコンポーネント
@@ -28,29 +29,7 @@ export default function Sidebar() {
         onClick={toggleSidebar}
         aria-label="メニュー"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          {isOpen ? (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          ) : (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          )}
-        </svg>
+        {isOpen ? <HiX className="h-6 w-6" /> : <HiMenu className="h-6 w-6" />}
       </button>
 
       {/* サイドバー */}
@@ -81,19 +60,7 @@ export default function Sidebar() {
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 mr-3" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M9 11l3 3L22 4" />
-                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-                  </svg>
+                  <HiCheck className="h-5 w-5 mr-3" />
                   チェックリスト
                 </Link>
               </li>
@@ -107,22 +74,7 @@ export default function Sidebar() {
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 mr-3" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <path d="M14 2v6h6" />
-                    <path d="M16 13H8" />
-                    <path d="M16 17H8" />
-                    <path d="M10 9H8" />
-                  </svg>
+                  <HiDocumentText className="h-5 w-5 mr-3" />
                   審査
                 </Link>
               </li>
@@ -136,22 +88,7 @@ export default function Sidebar() {
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 mr-3" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 11.08V8l-6-6H6a2 2 0 00-2 2v16c0 1.1.9 2 2 2h6" />
-                    <path d="M14 3v5h5" />
-                    <circle cx="16" cy="16" r="6" />
-                    <path d="M16 14v4" />
-                    <path d="M16 20h.01" />
-                  </svg>
+                  <HiDocumentSearch className="h-5 w-5 mr-3" />
                   ドキュメント
                 </Link>
               </li>
@@ -160,20 +97,7 @@ export default function Sidebar() {
           
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="flex items-center text-sm text-aws-font-color-white-light opacity-75">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-4 w-4 mr-2" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 8v4" />
-                <path d="M12 16h.01" />
-              </svg>
+              <HiInformationCircle className="h-4 w-4 mr-2" />
               v1.0.0
             </div>
           </div>

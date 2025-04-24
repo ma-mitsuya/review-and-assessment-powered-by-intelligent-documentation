@@ -1,4 +1,5 @@
 import React from 'react';
+import { HiDocumentDuplicate, HiChevronDoubleRight } from 'react-icons/hi';
 
 interface ComparisonIndicatorProps {
   isReady: boolean;
@@ -12,20 +13,7 @@ export const ComparisonIndicator: React.FC<ComparisonIndicatorProps> = ({ isRead
           ? 'bg-aws-sea-blue-light text-aws-font-color-white-light' 
           : 'bg-light-gray text-aws-font-color-gray'
       }`}>
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          className="h-8 w-8" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-          />
-        </svg>
+        <HiDocumentDuplicate className="h-8 w-8" />
       </div>
       
       <div className="mt-4 text-center">
@@ -43,20 +31,7 @@ export const ComparisonIndicator: React.FC<ComparisonIndicatorProps> = ({ isRead
       <div className="mt-6">
         <div className="flex items-center">
           <div className="w-16 h-0.5 bg-aws-sea-blue-light"></div>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-6 w-6 text-aws-sea-blue-light mx-2" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M13 5l7 7-7 7M5 5l7 7-7 7" 
-            />
-          </svg>
+          <HiChevronDoubleRight className="h-6 w-6 text-aws-sea-blue-light mx-2" />
           <div className="w-16 h-0.5 bg-aws-sea-blue-light"></div>
         </div>
       </div>
