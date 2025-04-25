@@ -18,6 +18,21 @@ export function createApp(): FastifyInstance {
     origin: process.env.CORS_ORIGIN || '*'
   });
   
+  // 空のJSONボディを処理するためのカスタムパーサーを追加
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    if (body === '' || body === null) {
+      done(null, {});
+    } else {
+      // 既存のパーサーを使用して処理
+      try {
+        const json = JSON.parse(body as string);
+        done(null, json);
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    }
+  });
+  
   // ヘルスチェックエンドポイント
   app.get('/health', async (_, reply) => {
     reply.code(200).send({ status: 'ok' });
