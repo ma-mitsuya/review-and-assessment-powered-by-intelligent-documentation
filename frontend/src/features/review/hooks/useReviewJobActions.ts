@@ -2,6 +2,7 @@
  * 審査ジョブの作成・削除などのアクションを提供するカスタムフック
  */
 import { useState } from 'react';
+import { mutate } from 'swr';
 import useHttp from '../../../hooks/useHttp';
 import { CreateReviewJobParams, ReviewJob, ApiResponse } from '../types';
 import { getReviewJobsKey } from './useReviewJobs';
@@ -19,7 +20,7 @@ export function useReviewJobActions() {
       const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', params);
       
       // キャッシュを無効化 - 全てのreview-jobsクエリを無効化
-      http.get(getReviewJobsKey()).mutate();
+      mutate(getReviewJobsKey());
       
       return response.data.data;
     } catch (err) {
@@ -39,7 +40,7 @@ export function useReviewJobActions() {
       const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/review-jobs/${jobId}`);
       
       // キャッシュを無効化
-      http.get(getReviewJobsKey()).mutate();
+      mutate(getReviewJobsKey());
       
       return response.data.data.deleted;
     } catch (err) {

@@ -1,7 +1,10 @@
 import useSWR, { SWRConfiguration, Fetcher } from "swr";
 
-const API_ENDPOINT =
+const API_BASE =
   import.meta.env.VITE_APP_API_ENDPOINT || "http://localhost:3000";
+
+const API_ENDPOINT = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+
 // TODO: remove api key
 const API_KEY =
   import.meta.env.VITE_X_API_KEY || "QKdsxVfDQv3PwixITtrvo6rdExMZJiYG6iFtZYJv";

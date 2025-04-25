@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { mutate } from 'swr';
 import useHttp from '../../../hooks/useHttp';
 import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 import { getCheckListSetsKey } from './useCheckListSets';
@@ -70,7 +71,7 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
       }
       
       // キャッシュを無効化
-      http.get(getCheckListSetsKey()).mutate();
+      mutate(getCheckListSetsKey());
       
       return response.data.data;
     } catch (error) {

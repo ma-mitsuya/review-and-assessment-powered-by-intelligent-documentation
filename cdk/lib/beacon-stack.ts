@@ -133,6 +133,10 @@ export class BeaconStack extends cdk.Stack {
     database.grantConnect(reviewProcessor.securityGroup);
     database.grantSecretAccess(reviewProcessor.reviewLambda);
 
+    // StateMachine実行権限付与
+    documentProcessor.stateMachine.grantStartExecution(api.apiLambda);
+    reviewProcessor.stateMachine.grantStartExecution(api.apiLambda);
+
     // S3バケットアクセス権限の付与
     documentBucket.grantReadWrite(api.apiLambda);
 

@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { mutate } from 'swr';
 import useHttp from '../../../hooks/useHttp';
 import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 import { ReviewJob, ApiResponse } from '../types';
@@ -58,7 +59,7 @@ export function useReviewCreation(): UseReviewCreationReturn {
       }
       
       // キャッシュを無効化
-      http.get(getReviewJobsKey()).mutate();
+      mutate(getReviewJobsKey());
       
       return response.data.data;
     } catch (error) {

@@ -1,4 +1,5 @@
 import useHttp from '../../../hooks/useHttp';
+import { mutate } from 'swr';
 import { 
   CheckListSet, 
   CheckListSetDetail,
@@ -110,7 +111,7 @@ export const useCheckListSetActions = () => {
     
     // チェックリスト一覧のキャッシュを無効化して再取得を強制
     // 正規表現を使用して、ページ番号やソート順に関わらずすべてのチェックリスト一覧キャッシュを無効化
-    http.get(getCheckListSetsKey()).mutate();
+    mutate(getCheckListSetsKey());
     
     return response.data;
   };
@@ -126,8 +127,8 @@ export const useCheckListSetActions = () => {
     });
     
     // キャッシュを更新
-    http.get(`/checklist-sets`).mutate();
-    http.get(`/checklist-sets/${id}`).mutate();
+    mutate(`/checklist-sets`);
+    mutate(`/checklist-sets/${id}`);
     
     return response.data;
   };
@@ -136,7 +137,7 @@ export const useCheckListSetActions = () => {
     const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${id}`);
     
     // キャッシュを更新
-    http.get(`/checklist-sets`).mutate();
+    mutate(`/checklist-sets`);
     
     return response.data;
   };

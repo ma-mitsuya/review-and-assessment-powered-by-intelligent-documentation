@@ -1,4 +1,5 @@
 import useHttp from '../../../hooks/useHttp';
+import { mutate } from 'swr';
 import { 
   CheckListItem, 
   HierarchicalCheckListItem, 
@@ -67,8 +68,8 @@ export const createCheckListItem = async (
   const response = await http.post<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items`, item);
   
   // キャッシュを更新
-  http.get(`/checklist-sets/${setId}`).mutate();
-  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
+  mutate(`/checklist-sets/${setId}`);
+  mutate(`/checklist-sets/${setId}/items/hierarchy`);
   
   return response.data;
 };
@@ -100,9 +101,9 @@ export const updateCheckListItem = async (
   const response = await http.put<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items/${itemId}`, updates);
   
   // キャッシュを更新
-  http.get(`/checklist-sets/${setId}`).mutate();
-  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
-  http.get(`/checklist-sets/${setId}/items/${itemId}`).mutate();
+  mutate(`/checklist-sets/${setId}`);
+  mutate(`/checklist-sets/${setId}/items/hierarchy`);
+  mutate(`/checklist-sets/${setId}/items/${itemId}`);
   
   return response.data;
 };
@@ -118,8 +119,8 @@ export const deleteCheckListItem = async (
   const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${setId}/items/${itemId}`);
   
   // キャッシュを更新
-  http.get(`/checklist-sets/${setId}`).mutate();
-  http.get(`/checklist-sets/${setId}/items/hierarchy`).mutate();
+  mutate(`/checklist-sets/${setId}`);
+  mutate(`/checklist-sets/${setId}/items/hierarchy`);
   
   return response.data;
 };
