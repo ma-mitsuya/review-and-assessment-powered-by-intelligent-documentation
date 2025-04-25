@@ -10,6 +10,8 @@ import { Api } from "./constructs/api";
 import { Auth } from "./constructs/auth";
 import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
+import { Distribution } from "aws-cdk-lib/aws-cloudfront";
+import { S3 } from "aws-cdk-lib/aws-ses-actions";
 
 export interface BeaconStackProps extends cdk.StackProps {
   readonly webAclId: string;
@@ -148,6 +150,17 @@ export class BeaconStack extends cdk.Stack {
       backendApiEndpoint: api.api.url,
       userPoolDomainPrefix: "",
       auth,
+    });
+
+    documentBucket.addCorsRule({
+      allowedMethods: [s3.HttpMethods.POST],
+      allowedOrigins: [
+        `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
+        "http://localhost:5173",
+        "*",
+      ],
+      allowedHeaders: ["*"],
+      maxAge: 3000,
     });
 
     // 出力
