@@ -3,17 +3,23 @@
  * 特定の審査ジョブの結果を階層構造で表示する
  */
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useReviewResultHierarchy } from '../hooks/useReviewResultHierarchy';
 import { useReviewJobs } from '../hooks/useReviewJobs';
 import ReviewResultTree from '../components/ReviewResultTree';
+import ReviewResultFilter, { FilterType } from '../components/ReviewResultFilter';
 import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
 import { ErrorAlert } from '../../../components/ErrorAlert';
+import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
+import { ReviewResultHierarchy } from '../types';
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // フィルタリング状態 - デフォルトで不合格のみを表示
+  const [filter, setFilter] = useState<FilterType>('failed');
   
   // 審査結果の階層構造を取得 - 明示的に文字列として渡す
   const { 
@@ -39,6 +45,46 @@ export default function ReviewDetailPage() {
       refreshJobs();
     }
   }, [id, refreshHierarchy, refreshJobs]);
+  
+  // フィルタリングされた結果を計算
+  const filteredHierarchy = useMemo(() => {
+    if (!hierarchy) return [];
+    
+    // 再帰的にフィルタリングを適用
+    const filterResults = (items: ReviewResultHierarchy[]): ReviewResultHierarchy[] => {
+      return items
+        .map(item => {
+          // 子要素を先にフィルタリング
+          const filteredChildren = item.children && item.children.length > 0
+            ? filterResults(item.children)
+            : [];
+          
+          // 現在の項目がフィルタ条件に一致するか、または子要素が存在する場合
+          const matchesFilter = 
+            filter === 'all' ||
+            (filter === 'failed' && 
+              item.status === REVIEW_RESULT_STATUS.COMPLETED && 
+              item.result === REVIEW_RESULT.FAIL) ||
+            (filter === 'passed' && 
+              item.status === REVIEW_RESULT_STATUS.COMPLETED && 
+              item.result === REVIEW_RESULT.PASS);
+          
+          // フィルタ条件に一致するか、フィルタリングされた子要素がある場合は表示
+          if (matchesFilter || filteredChildren.length > 0) {
+            return {
+              ...item,
+              children: filteredChildren
+            };
+          }
+          
+          // それ以外の場合は null を返して後でフィルタリング
+          return null;
+        })
+        .filter((item): item is ReviewResultHierarchy => item !== null);
+    };
+    
+    return filterResults(hierarchy);
+  }, [hierarchy, filter]);
   
   // 戻るボタンのハンドラー
   const handleBack = () => {
@@ -130,11 +176,24 @@ export default function ReviewDetailPage() {
           </div>
         </div>
         
-        {hierarchy.length > 0 ? (
-          <ReviewResultTree results={hierarchy} />
+        {/* フィルタリングコントロールを追加 */}
+        {hierarchy && hierarchy.length > 0 && (
+          <ReviewResultFilter 
+            results={hierarchy}
+            filter={filter}
+            onChange={setFilter}
+          />
+        )}
+        
+        {filteredHierarchy.length > 0 ? (
+          <ReviewResultTree results={filteredHierarchy} />
         ) : (
           <div className="text-center py-10">
-            <p className="text-aws-font-color-gray">審査結果がありません</p>
+            <p className="text-aws-font-color-gray">
+              {hierarchy && hierarchy.length > 0 
+                ? `選択したフィルタ条件に一致する審査結果がありません`
+                : `審査結果がありません`}
+            </p>
           </div>
         )}
       </div>
