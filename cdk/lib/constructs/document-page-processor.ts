@@ -112,7 +112,7 @@ export class DocumentPageProcessor extends Construct {
           {
             file: "Dockerfile.prisma.lambda",
             platform: Platform.LINUX_AMD64,
-            cmd: ["checklist-workflow.index.handler"],
+            cmd: ["dist/checklist-workflow/index.handler"],
           }
         ),
         memorySize: 1024,

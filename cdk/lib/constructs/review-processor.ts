@@ -50,7 +50,7 @@ export class ReviewProcessor extends Construct {
           {
             file: "Dockerfile.prisma.lambda",
             platform: Platform.LINUX_AMD64,
-            cmd: ["review-workflow.index.handler"],
+            cmd: ["dist.review-workflow.index.handler"],
           }
         ),
         memorySize: 1024,
