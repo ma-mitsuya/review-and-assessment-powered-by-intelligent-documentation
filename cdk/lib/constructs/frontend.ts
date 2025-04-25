@@ -190,7 +190,6 @@ export class Frontend extends Construct {
         VITE_APP_USER_POOL_ID: auth.userPool.userPoolId,
         VITE_APP_USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
         VITE_APP_REGION: region,
-        VITE_APP_USE_STREAMING: "true",
       };
 
       return defaultProps;

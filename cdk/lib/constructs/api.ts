@@ -8,12 +8,14 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as path from "path";
 import { Construct } from "constructs";
+import { DatabaseConnectionProps } from "./prisma-function";
 
 /**
  * API Constructのプロパティ
  */
 export interface ApiProps {
   vpc: ec2.IVpc;
+  databaseConnection: DatabaseConnectionProps;
   environment?: { [key: string]: string };
 }
 
@@ -59,7 +61,18 @@ export class Api extends Construct {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       securityGroups: [this.securityGroup], // セキュリティグループを設定
-      environment: props?.environment,
+      // environment: props?.environment,
+      environment: {
+        ...props.environment,
+        DATABASE_HOST: props.databaseConnection.host,
+        DATABASE_PORT: props.databaseConnection.port,
+        DATABASE_ENGINE: props.databaseConnection.engine,
+        DATABASE_USER: props.databaseConnection.username,
+        DATABASE_PASSWORD: props.databaseConnection.password,
+        // Aurora Serverless v2 cold start takes up to 15 seconds
+        // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
+        DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
+      },
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
     });

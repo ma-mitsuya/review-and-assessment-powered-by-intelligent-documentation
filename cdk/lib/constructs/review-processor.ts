@@ -10,7 +10,8 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
 import { DatabaseConnectionProps, PrismaFunction } from "./prisma-function";
-
+import { DockerPrismaFunction } from "./docker-prisma-function";
+import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
   vpc: ec2.IVpc;
@@ -40,29 +41,32 @@ export class ReviewProcessor extends Construct {
     );
 
     // 審査処理用Lambda関数を作成
-    this.reviewLambda = new PrismaFunction(this, "ReviewProcessorFunction", {
-      entry: path.join(
-        __dirname,
-        "../../../backend/src/review-workflow/index.ts"
-      ),
-      memorySize: 1024,
-      runtime: lambda.Runtime.NODEJS_22_X,
-      timeout: cdk.Duration.minutes(15),
-      vpc: props.vpc,
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-      },
-      environment: {
-        DOCUMENT_BUCKET: props.documentBucket.bucketName,
-        BEDROCK_REGION: "us-west-2",
-      },
-      securityGroups: [this.securityGroup],
-      database: props.databaseConnection,
-      depsLockFilePath: path.join(
-        __dirname,
-        "../../../backend/package-lock.json"
-      ),
-    });
+    this.reviewLambda = new DockerPrismaFunction(
+      this,
+      "DocumentProcessorFunction",
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          path.join(__dirname, "../../../backend/"),
+          {
+            file: "Dockerfile.prisma.lambda",
+            platform: Platform.LINUX_AMD64,
+            cmd: ["review-workflow.index.handler"],
+          }
+        ),
+        memorySize: 1024,
+        timeout: cdk.Duration.minutes(15),
+        vpc: props.vpc,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        environment: {
+          DOCUMENT_BUCKET: props.documentBucket.bucketName,
+          BEDROCK_REGION: "us-west-2",
+        },
+        securityGroups: [this.securityGroup],
+        database: props.databaseConnection,
+      }
+    );
 
     // Lambda関数にS3バケットへのアクセス権限を付与
     props.documentBucket.grantReadWrite(this.reviewLambda);

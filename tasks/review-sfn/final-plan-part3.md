@@ -4,7 +4,7 @@
 
 ```typescript
 // backend/src/review-workflow/review-processing/index.ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@../../../../../prisma/client";
 import { getPrismaClient } from "../../api/core/db";
 import { ReviewJobRepository } from "../../api/features/review/repositories/review-job-repository";
 import { ReviewResultRepository } from "../../api/features/review/repositories/review-result-repository";
@@ -144,11 +144,11 @@ export async function finalizeReview(
     const results = await resultRepository.getReviewResultsByJobId(reviewJobId);
 
     // 結果からチェックIDを抽出
-    const checkIds = results.map(result => result.checkId);
+    const checkIds = results.map((result) => result.checkId);
 
     // チェックリスト項目の取得
     const checkLists = await Promise.all(
-      checkIds.map(id => checklistItemRepository.getChecklistItem(id))
+      checkIds.map((id) => checklistItemRepository.getChecklistItem(id))
     );
 
     // nullを除外

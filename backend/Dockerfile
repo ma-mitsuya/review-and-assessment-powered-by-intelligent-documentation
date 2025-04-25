@@ -9,6 +9,7 @@ COPY prisma ./prisma
 RUN npm ci --omit=dev
 COPY . .
 RUN npm run build
+RUN npx prisma generate
 
 # 環境変数の設定
 ENV PORT=8080

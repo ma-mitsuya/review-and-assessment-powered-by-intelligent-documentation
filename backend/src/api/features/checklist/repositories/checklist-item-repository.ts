@@ -1,10 +1,10 @@
 /**
  * チェックリスト項目リポジトリ
  */
-import { PrismaClient, CheckList } from '@prisma/client';
-import { prisma } from '../../../core/prisma';
-import { ulid } from 'ulid';
-import { FlowData } from '../types/checklist-item-types';
+import { PrismaClient, CheckList } from "../../../../../prisma/client";
+import { prisma } from "../../../core/prisma";
+import { ulid } from "ulid";
+import { FlowData } from "../types/checklist-item-types";
 
 /**
  * チェックリスト項目作成パラメータ
@@ -14,7 +14,7 @@ export interface CreateChecklistItemParams {
   name: string;
   description?: string;
   parentId?: string | null;
-  itemType: 'simple' | 'flow';
+  itemType: "simple" | "flow";
   isConclusion: boolean;
   flowData?: FlowData;
   checkListSetId: string;
@@ -51,8 +51,8 @@ export class ChecklistItemRepository {
     return this.prisma.checkList.findUnique({
       where: { id: checkId },
       include: {
-        document: true
-      }
+        document: true,
+      },
     });
   }
 
@@ -61,12 +61,14 @@ export class ChecklistItemRepository {
    * @param checkListSetId チェックリストセットID
    * @returns チェックリスト項目の配列
    */
-  async getChecklistItemHierarchy(checkListSetId: string): Promise<CheckList[]> {
+  async getChecklistItemHierarchy(
+    checkListSetId: string
+  ): Promise<CheckList[]> {
     return this.prisma.checkList.findMany({
       where: { checkListSetId },
       include: {
-        document: true
-      }
+        document: true,
+      },
     });
   }
 
@@ -75,7 +77,9 @@ export class ChecklistItemRepository {
    * @param params 作成パラメータ
    * @returns 作成されたチェックリスト項目
    */
-  async createChecklistItem(params: CreateChecklistItemParams): Promise<CheckList> {
+  async createChecklistItem(
+    params: CreateChecklistItemParams
+  ): Promise<CheckList> {
     return this.prisma.checkList.create({
       data: {
         id: params.id,
@@ -86,11 +90,11 @@ export class ChecklistItemRepository {
         isConclusion: params.isConclusion,
         flowData: params.flowData as any,
         checkListSetId: params.checkListSetId,
-        documentId: params.documentId
+        documentId: params.documentId,
       },
       include: {
-        document: true
-      }
+        document: true,
+      },
     });
   }
 
@@ -100,7 +104,10 @@ export class ChecklistItemRepository {
    * @param params 更新パラメータ
    * @returns 更新されたチェックリスト項目
    */
-  async updateChecklistItem(checkId: string, params: UpdateChecklistItemParams): Promise<CheckList> {
+  async updateChecklistItem(
+    checkId: string,
+    params: UpdateChecklistItemParams
+  ): Promise<CheckList> {
     return this.prisma.checkList.update({
       where: { id: checkId },
       data: {
@@ -108,11 +115,11 @@ export class ChecklistItemRepository {
         description: params.description,
         isConclusion: params.isConclusion,
         flowData: params.flowData as any,
-        documentId: params.documentId
+        documentId: params.documentId,
       },
       include: {
-        document: true
-      }
+        document: true,
+      },
     });
   }
 
@@ -124,7 +131,7 @@ export class ChecklistItemRepository {
   async deleteChecklistItem(checkId: string): Promise<boolean> {
     // 子項目を再帰的に削除するため、まず子項目を取得
     const children = await this.prisma.checkList.findMany({
-      where: { parentId: checkId }
+      where: { parentId: checkId },
     });
 
     // トランザクションで削除処理を実行
@@ -133,31 +140,31 @@ export class ChecklistItemRepository {
       for (const child of children) {
         // 再帰的に子項目を削除（実際の実装では再帰呼び出しではなくトランザクション内で処理）
         await tx.checkList.deleteMany({
-          where: { parentId: child.id }
+          where: { parentId: child.id },
         });
         await tx.checkList.delete({
-          where: { id: child.id }
+          where: { id: child.id },
         });
       }
 
       // 関連するチェック結果を削除
       await tx.checkResult.deleteMany({
-        where: { checkId }
+        where: { checkId },
       });
 
       // 関連する抽出項目を削除
       await tx.extractedItem.deleteMany({
-        where: { checkId }
+        where: { checkId },
       });
 
       // 関連するレビュー結果を削除
       await tx.reviewResult.deleteMany({
-        where: { checkId }
+        where: { checkId },
       });
 
       // 最後に対象のチェックリスト項目を削除
       await tx.checkList.delete({
-        where: { id: checkId }
+        where: { id: checkId },
       });
     });
 
@@ -170,12 +177,15 @@ export class ChecklistItemRepository {
    * @param checkListSetId チェックリストセットID
    * @returns 属している場合はtrue、そうでない場合はfalse
    */
-  async checkItemBelongsToSet(checkId: string, checkListSetId: string): Promise<boolean> {
+  async checkItemBelongsToSet(
+    checkId: string,
+    checkListSetId: string
+  ): Promise<boolean> {
     const item = await this.prisma.checkList.findFirst({
       where: {
         id: checkId,
-        checkListSetId
-      }
+        checkListSetId,
+      },
     });
     return !!item;
   }
@@ -188,7 +198,7 @@ export class ChecklistItemRepository {
   async getParentDocumentId(parentId: string): Promise<string | null> {
     const parent = await this.prisma.checkList.findUnique({
       where: { id: parentId },
-      select: { documentId: true }
+      select: { documentId: true },
     });
     return parent?.documentId || null;
   }

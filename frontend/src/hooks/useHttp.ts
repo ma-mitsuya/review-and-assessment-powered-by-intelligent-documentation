@@ -1,8 +1,10 @@
 import useSWR, { SWRConfiguration, Fetcher } from "swr";
 
 const API_ENDPOINT =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-const API_KEY = import.meta.env.VITE_X_API_KEY || "";
+  import.meta.env.VITE_APP_API_ENDPOINT || "http://localhost:3000";
+// TODO: remove api key
+const API_KEY =
+  import.meta.env.VITE_X_API_KEY || "QKdsxVfDQv3PwixITtrvo6rdExMZJiYG6iFtZYJv";
 
 // Define a response interface similar to AxiosResponse
 interface FetchResponse<T = any> {

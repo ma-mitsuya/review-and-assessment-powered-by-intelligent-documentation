@@ -1,10 +1,14 @@
 /**
  * チェックリストセットリポジトリ
  */
-import { PrismaClient, CheckListDocument, CheckListSet } from '@prisma/client';
-import { prisma } from '../../../core/prisma';
-import { DocumentInfo } from '../services/checklist-set-service';
-import { ulid } from 'ulid';
+import {
+  PrismaClient,
+  CheckListDocument,
+  CheckListSet,
+} from "../../../../../prisma/client";
+import { prisma } from "../../../core/prisma";
+import { DocumentInfo } from "../services/checklist-set-service";
+import { ulid } from "ulid";
 
 /**
  * チェックリストセット取得パラメータ
@@ -46,7 +50,9 @@ export class ChecklistSetRepository {
    * @param params 取得パラメータ
    * @returns チェックリストセット一覧
    */
-  async getChecklistSets(params: GetChecklistSetsParams): Promise<ChecklistSetWithDocuments[]> {
+  async getChecklistSets(
+    params: GetChecklistSetsParams
+  ): Promise<ChecklistSetWithDocuments[]> {
     const { skip, take, orderBy } = params;
 
     return this.prisma.checkListSet.findMany({
@@ -54,22 +60,24 @@ export class ChecklistSetRepository {
       take,
       orderBy,
       include: {
-        documents: true
-      }
+        documents: true,
+      },
     });
   }
-  
+
   /**
    * 特定のチェックリストセットを取得する
    * @param id チェックリストセットID
    * @returns チェックリストセット
    */
-  async getChecklistSetById(id: string): Promise<ChecklistSetWithDocuments | null> {
+  async getChecklistSetById(
+    id: string
+  ): Promise<ChecklistSetWithDocuments | null> {
     return this.prisma.checkListSet.findUnique({
       where: { id },
       include: {
-        documents: true
-      }
+        documents: true,
+      },
     });
   }
 
@@ -86,10 +94,12 @@ export class ChecklistSetRepository {
    * @param params 作成パラメータ
    * @returns 作成されたチェックリストセット
    */
-  async createChecklistSet(params: CreateChecklistSetParams): Promise<CheckListSet> {
+  async createChecklistSet(
+    params: CreateChecklistSetParams
+  ): Promise<CheckListSet> {
     const { name, description, documents } = params;
     const checkListSetId = ulid();
-    
+
     return this.prisma.$transaction(async (tx) => {
       // チェックリストセットを作成
       const checkListSet = await tx.checkListSet.create({
@@ -99,18 +109,18 @@ export class ChecklistSetRepository {
           description,
           // ドキュメントを関連付け（ステータスをprocessingに設定）
           documents: {
-            create: documents.map(doc => ({
+            create: documents.map((doc) => ({
               id: doc.documentId,
               filename: doc.filename,
               s3Path: doc.s3Key,
               fileType: doc.fileType,
               uploadDate: new Date(),
-              status: 'processing' // 'pending'から変更
-            }))
-          }
-        }
+              status: "processing", // 'pending'から変更
+            })),
+          },
+        },
       });
-      
+
       return checkListSet;
     });
   }
@@ -123,17 +133,17 @@ export class ChecklistSetRepository {
     await this.prisma.$transaction(async (tx) => {
       // 関連するチェックリスト項目を削除
       await tx.checkList.deleteMany({
-        where: { checkListSetId: checklistSetId }
+        where: { checkListSetId: checklistSetId },
       });
 
       // 関連するドキュメントを削除
       await tx.checkListDocument.deleteMany({
-        where: { checkListSetId: checklistSetId }
+        where: { checkListSetId: checklistSetId },
       });
 
       // チェックリストセットを削除
       await tx.checkListSet.delete({
-        where: { id: checklistSetId }
+        where: { id: checklistSetId },
       });
     });
   }

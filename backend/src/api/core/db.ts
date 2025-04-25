@@ -1,7 +1,7 @@
 /**
  * データベース接続管理
  */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "../../../prisma/client";
 
 // PrismaClientのシングルトンインスタンス
 let prismaClient: PrismaClient | null = null;
@@ -13,7 +13,10 @@ let prismaClient: PrismaClient | null = null;
 export function getPrismaClient(): PrismaClient {
   if (!prismaClient) {
     prismaClient = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["query", "error", "warn"]
+          : ["error"],
     });
   }
   return prismaClient;

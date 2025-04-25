@@ -4,7 +4,7 @@
 
 ## 前提条件
 
-- Node.js (v18以上)
+- Node.js (v18 以上)
 - Docker および Docker Compose
 - AWS CLI（設定済み）
 
@@ -12,28 +12,31 @@
 
 ### 1. データベースの起動
 
-プロジェクトのルートディレクトリで以下のコマンドを実行し、MySQLデータベースを起動します：
+プロジェクトのルートディレクトリで以下のコマンドを実行し、MySQL データベースを起動します：
 
 ```bash
 docker-compose up -d
 ```
 
-これにより、以下の設定でMySQLデータベースが起動します：
+これにより、以下の設定で MySQL データベースが起動します：
+
 - ホスト: localhost
 - ポート: 3306
 - データベース名: beacon_db
 - ユーザー名: beacon_user
 - パスワード: beacon_password
 
-注意: Docker起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`beacon_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
+注意: Docker 起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`beacon_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
 
 1. ボリュームを削除して再作成する：
+
 ```bash
 docker-compose down -v
 docker-compose up -d
 ```
 
 2. 手動で権限を付与する：
+
 ```bash
 docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
 ```
@@ -42,14 +45,14 @@ docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON
 
 ```bash
 cd backend
-npm install
+npm ci
+npm run prisma:generate  # Prismaクライアントの生成
 ```
 
 ### 3. データベースのマイグレーションと初期データ投入
 
 ```bash
 cd backend
-npm run prisma:generate  # Prismaクライアントの生成
 npm run prisma:migrate   # データベースのマイグレーション
 npm run db:seed         # 初期データの投入
 ```
@@ -87,19 +90,19 @@ npm run dev
 
 ## 動作確認
 
-1. バックエンドAPI: http://localhost:3000/api/health にアクセスして、正常に応答があることを確認します。
+1. バックエンド API: http://localhost:3000/api/health にアクセスして、正常に応答があることを確認します。
 2. フロントエンド: http://localhost:5173 にアクセスして、アプリケーションが表示されることを確認します。
 
 ## データベース管理
 
-Prisma Studioを使用してデータベースを視覚的に管理できます：
+Prisma Studio を使用してデータベースを視覚的に管理できます：
 
 ```bash
 cd backend
 npm run prisma:studio
 ```
 
-Prisma Studioは http://localhost:5555 で起動します。
+Prisma Studio は http://localhost:5555 で起動します。
 
 ## テスト実行
 
@@ -140,11 +143,13 @@ npm run build
 データベース接続エラーが発生した場合は、以下を確認してください：
 
 1. Docker コンテナが実行中であることを確認：
+
    ```bash
    docker ps
    ```
 
 2. データベース接続情報が正しいことを確認：
+
    ```bash
    cat backend/.env
    ```
@@ -165,13 +170,15 @@ Prisma Migrate could not create the shadow database. Please make sure the databa
 
 これは、`beacon_user`ユーザーに`CREATE DATABASE`権限がない場合に発生します。以下の対処法を試してください：
 
-1. Docker起動時に自動的に権限が付与されるはずですが、既存のボリュームがある場合は初期化スクリプトが実行されません。その場合は、ボリュームを削除して再作成します：
+1. Docker 起動時に自動的に権限が付与されるはずですが、既存のボリュームがある場合は初期化スクリプトが実行されません。その場合は、ボリュームを削除して再作成します：
+
    ```bash
    docker-compose down -v
    docker-compose up -d
    ```
 
 2. または、手動で権限を付与します：
+
    ```bash
    docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
    ```

@@ -115,15 +115,7 @@ export class BeaconStack extends cdk.Stack {
     // API Gatewayとそれに紐づくLambda関数の作成
     const api = new Api(this, "Api", {
       vpc,
-      environment: {
-        DATABASE_URL: `mysql://${database.secret
-          .secretValueFromJson("username")
-          .unsafeUnwrap()}:${database.secret
-          .secretValueFromJson("password")
-          .unsafeUnwrap()}@${database.cluster.clusterEndpoint.hostname}:${
-          database.cluster.clusterEndpoint.port
-        }/${database.secret.secretValueFromJson("dbname").unsafeUnwrap()}`,
-      },
+      databaseConnection: database.connection,
     });
 
     // データベース接続権限の付与

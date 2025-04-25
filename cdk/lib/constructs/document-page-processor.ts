@@ -10,7 +10,9 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
 import { PrismaFunction } from "./prisma-function";
+import { DockerPrismaFunction } from "./docker-prisma-function";
 import { DatabaseConnectionProps } from "./prisma-function";
+import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 
 /**
  * ドキュメント処理ワークフローのプロパティ
@@ -101,16 +103,19 @@ export class DocumentPageProcessor extends Construct {
       }
     );
 
-    this.documentLambda = new PrismaFunction(
+    this.documentLambda = new DockerPrismaFunction(
       this,
       "DocumentProcessorFunction",
       {
-        entry: path.join(
-          __dirname,
-          "../../../backend/src/checklist-workflow/index.ts"
+        code: lambda.DockerImageCode.fromImageAsset(
+          path.join(__dirname, "../../../backend/"),
+          {
+            file: "Dockerfile.prisma.lambda",
+            platform: Platform.LINUX_AMD64,
+            cmd: ["checklist-workflow.index.handler"],
+          }
         ),
         memorySize: 1024,
-        runtime: lambda.Runtime.NODEJS_22_X,
         timeout: cdk.Duration.minutes(15),
         vpc: props.vpc,
         vpcSubnets: {
@@ -122,10 +127,6 @@ export class DocumentPageProcessor extends Construct {
         },
         securityGroups: [this.securityGroup],
         database: props.databaseConnection,
-        depsLockFilePath: path.join(
-          __dirname,
-          "../../../backend/package-lock.json"
-        ),
       }
     );
 

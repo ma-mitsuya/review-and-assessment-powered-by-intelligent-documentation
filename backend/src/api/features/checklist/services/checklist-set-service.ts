@@ -1,11 +1,14 @@
 /**
  * チェックリストセット関連のサービス
  */
-import { CheckListDocument } from '@prisma/client';
-import { ChecklistSetRepository, GetChecklistSetsParams as RepoGetChecklistSetsParams } from '../repositories/checklist-set-repository';
-import { DocumentRepository } from '../../document/repositories/document-repository';
-import { startStateMachineExecution } from '../../../core/sfn';
-import { CoreDocumentService } from '../../../core/document/document-service';
+import { CheckListDocument } from "../../../../../prisma/client";
+import {
+  ChecklistSetRepository,
+  GetChecklistSetsParams as RepoGetChecklistSetsParams,
+} from "../repositories/checklist-set-repository";
+import { DocumentRepository } from "../../document/repositories/document-repository";
+import { startStateMachineExecution } from "../../../core/sfn";
+import { CoreDocumentService } from "../../../core/document/document-service";
 
 /**
  * ドキュメント情報
@@ -33,7 +36,7 @@ export interface GetChecklistSetsParams {
   page: number;
   limit: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -44,7 +47,7 @@ export interface GetChecklistSetsResult {
     check_list_set_id: string;
     name: string;
     description: string | null;
-    processing_status: 'pending' | 'in_progress' | 'completed';
+    processing_status: "pending" | "in_progress" | "completed";
   }>;
   total: number;
 }
@@ -56,13 +59,13 @@ export class ChecklistSetService {
   private repository: ChecklistSetRepository;
   private documentRepository: DocumentRepository;
   private coreDocumentService: CoreDocumentService;
-  
+
   constructor() {
     this.repository = new ChecklistSetRepository();
     this.documentRepository = new DocumentRepository();
     this.coreDocumentService = new CoreDocumentService();
   }
-  
+
   /**
    * チェックリストセットを作成する
    * @param params 作成パラメータ
@@ -71,29 +74,31 @@ export class ChecklistSetService {
   async createChecklistSet(params: CreateChecklistSetParams) {
     // チェックリストセットを作成
     const checkListSet = await this.repository.createChecklistSet(params);
-    
+
     // 各ドキュメントの処理を開始
     const stateMachineArn = process.env.DOCUMENT_PROCESSING_STATE_MACHINE_ARN;
     if (stateMachineArn) {
       for (const doc of params.documents) {
         try {
-          await startStateMachineExecution(
-            stateMachineArn,
-            {
-              documentId: doc.documentId,
-              fileName: doc.filename,
-              checkListSetId: checkListSet.id // チェックリストセットIDを追加
-            }
-          );
+          await startStateMachineExecution(stateMachineArn, {
+            documentId: doc.documentId,
+            fileName: doc.filename,
+            checkListSetId: checkListSet.id, // チェックリストセットIDを追加
+          });
         } catch (error) {
-          console.error(`Failed to start processing for document ${doc.documentId}:`, error);
+          console.error(
+            `Failed to start processing for document ${doc.documentId}:`,
+            error
+          );
           // エラーが発生しても処理を続行
         }
       }
     } else {
-      console.warn('DOCUMENT_PROCESSING_STATE_MACHINE_ARN environment variable is not set. Document processing will not start.');
+      console.warn(
+        "DOCUMENT_PROCESSING_STATE_MACHINE_ARN environment variable is not set. Document processing will not start."
+      );
     }
-    
+
     return checkListSet;
   }
 
@@ -102,44 +107,46 @@ export class ChecklistSetService {
    * @param params 取得パラメータ
    * @returns チェックリストセット一覧と総数
    */
-  async getChecklistSets(params: GetChecklistSetsParams): Promise<GetChecklistSetsResult> {
+  async getChecklistSets(
+    params: GetChecklistSetsParams
+  ): Promise<GetChecklistSetsResult> {
     const { page, limit, sortBy, sortOrder } = params;
     const skip = (page - 1) * limit;
-    
+
     // ソート条件の設定
     const orderBy: Record<string, string> = {};
     if (sortBy) {
-      orderBy[sortBy] = sortOrder || 'asc';
+      orderBy[sortBy] = sortOrder || "asc";
     } else {
       // createdAtフィールドがないため、idでソート
-      orderBy['id'] = 'desc';
+      orderBy["id"] = "desc";
     }
-    
+
     // リポジトリからデータを取得
     const [checklistSets, total] = await Promise.all([
       this.repository.getChecklistSets({
         skip,
         take: limit,
-        orderBy
+        orderBy,
       }),
-      this.repository.getChecklistSetsCount()
+      this.repository.getChecklistSetsCount(),
     ]);
-    
+
     // 処理状態を計算してレスポンス形式に変換
-    const checkListSets = checklistSets.map(set => {
+    const checkListSets = checklistSets.map((set) => {
       const processingStatus = this.calculateProcessingStatus(set.documents);
-      
+
       return {
         check_list_set_id: set.id,
         name: set.name,
         description: set.description,
-        processing_status: processingStatus
+        processing_status: processingStatus,
       };
     });
-    
+
     return {
       checkListSets,
-      total
+      total,
     };
   }
 
@@ -151,18 +158,27 @@ export class ChecklistSetService {
    */
   async deleteChecklistSet(checklistSetId: string): Promise<boolean> {
     // 関連するドキュメント情報を取得
-    const documents = await this.documentRepository.getDocumentsByChecklistSetId(checklistSetId);
+    const documents =
+      await this.documentRepository.getDocumentsByChecklistSetId(
+        checklistSetId
+      );
 
     // DBからチェックリストセットとその関連データを削除
     await this.repository.deleteChecklistSetWithRelations(checklistSetId);
 
     // S3から関連するすべてのファイルを削除
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
     for (const document of documents) {
       try {
-        await this.coreDocumentService.deleteS3File(bucketName, document.s3Path);
+        await this.coreDocumentService.deleteS3File(
+          bucketName,
+          document.s3Path
+        );
       } catch (s3Error) {
-        console.error(`S3 deletion failed for document ${document.id}:`, s3Error);
+        console.error(
+          `S3 deletion failed for document ${document.id}:`,
+          s3Error
+        );
         // S3削除エラーは致命的ではないので続行
       }
     }
@@ -175,21 +191,23 @@ export class ChecklistSetService {
    * @param documents ドキュメント配列
    * @returns 処理状態
    */
-  private calculateProcessingStatus(documents: CheckListDocument[]): 'pending' | 'in_progress' | 'completed' {
+  private calculateProcessingStatus(
+    documents: CheckListDocument[]
+  ): "pending" | "in_progress" | "completed" {
     if (documents.length === 0) {
-      return 'pending';
+      return "pending";
     }
-    
-    const hasProcessing = documents.some(doc => doc.status === 'processing');
+
+    const hasProcessing = documents.some((doc) => doc.status === "processing");
     if (hasProcessing) {
-      return 'in_progress';
+      return "in_progress";
     }
-    
-    const allCompleted = documents.every(doc => doc.status === 'completed');
+
+    const allCompleted = documents.every((doc) => doc.status === "completed");
     if (allCompleted) {
-      return 'completed';
+      return "completed";
     }
-    
-    return 'pending';
+
+    return "pending";
   }
 }

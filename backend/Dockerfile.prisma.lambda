@@ -3,7 +3,7 @@ WORKDIR /build
 COPY package-lock.json package.json ./
 COPY prisma ./prisma
 RUN npm ci
-RUN npx prisma generate
+# RUN npx prisma generate
 COPY . .
 
 FROM public.ecr.aws/lambda/nodejs:22

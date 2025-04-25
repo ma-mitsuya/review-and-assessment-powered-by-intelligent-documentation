@@ -1,7 +1,7 @@
 /**
  * 審査ジョブリポジトリ
  */
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../../../../prisma/client";
 import { getPrismaClient } from "../../../core/db";
 import {
   CreateReviewJobParams,

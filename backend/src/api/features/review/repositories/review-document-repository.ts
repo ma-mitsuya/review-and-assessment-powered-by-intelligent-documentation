@@ -1,9 +1,9 @@
 /**
  * 審査ドキュメントリポジトリ
  */
-import { PrismaClient } from '@prisma/client';
-import { getPrismaClient } from '../../../core/db';
-import { ReviewDocumentDto } from '../types';
+import { PrismaClient } from "../../../../../prisma/client";
+import { getPrismaClient } from "../../../core/db";
+import { ReviewDocumentDto } from "../types";
 
 /**
  * 審査ドキュメントリポジトリ
@@ -22,11 +22,11 @@ export class ReviewDocumentRepository {
    */
   async documentExists(documentId: string): Promise<boolean> {
     const document = await this.prisma.reviewDocument.findUnique({
-      where: { id: documentId }
+      where: { id: documentId },
     });
     return !!document;
   }
-  
+
   /**
    * 審査ドキュメントを取得する
    * @param documentId 審査ドキュメントID
@@ -34,10 +34,10 @@ export class ReviewDocumentRepository {
    */
   async getDocument(documentId: string): Promise<ReviewDocumentDto | null> {
     return this.prisma.reviewDocument.findUnique({
-      where: { id: documentId }
+      where: { id: documentId },
     });
   }
-  
+
   /**
    * 審査ドキュメントを作成する
    * @param params 審査ドキュメント作成パラメータ
@@ -57,9 +57,9 @@ export class ReviewDocumentRepository {
         s3Path: params.s3Path,
         fileType: params.fileType,
         uploadDate: new Date(),
-        status: 'pending',
-        userId: params.userId
-      }
+        status: "pending",
+        userId: params.userId,
+      },
     });
   }
 
@@ -70,7 +70,7 @@ export class ReviewDocumentRepository {
    */
   async deleteDocument(documentId: string): Promise<boolean> {
     await this.prisma.reviewDocument.delete({
-      where: { id: documentId }
+      where: { id: documentId },
     });
     return true;
   }
@@ -85,7 +85,7 @@ export class ReviewDocumentRepository {
     return this.prisma.reviewDocument.findMany({
       skip,
       take,
-      orderBy: { uploadDate: 'desc' }
+      orderBy: { uploadDate: "desc" },
     });
   }
 
@@ -103,10 +103,13 @@ export class ReviewDocumentRepository {
    * @param status 新しいステータス
    * @returns 更新された審査ドキュメント
    */
-  async updateDocumentStatus(documentId: string, status: string): Promise<ReviewDocumentDto> {
+  async updateDocumentStatus(
+    documentId: string,
+    status: string
+  ): Promise<ReviewDocumentDto> {
     return this.prisma.reviewDocument.update({
       where: { id: documentId },
-      data: { status }
+      data: { status },
     });
   }
 }
