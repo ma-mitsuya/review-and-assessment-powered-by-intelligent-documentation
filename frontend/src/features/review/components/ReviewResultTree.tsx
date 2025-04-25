@@ -7,13 +7,19 @@ import ReviewResultItem from './ReviewResultItem';
 
 interface ReviewResultTreeProps {
   results: ReviewResultHierarchy[];
+  confidenceThreshold: number;
 }
 
-export default function ReviewResultTree({ results }: ReviewResultTreeProps) {
+export default function ReviewResultTree({ results, confidenceThreshold }: ReviewResultTreeProps) {
   return (
     <div className="space-y-4">
       {results.map((result) => (
-        <ReviewResultTreeNode key={result.review_result_id} result={result} level={0} />
+        <ReviewResultTreeNode 
+          key={result.review_result_id} 
+          result={result} 
+          level={0} 
+          confidenceThreshold={confidenceThreshold}
+        />
       ))}
     </div>
   );
@@ -22,9 +28,10 @@ export default function ReviewResultTree({ results }: ReviewResultTreeProps) {
 interface ReviewResultTreeNodeProps {
   result: ReviewResultHierarchy;
   level: number;
+  confidenceThreshold: number;
 }
 
-function ReviewResultTreeNode({ result, level }: ReviewResultTreeNodeProps) {
+function ReviewResultTreeNode({ result, level, confidenceThreshold }: ReviewResultTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = result.children && result.children.length > 0;
   
@@ -45,6 +52,7 @@ function ReviewResultTreeNode({ result, level }: ReviewResultTreeNodeProps) {
           hasChildren={hasChildren}
           isExpanded={isExpanded}
           onToggleExpand={toggleExpand}
+          confidenceThreshold={confidenceThreshold}
         />
       </div>
       
@@ -56,6 +64,7 @@ function ReviewResultTreeNode({ result, level }: ReviewResultTreeNodeProps) {
               key={child.review_result_id} 
               result={child} 
               level={level + 1}
+              confidenceThreshold={confidenceThreshold}
             />
           ))}
         </div>

@@ -13,6 +13,7 @@ import Spinner from '../../../components/Spinner';
 import { ErrorAlert } from '../../../components/ErrorAlert';
 import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
 import { ReviewResultHierarchy } from '../types';
+import Slider from '../../../components/Slider';
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,9 @@ export default function ReviewDetailPage() {
   
   // フィルタリング状態 - デフォルトで不合格のみを表示
   const [filter, setFilter] = useState<FilterType>('failed');
+  
+  // 信頼度閾値
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
   
   // 審査結果の階層構造を取得 - 明示的に文字列として渡す
   const { 
@@ -158,21 +162,15 @@ export default function ReviewDetailPage() {
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-medium text-aws-squid-ink-light">審査結果</h2>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-              <span className="text-sm">合格: {currentJob.summary.passed}</span>
-            </div>
-            <div className="flex items-center">
-              <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-              <span className="text-sm">不合格: {currentJob.summary.failed}</span>
-            </div>
-            {currentJob.summary.processing && (
-              <div className="flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
-                <span className="text-sm">処理中: {currentJob.summary.processing}</span>
-              </div>
-            )}
+          <div className="w-64">
+            <Slider
+              min={0}
+              max={1}
+              step={0.05}
+              value={confidenceThreshold}
+              onChange={setConfidenceThreshold}
+              label="信頼度閾値"
+            />
           </div>
         </div>
         
@@ -186,7 +184,10 @@ export default function ReviewDetailPage() {
         )}
         
         {filteredHierarchy.length > 0 ? (
-          <ReviewResultTree results={filteredHierarchy} />
+          <ReviewResultTree 
+            results={filteredHierarchy} 
+            confidenceThreshold={confidenceThreshold}
+          />
         ) : (
           <div className="text-center py-10">
             <p className="text-aws-font-color-gray">

@@ -13,15 +13,22 @@ interface ReviewResultItemProps {
   hasChildren: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  confidenceThreshold: number;
 }
 
 export default function ReviewResultItem({ 
   result, 
   hasChildren, 
   isExpanded, 
-  onToggleExpand 
+  onToggleExpand,
+  confidenceThreshold
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // 信頼度が閾値を下回る場合のスタイルを追加
+  const isBelowThreshold = 
+    result.confidence_score !== null && 
+    result.confidence_score < confidenceThreshold;
   
   // 結果に基づいてバッジの色とテキストを決定
   const renderStatusBadge = () => {
@@ -90,14 +97,16 @@ export default function ReviewResultItem({
     
     // 信頼度スコアに基づいて色を決定
     const getScoreColor = () => {
-      if (result.confidence_score >= 0.8) return 'text-aws-lab';
-      if (result.confidence_score >= 0.6) return 'text-yellow';
-      return 'text-red';
+      if (result.confidence_score >= confidenceThreshold) return 'text-aws-lab';
+      return 'text-yellow';
     };
     
     return (
-      <span className={`text-sm ${getScoreColor()}`}>
+      <span className={`text-sm ${getScoreColor()} ${isBelowThreshold ? 'font-bold' : ''}`}>
         信頼度: {Math.round(result.confidence_score * 100)}%
+        {isBelowThreshold && (
+          <span className="ml-1 text-yellow">⚠️</span>
+        )}
       </span>
     );
   };
@@ -124,7 +133,7 @@ export default function ReviewResultItem({
   
   return (
     <>
-      <div className="bg-white border border-light-gray rounded-md p-4 hover:bg-aws-paper-light transition-colors">
+      <div className={`bg-white border ${isBelowThreshold ? 'border-yellow border-2' : 'border-light-gray'} rounded-md p-4 hover:bg-aws-paper-light transition-colors ${isBelowThreshold ? 'bg-light-yellow' : ''}`}>
         <div className="flex justify-between items-start">
           <div className="flex items-start">
             {/* 展開/折りたたみボタン - チェックリストコンポーネントと同様 */}
