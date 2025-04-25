@@ -78,6 +78,12 @@ export async function storeChecklistItemsToDb({
         });
         storedItemCount++;
       }
+      
+      // ドキュメントのステータスを "completed" に更新
+      await tx.checkListDocument.update({
+        where: { id: documentId },
+        data: { status: "completed" }
+      });
     });
 
     return {
