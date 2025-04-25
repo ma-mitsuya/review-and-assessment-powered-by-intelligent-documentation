@@ -1,0 +1,20 @@
+{
+  "name": "prompt_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "llm-processing.local.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node dist/test-bedrock-review.js",
+    "review": "npm run build && node dist/test-bedrock-review.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.787.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^18.0.0"
+  }
+}
