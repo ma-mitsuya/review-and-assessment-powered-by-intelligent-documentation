@@ -47,13 +47,14 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   };
   
   // 項目タイプに応じたバッジ
-  const typeBadge = item.item_type === 'flow' ? (
-    <span className="bg-aws-aqua text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
-      フロー
-    </span>
-  ) : (
+  // 項目タイプに応じたバッジ
+  const typeBadge = item.item_type === 'SIMPLE' ? (
     <span className="bg-aws-sea-blue-light text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
       単純
+    </span>
+  ) : (
+    <span className="bg-aws-aqua text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
+      フロー
     </span>
   );
   
@@ -63,6 +64,8 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
       結論
     </span>
   );
+  
+  console.log('項目データ:', item);
   
   return (
     <div>
@@ -114,7 +117,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
         </div>
         
         {/* フロー型の場合、追加情報を表示 */}
-        {item.item_type === 'flow' && item.flow_data && (
+        {item.item_type === 'FLOW' && item.flow_data && (
           <div className="mt-3 pl-7 text-sm text-aws-font-color-gray">
             <div className="flex items-center">
               <span className="font-medium mr-2">条件タイプ:</span>
