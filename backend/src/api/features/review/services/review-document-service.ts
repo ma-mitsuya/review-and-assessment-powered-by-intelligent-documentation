@@ -54,8 +54,8 @@ export class ReviewDocumentService {
     documentId: string;
   }> {
     // バケット名を取得
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
-    
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
+
     return this.coreDocumentService.getPresignedUrl(
       bucketName,
       getReviewDocumentKey,
@@ -96,7 +96,7 @@ export class ReviewDocumentService {
     await this.repository.deleteDocument(documentId);
 
     // S3からファイルを削除
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
     await deleteS3Object(bucketName, document.s3Path);
 
     return true;
@@ -109,7 +109,7 @@ export class ReviewDocumentService {
    * @throws エラーが発生した場合
    */
   async deleteS3File(s3Key: string): Promise<boolean> {
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
     return this.coreDocumentService.deleteS3File(bucketName, s3Key);
   }
 

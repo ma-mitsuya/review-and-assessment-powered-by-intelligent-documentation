@@ -255,7 +255,7 @@ async getPresignedUrl(
 filename: string,
 contentType: string
 ): Promise<{ url: string; key: string; documentId: string }> {
-const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+const bucketName = process.env.DOCUMENT_BUCKET || 'beacon-documents';
 return this.coreDocumentService.getPresignedUrl(
 bucketName,
 getReviewDocumentKey,
@@ -266,7 +266,7 @@ contentType
 
 // deleteS3File メソッドを修正
 async deleteS3File(s3Key: string): Promise<boolean> {
-const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+const bucketName = process.env.DOCUMENT_BUCKET || 'beacon-documents';
 return this.coreDocumentService.deleteS3File(bucketName, s3Key);
 }
 

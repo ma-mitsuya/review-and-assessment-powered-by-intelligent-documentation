@@ -107,7 +107,7 @@ export async function processReviewItem(
 
     // S3からドキュメントを取得
     const s3Client = new S3Client({});
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "";
+    const bucketName = process.env.DOCUMENT_BUCKET || "";
     const s3Key = getReviewDocumentKey(documentId, fileName);
 
     const { Body } = await s3Client.send(

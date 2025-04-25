@@ -116,6 +116,9 @@ export class BeaconStack extends cdk.Stack {
     const api = new Api(this, "Api", {
       vpc,
       databaseConnection: database.connection,
+      environment: {
+        DOCUMENT_BUCKET: documentBucket.bucketName,
+      },
     });
 
     // データベース接続権限の付与
@@ -149,7 +152,7 @@ export class BeaconStack extends cdk.Stack {
       allowedOrigins: [
         `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
         "http://localhost:5173",
-        "*",
+        "*", // TODO: remove
       ],
       allowedHeaders: ["*"],
       maxAge: 3000,

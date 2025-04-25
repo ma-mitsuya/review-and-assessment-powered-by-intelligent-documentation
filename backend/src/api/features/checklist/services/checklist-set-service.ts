@@ -167,7 +167,7 @@ export class ChecklistSetService {
     await this.repository.deleteChecklistSetWithRelations(checklistSetId);
 
     // S3から関連するすべてのファイルを削除
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
     for (const document of documents) {
       try {
         await this.coreDocumentService.deleteS3File(

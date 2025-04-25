@@ -32,7 +32,7 @@ export async function getPresignedUrlHandler(
     const key = getChecklistOriginalKey(documentId, filename);
 
     // バケット名を取得
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || "beacon-documents";
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
 
     // Presigned URLを生成
     const url = await getPresignedUrl(bucketName, key, contentType);

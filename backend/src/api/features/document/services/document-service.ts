@@ -1,19 +1,19 @@
 /**
  * ドキュメント関連のサービス
  */
-import { DocumentRepository } from '../repositories/document-repository';
-import { deleteS3Object } from '../../../core/aws';
+import { DocumentRepository } from "../repositories/document-repository";
+import { deleteS3Object } from "../../../core/aws";
 
 /**
  * ドキュメントサービス
  */
 export class DocumentService {
   private repository: DocumentRepository;
-  
+
   constructor() {
     this.repository = new DocumentRepository();
   }
-  
+
   /**
    * ドキュメントが存在するか確認する
    * @param documentId ドキュメントID
@@ -22,7 +22,7 @@ export class DocumentService {
   async documentExists(documentId: string): Promise<boolean> {
     return this.repository.documentExists(documentId);
   }
-  
+
   /**
    * ドキュメントを取得する
    * @param documentId ドキュメントID
@@ -49,7 +49,7 @@ export class DocumentService {
     await this.repository.deleteDocument(documentId);
 
     // S3からファイルを削除
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
     await deleteS3Object(bucketName, document.s3Path);
 
     return true;
@@ -62,7 +62,7 @@ export class DocumentService {
    * @throws エラーが発生した場合
    */
   async deleteS3File(s3Key: string): Promise<boolean> {
-    const bucketName = process.env.DOCUMENT_BUCKET_NAME || 'beacon-documents';
+    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
     await deleteS3Object(bucketName, s3Key);
     return true;
   }
