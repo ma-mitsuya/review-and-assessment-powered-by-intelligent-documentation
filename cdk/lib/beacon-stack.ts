@@ -118,6 +118,10 @@ export class BeaconStack extends cdk.Stack {
       databaseConnection: database.connection,
       environment: {
         DOCUMENT_BUCKET: documentBucket.bucketName,
+        DOCUMENT_PROCESSING_STATE_MACHINE_ARN:
+          documentProcessor.stateMachine.stateMachineArn,
+        REVIEW_PROCESSING_STATE_MACHINE_ARN:
+          reviewProcessor.stateMachine.stateMachineArn,
       },
     });
 
