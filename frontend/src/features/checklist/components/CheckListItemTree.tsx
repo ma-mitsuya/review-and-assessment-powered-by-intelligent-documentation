@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { HierarchicalCheckListItem } from '../types';
+import CheckListItemEditModal from './CheckListItemEditModal';
 
 type CheckListItemTreeProps = {
   items: HierarchicalCheckListItem[];
@@ -36,6 +36,7 @@ type CheckListItemNodeProps = {
  */
 function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   const [expanded, setExpanded] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // 子項目は階層構造データから直接取得
   const hasChildren = item.children && item.children.length > 0;
@@ -46,7 +47,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   };
   
   // 項目タイプに応じたバッジ
-  const typeBadge = item.item_type === 'FLOW' ? (
+  const typeBadge = item.item_type === 'flow' ? (
     <span className="bg-aws-aqua text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
       フロー
     </span>
@@ -100,28 +101,20 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
           </div>
           
           <div className="flex space-x-2">
-            <Link
-              to={`/checklist-items/${item.check_id}`}
-              className="text-aws-font-color-blue hover:text-aws-sea-blue-light"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <Link
-              to={`/checklist-items/${item.check_id}/edit`}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
               className="text-aws-aqua hover:text-aws-sea-blue-light"
+              aria-label="編集"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
               </svg>
-            </Link>
+            </button>
           </div>
         </div>
         
         {/* フロー型の場合、追加情報を表示 */}
-        {item.item_type === 'FLOW' && item.flow_data && (
+        {item.item_type === 'flow' && item.flow_data && (
           <div className="mt-3 pl-7 text-sm text-aws-font-color-gray">
             <div className="flex items-center">
               <span className="font-medium mr-2">条件タイプ:</span>
@@ -142,6 +135,16 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
           </div>
         )}
       </div>
+      
+      {/* 編集モーダル */}
+      {isEditModalOpen && (
+        <CheckListItemEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          item={item}
+          checkListSetId={item.check_list_set_id}
+        />
+      )}
       
       {/* 子項目を表示（展開時のみ） */}
       {expanded && hasChildren && (

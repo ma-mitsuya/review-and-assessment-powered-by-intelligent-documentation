@@ -2,12 +2,13 @@
  * セグメントコントロールコンポーネント
  * タブ形式のラジオボタングループを提供します
  */
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface SegmentOption {
   value: string;
   label: string;
   count?: number;
+  icon?: ReactNode; // アイコンを追加
   disabled?: boolean;
 }
 
@@ -65,6 +66,10 @@ export default function SegmentedControl({
               className="sr-only"
             />
             <span className="flex items-center">
+              {/* アイコンがある場合は表示 */}
+              {option.icon && (
+                <span className="mr-1.5 flex items-center">{option.icon}</span>
+              )}
               {option.label}
               {option.count !== undefined && (
                 <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${

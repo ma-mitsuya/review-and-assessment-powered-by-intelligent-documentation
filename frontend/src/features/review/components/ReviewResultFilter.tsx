@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import SegmentedControl from '../../../components/SegmentedControl';
 import { ReviewResultHierarchy } from '../types';
 import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
+import { HiCheck, HiX, HiViewList } from 'react-icons/hi';
 
 export type FilterType = 'all' | 'failed' | 'passed';
 
@@ -55,9 +56,24 @@ export default function ReviewResultFilter({
   }, [results]);
 
   const options = [
-    { value: 'all', label: 'すべて', count: counts.all },
-    { value: 'failed', label: '不合格', count: counts.failed },
-    { value: 'passed', label: '合格', count: counts.passed }
+    { 
+      value: 'all', 
+      label: 'すべて', 
+      count: counts.all,
+      icon: <HiViewList className="h-4 w-4 text-aws-font-color-gray" />
+    },
+    { 
+      value: 'failed', 
+      label: '不合格', 
+      count: counts.failed,
+      icon: <HiX className="h-4 w-4 text-red" />
+    },
+    { 
+      value: 'passed', 
+      label: '合格', 
+      count: counts.passed,
+      icon: <HiCheck className="h-4 w-4 text-green-500" />
+    }
   ];
 
   return (
