@@ -3,6 +3,9 @@
  */
 import { PrismaClient } from "../../../prisma/client";
 
+// Prisma Client の型をエクスポート
+export * from "../../../prisma/client";
+
 // PrismaClientのシングルトンインスタンス
 let prismaClient: PrismaClient | null = null;
 

@@ -5,7 +5,7 @@ import {
   PrismaClient,
   CheckListDocument,
   CheckListSet,
-} from "../../../../../prisma/client";
+} from "../../../core/db";
 import { prisma } from "../../../core/prisma";
 import { DocumentInfo } from "../services/checklist-set-service";
 import { ulid } from "ulid";

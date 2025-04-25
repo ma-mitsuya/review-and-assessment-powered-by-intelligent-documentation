@@ -1,7 +1,7 @@
 /**
  * チェックリスト項目リポジトリ
  */
-import { PrismaClient, CheckList } from "../../../../../prisma/client";
+import { PrismaClient, CheckList } from "../../../core/db";
 import { prisma } from "../../../core/prisma";
 import { ulid } from "ulid";
 import { FlowData } from "../types/checklist-item-types";

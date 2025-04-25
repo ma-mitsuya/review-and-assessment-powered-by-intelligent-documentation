@@ -1,7 +1,7 @@
 /**
  * チェックリストセット関連のサービス
  */
-import { CheckListDocument } from "../../../../../prisma/client";
+import { CheckListDocument } from "../../../core/db";
 import {
   ChecklistSetRepository,
   GetChecklistSetsParams as RepoGetChecklistSetsParams,

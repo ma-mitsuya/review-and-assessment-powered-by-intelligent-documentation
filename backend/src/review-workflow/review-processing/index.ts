@@ -1,4 +1,4 @@
-import { PrismaClient } from "../../../prisma/client";
+import { PrismaClient } from "../../api/core/db";
 import { getPrismaClient } from "../../api/core/db";
 import { ReviewJobRepository } from "../../api/features/review/repositories/review-job-repository";
 import { ReviewResultRepository } from "../../api/features/review/repositories/review-result-repository";
