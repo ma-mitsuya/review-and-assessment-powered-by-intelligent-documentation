@@ -3,6 +3,7 @@
  */
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import responseLogger from '../core/plugins/response-logger';
 
 /**
  * Fastifyアプリケーションを作成する
@@ -16,6 +17,11 @@ export function createApp(): FastifyInstance {
   // CORSの設定
   app.register(cors, {
     origin: process.env.CORS_ORIGIN || '*'
+  });
+  
+  // レスポンスロガープラグインを登録
+  app.register(responseLogger, {
+    logLevel: 'info'
   });
   
   // 空のJSONボディを処理するためのカスタムパーサーを追加
