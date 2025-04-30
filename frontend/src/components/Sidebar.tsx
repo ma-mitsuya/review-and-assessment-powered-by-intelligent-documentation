@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import iconImage from '../assets/icon.png';
-import { HiX, HiMenu, HiCheck, HiDocumentText, HiDocumentSearch, HiInformationCircle } from 'react-icons/hi';
+import { HiX, HiMenu, HiCheck, HiDocumentText, HiInformationCircle } from 'react-icons/hi';
 
 /**
  * サイドバーコンポーネント
@@ -76,20 +76,6 @@ export default function Sidebar() {
                 >
                   <HiDocumentText className="h-5 w-5 mr-3" />
                   審査
-                </Link>
-              </li>
-              <li className="mb-1">
-                <Link
-                  to="/documents"
-                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                    isActive('/documents')
-                      ? 'bg-aws-sea-blue-light text-aws-font-color-white-light'
-                      : 'text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <HiDocumentSearch className="h-5 w-5 mr-3" />
-                  ドキュメント
                 </Link>
               </li>
             </ul>
