@@ -6,4 +6,4 @@ export * from './useReviewJobActions';
 export * from './useReviewCreation';
 export * from './useReviewJobs';
 export * from './useReviewResultActions';
-export * from './useReviewResultHierarchy';
+export * from './useReviewResultItems';

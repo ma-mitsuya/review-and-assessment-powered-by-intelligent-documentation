@@ -55,6 +55,31 @@ export interface ReviewJobSummary {
 }
 
 /**
+ * 審査結果項目
+ */
+export interface ReviewResultItem {
+  review_result_id: string;
+  check_id: string;
+  status: string;
+  result: string | null;
+  confidence_score: number | null;
+  explanation: string | null;
+  extracted_text: string | null;
+  user_override: boolean;
+  user_comment: string | null;
+  has_children: boolean;
+  check_list: {
+    check_id: string;
+    name: string;
+    description: string | null;
+    parent_id: string | null;
+    item_type: string;
+    is_conclusion: boolean;
+    flow_data?: any;
+  };
+}
+
+/**
  * 審査結果
  */
 export interface ReviewResult {

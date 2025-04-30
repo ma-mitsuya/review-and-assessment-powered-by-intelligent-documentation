@@ -45,12 +45,42 @@ export class ReviewResultRepository {
    * @returns 審査結果
    */
   async getReviewResult(resultId: string): Promise<ReviewResultDto | null> {
-    return this.prisma.reviewResult.findUnique({
+    console.log(`[Repository] getReviewResult - resultId: ${resultId}`);
+    const result = await this.prisma.reviewResult.findUnique({
       where: { id: resultId },
       include: {
         checkList: true,
       },
     });
+    console.log(`[Repository] Result found:`, !!result);
+    if (result) {
+      console.log(`[Repository] Result checkId: ${result.checkId}, reviewJobId: ${result.reviewJobId}`);
+    }
+    return result;
+  }
+
+  /**
+   * checkIdに基づいて審査結果を取得する
+   * @param jobId 審査ジョブID
+   * @param checkId チェック項目ID
+   * @returns 審査結果
+   */
+  async getReviewResultByCheckId(jobId: string, checkId: string): Promise<ReviewResultDto | null> {
+    console.log(`[Repository] getReviewResultByCheckId - jobId: ${jobId}, checkId: ${checkId}`);
+    const result = await this.prisma.reviewResult.findFirst({
+      where: { 
+        reviewJobId: jobId,
+        checkId: checkId
+      },
+      include: {
+        checkList: true,
+      },
+    });
+    console.log(`[Repository] Result found by checkId:`, !!result);
+    if (result) {
+      console.log(`[Repository] Result id: ${result.id}, checkId: ${result.checkId}, reviewJobId: ${result.reviewJobId}`);
+    }
+    return result;
   }
 
   /**
@@ -77,6 +107,92 @@ export class ReviewResultRepository {
         createdAt: "asc",
       },
     });
+  }
+
+  /**
+   * 親IDに基づいて審査結果項目を取得する
+   * @param jobId 審査ジョブID
+   * @param parentId 親項目ID（nullの場合はルート項目を取得）
+   * @returns 審査結果項目の配列
+   */
+  async getReviewResultItemsByParentId(
+    jobId: string,
+    parentId: string | null
+  ): Promise<ReviewResultDto[]> {
+    console.log(`[Repository] getReviewResultItemsByParentId - jobId: ${jobId}, parentId: ${parentId || 'null'}`);
+    
+    // クエリの構築を詳細にログ出力
+    const query = {
+      where: {
+        reviewJobId: jobId,
+        checkList: {
+          parentId: parentId
+        }
+      },
+      include: {
+        checkList: true,
+      },
+      orderBy: {
+        createdAt: "asc" as const,
+      },
+    };
+    console.log(`[Repository] Query:`, JSON.stringify(query));
+    
+    const results = await this.prisma.reviewResult.findMany(query);
+    
+    console.log(`[Repository] Found ${results.length} items`);
+    if (results.length > 0) {
+      console.log(`[Repository] First item checkId: ${results[0].checkId}`);
+      if (results[0].checkList) {
+        console.log(`[Repository] First item checkList.parentId: ${results[0].checkList.parentId}`);
+      } else {
+        console.log(`[Repository] First item checkList is null`);
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * 特定の親項目を持つ審査結果の存在を確認する
+   * @param jobId 審査ジョブID
+   * @param checkIds チェック項目IDの配列
+   * @returns チェック項目IDごとの子要素の有無
+   */
+  async hasChildrenByCheckIds(
+    jobId: string,
+    checkIds: string[]
+  ): Promise<Map<string, boolean>> {
+    console.log(`[Repository] hasChildrenByCheckIds - jobId: ${jobId}, checkIds: ${checkIds.join(', ')}`);
+    
+    if (checkIds.length === 0) {
+      return new Map();
+    }
+    
+    // 各チェック項目IDに対して子要素の有無を確認
+    const hasChildrenMap = new Map<string, boolean>();
+    
+    // 各チェック項目IDごとに子要素の存在を確認
+    for (const checkId of checkIds) {
+      console.log(`[Repository] Checking children for checkId: ${checkId}`);
+      
+      const query = {
+        where: {
+          reviewJobId: jobId,
+          checkList: {
+            parentId: checkId
+          }
+        }
+      };
+      console.log(`[Repository] Count query:`, JSON.stringify(query));
+      
+      const count = await this.prisma.reviewResult.count(query);
+      console.log(`[Repository] Child count for ${checkId}: ${count}`);
+      
+      hasChildrenMap.set(checkId, count > 0);
+    }
+
+    return hasChildrenMap;
   }
 
   /**

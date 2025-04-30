@@ -7,6 +7,7 @@ import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
 import Button from '../../../components/Button';
 import { HiChevronDown, HiChevronRight, HiPencil } from 'react-icons/hi';
+import Spinner from '../../../components/Spinner';
 
 interface ReviewResultItemProps {
   result: ReviewResultHierarchy;
@@ -14,6 +15,7 @@ interface ReviewResultItemProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   confidenceThreshold: number;
+  isLoadingChildren?: boolean;
 }
 
 export default function ReviewResultItem({ 
@@ -21,7 +23,8 @@ export default function ReviewResultItem({
   hasChildren, 
   isExpanded, 
   onToggleExpand,
-  confidenceThreshold
+  confidenceThreshold,
+  isLoadingChildren
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -141,9 +144,14 @@ export default function ReviewResultItem({
               <button 
                 onClick={onToggleExpand}
                 className="mr-2 text-aws-font-color-gray hover:text-aws-squid-ink-light transition-colors"
+                disabled={isLoadingChildren}
               >
                 {isExpanded ? (
-                  <HiChevronDown className="h-5 w-5" />
+                  isLoadingChildren ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <HiChevronDown className="h-5 w-5" />
+                  )
                 ) : (
                   <HiChevronRight className="h-5 w-5" />
                 )}

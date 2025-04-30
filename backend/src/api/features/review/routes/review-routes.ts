@@ -12,7 +12,7 @@ import {
   deleteReviewJobHandler,
 } from "../handlers/review-job-handlers";
 import {
-  getReviewResultHierarchyHandler,
+  getReviewResultItemsHandler,
   updateReviewResultHandler,
 } from "../handlers/review-result-handlers";
 import {
@@ -25,7 +25,7 @@ import {
   deleteReviewJobSchema,
 } from "../schemas/review-job-schemas";
 import {
-  getReviewResultHierarchySchema,
+  getReviewResultItemsSchema,
   updateReviewResultSchema,
 } from "../schemas/review-result-schemas";
 
@@ -65,10 +65,9 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
 
   // 審査結果関連
   fastify.get(
-    "/review-jobs/:jobId/results/hierarchy",
-    // { schema: getReviewResultHierarchySchema },
-    {},
-    getReviewResultHierarchyHandler
+    "/review-jobs/:jobId/results/items",
+    { schema: getReviewResultItemsSchema },
+    getReviewResultItemsHandler
   );
   fastify.put(
     "/review-jobs/:jobId/results/:resultId",

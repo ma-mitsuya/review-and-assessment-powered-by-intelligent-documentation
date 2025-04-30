@@ -64,6 +64,13 @@ export interface ReviewResultDto {
 }
 
 /**
+ * 審査結果項目DTO（子要素の有無情報を含む）
+ */
+export interface ReviewResultItemDto extends ReviewResultDto {
+  hasChildren: boolean;
+}
+
+/**
  * 審査結果階層構造
  */
 export interface ReviewResultHierarchyDto extends ReviewResultDto {

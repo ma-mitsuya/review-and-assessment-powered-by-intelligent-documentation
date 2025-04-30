@@ -4,14 +4,21 @@
 import { FastifySchema } from "fastify";
 
 /**
- * 審査結果階層構造取得リクエストのスキーマ
+ * 審査結果項目取得リクエストのスキーマ
  */
-export const getReviewResultHierarchySchema: FastifySchema = {
+export const getReviewResultItemsSchema: FastifySchema = {
   params: {
     type: "object",
     required: ["jobId"],
     properties: {
       jobId: { type: "string" },
+    },
+  },
+  querystring: {
+    type: "object",
+    properties: {
+      parentId: { type: "string" },
+      filter: { type: "string", enum: ["all", "passed", "failed"] },
     },
   },
   response: {
@@ -22,7 +29,6 @@ export const getReviewResultHierarchySchema: FastifySchema = {
         data: {
           type: "array",
           items: {
-            $id: "reviewResultItem", //　Add id for recursive reference
             type: "object",
             properties: {
               review_result_id: { type: "string" },
@@ -34,6 +40,7 @@ export const getReviewResultHierarchySchema: FastifySchema = {
               extracted_text: { type: ["string", "null"] },
               user_override: { type: "boolean" },
               user_comment: { type: ["string", "null"] },
+              has_children: { type: "boolean" },
               check_list: {
                 type: "object",
                 properties: {
@@ -44,15 +51,6 @@ export const getReviewResultHierarchySchema: FastifySchema = {
                   item_type: { type: "string" },
                   is_conclusion: { type: "boolean" },
                   flow_data: { type: ["object", "null"] },
-                },
-              },
-              children: {
-                type: "array",
-                items: {
-                  // 同じスキーマを参照して再帰構造を作成
-                  // Ref1: https://github.com/fastify/help/issues/659
-                  // Ref2: https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/
-                  $ref: "reviewResultItem",
                 },
               },
             },
@@ -76,72 +74,6 @@ export const getReviewResultHierarchySchema: FastifySchema = {
     },
   },
 };
-// export const getReviewResultHierarchySchema: FastifySchema = {
-//   params: {
-//     type: 'object',
-//     required: ['jobId'],
-//     properties: {
-//       jobId: { type: 'string' }
-//     }
-//   },
-//   response: {
-//     200: {
-//       type: 'object',
-//       properties: {
-//         success: { type: 'boolean' },
-//         data: {
-//           type: 'array',
-//           items: {
-//             type: 'object',
-//             properties: {
-//               review_result_id: { type: 'string' },
-//               check_id: { type: 'string' },
-//               status: { type: 'string' },
-//               result: { type: ['string', 'null'] },
-//               confidence_score: { type: ['number', 'null'] },
-//               explanation: { type: ['string', 'null'] },
-//               extracted_text: { type: ['string', 'null'] },
-//               user_override: { type: 'boolean' },
-//               user_comment: { type: ['string', 'null'] },
-//               check_list: {
-//                 type: 'object',
-//                 properties: {
-//                   check_id: { type: 'string' },
-//                   name: { type: 'string' },
-//                   description: { type: ['string', 'null'] },
-//                   parent_id: { type: ['string', 'null'] },
-//                   item_type: { type: 'string' },
-//                   is_conclusion: { type: 'boolean' },
-//                   flow_data: { type: ['object', 'null'] }
-//                 }
-//               },
-//               children: {
-//                 type: 'array',
-//                 items: {
-//                   type: 'object'
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }
-//     },
-//     404: {
-//       type: 'object',
-//       properties: {
-//         success: { type: 'boolean' },
-//         error: { type: 'string' }
-//       }
-//     },
-//     500: {
-//       type: 'object',
-//       properties: {
-//         success: { type: 'boolean' },
-//         error: { type: 'string' }
-//       }
-//     }
-//   }
-// };
 
 /**
  * 審査結果更新リクエストのスキーマ

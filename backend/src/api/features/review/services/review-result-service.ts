@@ -5,6 +5,7 @@ import { ReviewResultRepository } from "../repositories/review-result-repository
 import { ReviewJobRepository } from "../repositories/review-job-repository";
 import {
   ReviewResultDto,
+  ReviewResultItemDto,
   ReviewResultHierarchyDto,
   UpdateReviewResultParams,
 } from "../types";
@@ -45,44 +46,67 @@ export class ReviewResultService {
   }
   
   /**
-   * 審査結果の階層構造を取得する
+   * 審査結果項目を取得する
    * @param jobId 審査ジョブID
-   * @returns 階層構造の審査結果
+   * @param parentId 親項目ID（指定がない場合はルート項目を取得）
+   * @param filter フィルタリング条件（all, passed, failed）
+   * @returns 審査結果項目の配列
    */
-  async getReviewResultHierarchy(
-    jobId: string
-  ): Promise<ReviewResultHierarchyDto[]> {
+  async getReviewResultItems(
+    jobId: string,
+    parentId?: string,
+    filter?: string
+  ): Promise<ReviewResultItemDto[]> {
+    console.log(`[Service] getReviewResultItems - jobId: ${jobId}, parentId: ${parentId || 'null'}, filter: ${filter || 'all'}`);
+    
     // 審査ジョブの存在確認
     const job = await this.jobRepository.getReviewJob(jobId);
+    console.log(`[Service] Job found:`, !!job);
     if (!job) {
       throw new Error(`Review job not found: ${jobId}`);
     }
 
-    // 審査ジョブに関連する全ての審査結果を取得
-    const results = await this.resultRepository.getReviewResultsByJobId(jobId);
-
-    // parentIdごとに子要素をグループ化（O(n)の計算量）
-    const childrenByParent = new Map<string | null, ReviewResultDto[]>();
-    results.forEach((result) => {
-      const parentId = result.checkList?.parentId ?? null;
-      if (!childrenByParent.has(parentId)) {
-        childrenByParent.set(parentId, []);
+    // 親項目が指定されている場合、その存在を確認
+    if (parentId) {
+      console.log(`[Service] Checking parent item: ${parentId}`);
+      // checkIdで親項目を検索するように修正
+      const parentResult = await this.resultRepository.getReviewResultByCheckId(jobId, parentId);
+      console.log(`[Service] Parent result found:`, !!parentResult);
+      if (!parentResult) {
+        throw new Error(`Parent result not found: ${parentId}`);
       }
-      childrenByParent.get(parentId)!.push(result);
-    });
+    }
 
-    // 階層構造を構築する関数（O(n)の計算量）
-    const buildHierarchy = (result: ReviewResultDto): ReviewResultHierarchyDto => {
-      const children = childrenByParent.get(result.checkId) || [];
-      return {
-        ...result,
-        children: children.map(buildHierarchy)
-      };
-    };
+    // 項目を取得
+    const items = await this.resultRepository.getReviewResultItemsByParentId(jobId, parentId || null);
+    console.log(`[Service] Found ${items.length} items before filtering`);
 
-    // 最上位項目（parentId = null）から階層構造を構築
-    const rootResults = childrenByParent.get(null) || [];
-    return rootResults.map(buildHierarchy);
+    // フィルタリング条件に基づいて項目をフィルタリング
+    let filteredItems = items;
+    if (filter) {
+      if (filter === 'passed') {
+        filteredItems = items.filter(item => item.status === 'completed' && item.result === 'pass');
+      } else if (filter === 'failed') {
+        filteredItems = items.filter(item => item.status === 'completed' && item.result === 'fail');
+      }
+      // 'all'の場合はフィルタリングしない
+    }
+    console.log(`[Service] Found ${filteredItems.length} items after filtering with ${filter || 'all'}`);
+
+    // 子項目の有無を確認
+    const checkIds = filteredItems.map(item => item.checkId);
+    console.log(`[Service] Checking for children of ${checkIds.length} items`);
+    const hasChildrenMap = await this.resultRepository.hasChildrenByCheckIds(jobId, checkIds);
+    console.log(`[Service] hasChildrenMap size: ${hasChildrenMap.size}`);
+
+    // 項目に子要素の有無情報を付与して返す
+    const result = filteredItems.map(item => ({
+      ...item,
+      hasChildren: hasChildrenMap.get(item.checkId) || false
+    }));
+    
+    console.log(`[Service] Returning ${result.length} items with hasChildren info`);
+    return result;
   }
   
   /**
