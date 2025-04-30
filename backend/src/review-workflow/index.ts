@@ -60,6 +60,7 @@ async function handleFinalizeReview(event: any) {
  */
 async function handleReviewError(event: any) {
   console.error("審査エラー発生:", event.error);
+  console.error("エラー詳細:", event.cause);
   
   // ジョブステータスをエラーに更新
   const jobRepository = new ReviewJobRepository();
@@ -71,6 +72,7 @@ async function handleReviewError(event: any) {
   return {
     status: "error",
     error: event.error,
+    cause: event.cause,
     reviewJobId: event.reviewJobId,
   };
 }

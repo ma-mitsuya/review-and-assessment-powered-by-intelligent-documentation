@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../../components/Button';
 import { ReviewJobList } from '../components/ReviewJobList';
 import { useReviewJobs } from '../hooks/useReviewJobs';
@@ -7,7 +7,14 @@ import { HiPlus } from 'react-icons/hi';
 
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { reviewJobs } = useReviewJobs(1, 10, 'createdAt', 'desc');
+  const location = useLocation();
+  const { reviewJobs, revalidate } = useReviewJobs(1, 10, 'createdAt', 'desc');
+
+  // 画面表示時またはlocationが変わった時にデータを再取得
+  useEffect(() => {
+    // 新規作成後に一覧画面に戻ってきた場合など、locationが変わった時にデータを再取得
+    revalidate();
+  }, [location, revalidate]);
 
   const handleJobClick = (job: any) => {
     // TBD: ジョブの詳細画面に遷移する実装
@@ -33,7 +40,7 @@ export const ReviewListPage: React.FC = () => {
         </Button>
       </div>
 
-      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} />
+      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} revalidate={revalidate} />
     </div>
   );
 };

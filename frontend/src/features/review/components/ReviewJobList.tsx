@@ -6,9 +6,10 @@ import { useReviewJobActions } from '../hooks/useReviewJobActions';
 interface ReviewJobListProps {
   jobs: ReviewJob[];
   onJobClick?: (job: ReviewJob) => void;
+  revalidate?: () => void;
 }
 
-export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick }) => {
+export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate }) => {
   const { deleteReviewJob } = useReviewJobActions();
 
   const handleDelete = async (jobId: string, e: React.MouseEvent) => {
@@ -17,7 +18,10 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick }
     if (confirm('この審査ジョブを削除してもよろしいですか？')) {
       try {
         await deleteReviewJob(jobId);
-        // 削除後の処理（例：親コンポーネントに通知など）
+        // 削除後にデータを再取得
+        if (revalidate) {
+          revalidate();
+        }
       } catch (error) {
         alert('審査ジョブの削除に失敗しました');
         console.error(error);

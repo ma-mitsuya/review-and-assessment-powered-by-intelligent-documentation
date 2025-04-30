@@ -16,6 +16,8 @@ import { getPrismaClient } from "../../api/core/db";
 // 使用するモデルIDを定義
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
 
+const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
+
 // 審査プロンプト
 const REVIEW_PROMPT = `
 あなたは不動産書類の審査を行うAIアシスタントです。
@@ -136,7 +138,7 @@ export async function processReviewItem(
 
     // Bedrockを使用して審査
     const bedrockClient = new BedrockRuntimeClient({
-      region: process.env.AWS_REGION || "us-west-2",
+      region: BEDROCK_REGION,
     });
 
     const response = await bedrockClient.send(

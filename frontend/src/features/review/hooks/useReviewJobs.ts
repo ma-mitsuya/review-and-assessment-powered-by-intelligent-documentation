@@ -47,17 +47,22 @@ export const useReviewJobs = (
   isLoading: boolean;
   isError: boolean;
   mutate: () => void;
+  revalidate: () => void;
 } => {
   const http = useHttp();
   const key = getReviewJobsKey(page, limit, sortBy, sortOrder, status);
   
   const { data, error, isLoading, mutate } = http.get<ApiResponse<{ reviewJobs: ReviewJob[]; total: number }>>(key);
   
+  // 明示的にデータを再取得する関数
+  const revalidate = () => mutate();
+  
   return {
     reviewJobs: data?.data.reviewJobs || [],
     total: data?.data.total || 0,
     isLoading,
     isError: !!error,
-    mutate
+    mutate,
+    revalidate
   };
 };
