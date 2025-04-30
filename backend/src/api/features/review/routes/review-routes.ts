@@ -66,7 +66,8 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   // 審査結果関連
   fastify.get(
     "/review-jobs/:jobId/results/hierarchy",
-    { schema: getReviewResultHierarchySchema },
+    // { schema: getReviewResultHierarchySchema },
+    {},
     getReviewResultHierarchyHandler
   );
   fastify.put(

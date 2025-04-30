@@ -6,6 +6,7 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 import { Construct } from "constructs";
 import { DatabaseConnectionProps } from "./prisma-function";
@@ -77,6 +78,29 @@ export class Api extends Construct {
       memorySize: 1024,
     });
 
+    // CloudWatch Logs グループの作成
+    const accessLogGroup = new logs.LogGroup(this, "ApiGatewayAccessLogs", {
+      retention: logs.RetentionDays.ONE_WEEK,
+      logGroupName: `/aws/apigateway/beacon-api-access-logs`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const executionLogGroup = new logs.LogGroup(this, "ApiGatewayExecutionLogs", {
+      retention: logs.RetentionDays.ONE_WEEK,
+      logGroupName: `/aws/apigateway/beacon-api-execution-logs`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // API Gateway CloudWatch ロールの作成
+    const apiGatewayCloudWatchRole = new iam.Role(this, "ApiGatewayCloudWatchRole", {
+      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+        ),
+      ],
+    });
+
     // API Gateway の作成
     this.api = new apigateway.RestApi(this, "BeaconApi", {
       restApiName: "BEACON API",
@@ -87,6 +111,25 @@ export class Api extends Construct {
         tracingEnabled: true,
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
+        // アクセスログの設定を追加
+        accessLogDestination: new apigateway.LogGroupLogDestination(accessLogGroup),
+        accessLogFormat: apigateway.AccessLogFormat.jsonWithStandardFields({
+          caller: true,
+          httpMethod: true,
+          ip: true,
+          protocol: true,
+          requestTime: true,
+          resourcePath: true,
+          responseLength: true,
+          status: true,
+          user: true,
+        }),
+        // 実行ログの設定
+        methodOptions: {
+          "/*/*": {
+            loggingLevel: apigateway.MethodLoggingLevel.INFO,
+          },
+        },
       },
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
@@ -100,6 +143,8 @@ export class Api extends Construct {
         ],
       },
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,
+      // CloudWatch ロールを設定
+      cloudWatchRole: true,
     });
 
     // Lambda 統合の設定
@@ -155,6 +200,17 @@ export class Api extends Construct {
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.url,
       description: "URL of the BEACON API",
+    });
+
+    // ロググループの ARN を出力
+    new cdk.CfnOutput(this, "AccessLogGroupName", {
+      value: accessLogGroup.logGroupName,
+      description: "Name of the API Gateway access log group",
+    });
+
+    new cdk.CfnOutput(this, "ExecutionLogGroupName", {
+      value: executionLogGroup.logGroupName,
+      description: "Name of the API Gateway execution log group",
     });
   }
 }

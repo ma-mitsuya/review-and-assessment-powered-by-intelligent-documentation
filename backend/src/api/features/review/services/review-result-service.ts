@@ -43,6 +43,7 @@ export class ReviewResultService {
   ): Promise<ReviewResultDto[]> {
     return this.resultRepository.getReviewResultsByJobId(jobId, result);
   }
+  
   /**
    * 審査結果の階層構造を取得する
    * @param jobId 審査ジョブID
@@ -60,71 +61,30 @@ export class ReviewResultService {
     // 審査ジョブに関連する全ての審査結果を取得
     const results = await this.resultRepository.getReviewResultsByJobId(jobId);
 
-    console.log(`Retrieved ${results.length} review results for job ${jobId}`);
+    // parentIdごとに子要素をグループ化（O(n)の計算量）
+    const childrenByParent = new Map<string | null, ReviewResultDto[]>();
+    results.forEach((result) => {
+      const parentId = result.checkList?.parentId ?? null;
+      if (!childrenByParent.has(parentId)) {
+        childrenByParent.set(parentId, []);
+      }
+      childrenByParent.get(parentId)!.push(result);
+    });
 
-    // 親IDがnullの最上位項目だけを抽出
-    const rootResults = results.filter(
-      (result) => result.checkList?.parentId === null
-    );
-
-    console.log(`Found ${rootResults.length} root level review results`);
-
-    // 階層構造を構築する関数
-    const buildHierarchy = (
-      parentResult: ReviewResultDto
-    ): ReviewResultHierarchyDto => {
-      const children = results.filter(
-        (r) => r.checkList?.parentId === parentResult.checkId
-      );
-
-      console.log(
-        `Found ${children.length} children for check ID ${parentResult.checkId}`
-      );
-
-      // 子項目ごとにデバッグ情報を出力
-      children.forEach((child, index) => {
-        console.log(
-          `Child ${index} for ${parentResult.checkId}: ID=${child.id}, checkId=${child.checkId}`
-        );
-      });
-
-      // 子項目の階層構造を構築
-      const childHierarchy = children.map((child) => buildHierarchy(child));
-
-      // 完成した階層構造
-      const hierarchyItem: ReviewResultHierarchyDto = {
-        ...parentResult,
-        children: childHierarchy,
+    // 階層構造を構築する関数（O(n)の計算量）
+    const buildHierarchy = (result: ReviewResultDto): ReviewResultHierarchyDto => {
+      const children = childrenByParent.get(result.checkId) || [];
+      return {
+        ...result,
+        children: children.map(buildHierarchy)
       };
-
-      // 最終的な構造を確認
-      console.log(
-        `Hierarchy for ${parentResult.checkId} has ${hierarchyItem.children.length} children`
-      );
-
-      return hierarchyItem;
     };
 
-    // 最上位項目から階層構造を構築
-    const hierarchy = rootResults.map((rootResult) =>
-      buildHierarchy(rootResult)
-    );
-
-    console.log(`Built hierarchy with ${hierarchy.length} root nodes`);
-
-    // レスポンス前のデータを確認
-    const firstItem = hierarchy[0];
-    if (firstItem) {
-      console.log(
-        `First item: checkId=${firstItem.checkId}, children count=${firstItem.children.length}`
-      );
-      if (firstItem.children.length > 0) {
-        console.log(`First child: checkId=${firstItem.children[0].checkId}`);
-      }
-    }
-
-    return hierarchy;
+    // 最上位項目（parentId = null）から階層構造を構築
+    const rootResults = childrenByParent.get(null) || [];
+    return rootResults.map(buildHierarchy);
   }
+  
   /**
    * ユーザーによる審査結果の上書き
    * @param jobId 審査ジョブID
