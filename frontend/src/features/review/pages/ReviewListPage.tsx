@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../../components/Button';
 import { ReviewJobList } from '../components/ReviewJobList';
 import { useReviewJobs } from '../hooks/useReviewJobs';
-import { HiPlus } from 'react-icons/hi';
+import { HiPlus, HiDocumentText } from 'react-icons/hi';
 
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +26,10 @@ export const ReviewListPage: React.FC = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">審査ジョブ一覧</h1>
+          <div className="flex items-center">
+            <HiDocumentText className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
+            <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">審査ジョブ一覧</h1>
+          </div>
           <p className="text-aws-font-color-gray mt-2">
             不動産書類の審査ジョブを管理します
           </p>

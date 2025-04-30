@@ -4,6 +4,7 @@ import { useCheckListSets, useCheckListSetActions } from '../hooks/useCheckListS
 import { useToast } from '../../../contexts/ToastContext';
 import CheckListSetList from '../components/CheckListSetList';
 import CreateChecklistButton from '../components/CreateChecklistButton';
+import { HiCheck } from 'react-icons/hi';
 
 /**
  * チェックリスト一覧ページ
@@ -46,7 +47,10 @@ export function CheckListPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">チェックリストセット一覧</h1>
+          <div className="flex items-center">
+            <HiCheck className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
+            <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">チェックリストセット一覧</h1>
+          </div>
           <p className="text-aws-font-color-gray mt-2">
             不動産書類のチェックリストセットを管理します
           </p>
