@@ -2,6 +2,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import {
   BedrockRuntimeClient,
   ConverseCommand,
+  TokenUsage
 } from "@aws-sdk/client-bedrock-runtime";
 import { ReviewResultRepository } from "../../api/features/review/repositories/review-result-repository";
 import { ChecklistItemRepository } from "../../api/features/checklist/repositories/checklist-item-repository";
@@ -158,6 +159,11 @@ export async function processReviewItem(
                   },
                 },
               },
+              {
+                cachePoint: {
+                  type: "default"
+                }
+              },
             ],
           },
         ],
@@ -173,6 +179,22 @@ export async function processReviewItem(
         }
       });
     }
+    
+    // キャッシュメトリクスのログ出力
+    const usage = response.usage as TokenUsage;
+    const cacheReadTokens = usage?.cacheReadInputTokens || 0;
+    const cacheWriteTokens = usage?.cacheWriteInputTokens || 0;
+    const inputTokens = usage?.inputTokens || 0;
+    const latencyMs = response.metrics?.latencyMs || 0;
+    
+    let cacheStatus = "未使用";
+    if (cacheReadTokens > 0) {
+      cacheStatus = "ヒット";
+    } else if (cacheWriteTokens > 0) {
+      cacheStatus = "作成";
+    }
+    
+    console.log(`[プロンプトキャッシュ] 状態: ${cacheStatus}, 読取: ${cacheReadTokens}, 書込: ${cacheWriteTokens}, 入力: ${inputTokens}, レイテンシー: ${latencyMs}ms, 審査項目ID: ${checkId}`);
 
     // JSONレスポンスを抽出
     const jsonMatch = llmResponse.match(/\{[\s\S]*\}/);
@@ -210,6 +232,11 @@ ${prompt}
                       },
                     },
                   },
+                  {
+                    cachePoint: {
+                      type: "default"
+                    }
+                  },
                 ],
               },
             ],
@@ -225,6 +252,22 @@ ${prompt}
             }
           });
         }
+        
+        // リトライ時のキャッシュメトリクスのログ出力
+        const retryUsage = retryResponse.usage as TokenUsage;
+        const retryCacheReadTokens = retryUsage?.cacheReadInputTokens || 0;
+        const retryCacheWriteTokens = retryUsage?.cacheWriteInputTokens || 0;
+        const retryInputTokens = retryUsage?.inputTokens || 0;
+        const retryLatencyMs = retryResponse.metrics?.latencyMs || 0;
+        
+        let retryCacheStatus = "未使用";
+        if (retryCacheReadTokens > 0) {
+          retryCacheStatus = "ヒット";
+        } else if (retryCacheWriteTokens > 0) {
+          retryCacheStatus = "作成";
+        }
+        
+        console.log(`[プロンプトキャッシュ(リトライ)] 状態: ${retryCacheStatus}, 読取: ${retryCacheReadTokens}, 書込: ${retryCacheWriteTokens}, 入力: ${retryInputTokens}, レイテンシー: ${retryLatencyMs}ms, 審査項目ID: ${checkId}`);
 
         const retryJsonMatch = retryLlmResponse.match(/\{[\s\S]*\}/);
         if (!retryJsonMatch) {
