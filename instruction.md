@@ -1,5 +1,0 @@
-- inline / distributed、コメントに書いといて
-- lambda は DocumentPageProcessor 内に定義すること（今後 monolithic ではないデザインに変更する可能性を考慮）
-- bedrockModelId の指定は backend 側で行うので(lambdatask には)指定不要
-- batch processor は generative-ai-cdk-construct 使ってください（generative-ai-cdk-construct.md 参照）
-- statemachine 定義をグラフィカルに表示してください
