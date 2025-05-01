@@ -148,8 +148,8 @@ export class ReviewProcessor extends Construct {
       payload: sfn.TaskInput.fromObject({
         action: "handleReviewError",
         reviewJobId: sfn.JsonPath.stringAt("$$.Execution.Input.reviewJobId"),
-        error: sfn.JsonPath.stringAt("$.Error"),
-        cause: sfn.JsonPath.stringAt("$.Cause"),
+        error: sfn.JsonPath.stringAt("$.error.Error"),
+        cause: sfn.JsonPath.stringAt("$.error.Cause"),
       }),
       resultPath: "$.errorResult",
     });
