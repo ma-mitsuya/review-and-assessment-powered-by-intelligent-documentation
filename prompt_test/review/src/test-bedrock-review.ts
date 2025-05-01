@@ -2,12 +2,14 @@
 import {
   BedrockRuntimeClient,
   ConverseCommand,
+  TokenUsage,
 } from "@aws-sdk/client-bedrock-runtime";
 import * as fs from "fs";
 import * as path from "path";
 
 // モデルID
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0";
+const BEDROCK_REGION = "us-west-2";
 
 // 審査プロンプトテンプレート
 const REVIEW_PROMPT = `
@@ -75,7 +77,7 @@ async function testSingleCheckItem(
 
     // Bedrockを使用して審査
     const bedrockClient = new BedrockRuntimeClient({
-      region: process.env.AWS_REGION || "us-west-2",
+      region: BEDROCK_REGION,
     });
 
     console.log("Bedrockを呼び出し中...");
@@ -88,6 +90,11 @@ async function testSingleCheckItem(
             role: "user",
             content: [
               { text: prompt },
+              {
+                cachePoint: {
+                  type: "default",
+                },
+              },
               {
                 document: {
                   name: "ReviewDocument",
@@ -114,6 +121,24 @@ async function testSingleCheckItem(
         }
       });
     }
+
+    // キャッシュメトリクスのログ出力
+    const usage = response.usage as TokenUsage;
+    const cacheReadTokens = usage?.cacheReadInputTokens || 0;
+    const cacheWriteTokens = usage?.cacheWriteInputTokens || 0;
+    const inputTokens = usage?.inputTokens || 0;
+    const latencyMs = response.metrics?.latencyMs || 0;
+
+    let cacheStatus = "未使用";
+    if (cacheReadTokens > 0) {
+      cacheStatus = "ヒット";
+    } else if (cacheWriteTokens > 0) {
+      cacheStatus = "作成";
+    }
+
+    console.log(
+      `[プロンプトキャッシュ] 状態: ${cacheStatus}, 読取: ${cacheReadTokens}, 書込: ${cacheWriteTokens}, 入力: ${inputTokens}, レイテンシー: ${latencyMs}ms`
+    );
 
     // JSONレスポンスを抽出
     const jsonMatch = llmResponse.match(/\{[\s\S]*\}/);
@@ -194,8 +219,8 @@ function loadCheckItems(filePath: string): CheckItem[] {
   try {
     // ファイルを読み込み、コメント行を削除
     const data = fs.readFileSync(filePath, "utf8");
-    const cleanedData = data.replace(/^\s*\/\/.*$/gm, ''); // コメント行を削除
-    
+    const cleanedData = data.replace(/^\s*\/\/.*$/gm, ""); // コメント行を削除
+
     return JSON.parse(cleanedData);
   } catch (error: any) {
     console.error(
@@ -217,12 +242,12 @@ async function main() {
   if (args.length >= 1) {
     // 最初の引数をドキュメント名として扱う
     documentFileName = args[0];
-    
+
     // --output オプションの処理
     for (let i = 1; i < args.length; i += 2) {
       const key = args[i].replace("--", "");
       const value = args[i + 1];
-      
+
       if (key === "output") {
         outputDir = value;
       }
@@ -233,21 +258,43 @@ async function main() {
   }
 
   // ドキュメントパスとチェックリストパスを構築
-  const documentPath = path.join(__dirname, "..", "test-documents", documentFileName);
-  const baseName = path.basename(documentFileName, path.extname(documentFileName));
-  const checkListPath = path.join(__dirname, "..", "checklists", `${baseName}.json`);
-  
+  const documentPath = path.join(
+    __dirname,
+    "..",
+    "test-documents",
+    documentFileName
+  );
+  const baseName = path.basename(
+    documentFileName,
+    path.extname(documentFileName)
+  );
+  const checkListPath = path.join(
+    __dirname,
+    "..",
+    "checklists",
+    `${baseName}.json`
+  );
+
   // チェックリストが存在しない場合はsample.jsonをデフォルトで使用
   let finalCheckListPath = checkListPath;
   if (!fs.existsSync(checkListPath)) {
-    finalCheckListPath = path.join(__dirname, "..", "checklists", "sample.json");
-    console.log(`警告: ${baseName}.json が見つからないため、デフォルトのsample.jsonを使用します`);
+    finalCheckListPath = path.join(
+      __dirname,
+      "..",
+      "checklists",
+      "sample.json"
+    );
+    console.log(
+      `警告: ${baseName}.json が見つからないため、デフォルトのsample.jsonを使用します`
+    );
   }
 
   // ドキュメントが存在するか確認
   if (!fs.existsSync(documentPath)) {
     console.error(`ドキュメントが見つかりません: ${documentPath}`);
-    console.error(`test-documentsディレクトリに${documentFileName}を配置してください`);
+    console.error(
+      `test-documentsディレクトリに${documentFileName}を配置してください`
+    );
     process.exit(1);
   }
 

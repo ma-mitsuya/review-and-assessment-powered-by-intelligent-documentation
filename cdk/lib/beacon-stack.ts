@@ -97,7 +97,7 @@ export class BeaconStack extends cdk.Stack {
         vpc,
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
-        inlineMapConcurrency: 10,
+        inlineMapConcurrency: 1,
         distributedMapConcurrency: 20,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
