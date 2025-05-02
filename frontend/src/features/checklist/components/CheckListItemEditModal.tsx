@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import { CheckListItem } from '../types';
-import { updateCheckListItem } from '../hooks/useCheckListItems';
+import { useCheckListItems } from '../hooks/useCheckListItems';
 
 type CheckListItemEditModalProps = {
   isOpen: boolean;
@@ -26,6 +26,9 @@ export default function CheckListItemEditModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  // コンポーネントのトップレベルでフックを呼び出す
+  const { updateItem } = useCheckListItems(checkListSetId);
   
   console.log('チェックリスト項目編集モーダル - 項目ID:', item.check_id);
   console.log('チェックリスト項目編集モーダル - セットID:', checkListSetId);
@@ -59,7 +62,7 @@ export default function CheckListItemEditModal({
         }
       });
       
-      await updateCheckListItem(checkListSetId, item.check_id, {
+      await updateItem(checkListSetId, item.check_id, {
         name: formData.name,
         description: formData.description,
       });

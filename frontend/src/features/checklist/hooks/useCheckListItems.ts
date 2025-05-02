@@ -1,5 +1,6 @@
 import useHttp from '../../../hooks/useHttp';
 import { mutate } from 'swr';
+import { useState } from 'react';
 import { 
   CheckListItem, 
   HierarchicalCheckListItem, 
@@ -7,120 +8,152 @@ import {
 } from '../types';
 
 /**
- * チェックリスト項目の階層構造を取得するためのフック
+ * チェックリスト項目に関する操作をまとめたカスタムフック
  */
 export const useCheckListItems = (setId: string | null) => {
   const http = useHttp();
-  const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<HierarchicalCheckListItem[]>>(url);
+  // 階層構造データの取得
+  const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
+  const { data, error: fetchError, isLoading, mutate: refetch } = http.get<ApiResponse<HierarchicalCheckListItem[]>>(url);
+  
+  // チェックリスト項目の作成
+  const createItem = async (
+    checkListSetId: string,
+    item: {
+      name: string;
+      description?: string;
+      parentId?: string;
+      itemType: 'simple' | 'flow';
+      isConclusion: boolean;
+      flowData?: {
+        condition_type: string;
+        next_if_yes?: string;
+        next_if_no?: string;
+        options?: Array<{
+          option_id: string;
+          label: string;
+          next_check_id: string;
+        }>;
+      };
+      documentId?: string;
+    }
+  ): Promise<ApiResponse<CheckListItem>> => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const response = await http.post<ApiResponse<CheckListItem>>(`/checklist-sets/${checkListSetId}/items`, item);
+      
+      // キャッシュを更新
+      mutate(`/checklist-sets/${checkListSetId}`);
+      mutate(`/checklist-sets/${checkListSetId}/items/hierarchy`);
+      
+      return response.data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to create check list item');
+      setError(error);
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // チェックリスト項目の更新
+  const updateItem = async (
+    checkListSetId: string,
+    itemId: string,
+    updates: {
+      name?: string;
+      description?: string;
+      isConclusion?: boolean;
+      flowData?: {
+        condition_type: 'YES_NO' | 'MULTI_CHOICE';
+        next_if_yes?: string;
+        next_if_no?: string;
+        options?: Array<{
+          option_id: string;
+          label: string;
+          next_check_id: string;
+        }>;
+      };
+      documentId?: string;
+    }
+  ): Promise<ApiResponse<CheckListItem>> => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const response = await http.put<ApiResponse<CheckListItem>>(`/checklist-sets/${checkListSetId}/items/${itemId}`, updates);
+      
+      // キャッシュを更新
+      mutate(`/checklist-sets/${checkListSetId}`);
+      mutate(`/checklist-sets/${checkListSetId}/items/hierarchy`);
+      mutate(`/checklist-sets/${checkListSetId}/items/${itemId}`);
+      
+      return response.data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to update check list item');
+      setError(error);
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // チェックリスト項目の削除
+  const deleteItem = async (
+    checkListSetId: string,
+    itemId: string
+  ): Promise<ApiResponse<{ deleted: boolean }>> => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${checkListSetId}/items/${itemId}`);
+      
+      // キャッシュを更新
+      mutate(`/checklist-sets/${checkListSetId}`);
+      mutate(`/checklist-sets/${checkListSetId}/items/hierarchy`);
+      
+      return response.data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to delete check list item');
+      setError(error);
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // チェックリスト項目の詳細取得
+  const getItem = (itemId: string | null) => {
+    const itemUrl = setId && itemId ? `/checklist-sets/${setId}/items/${itemId}` : null;
+    const { data: itemData, error: itemError, isLoading: itemLoading } = http.get<ApiResponse<CheckListItem>>(itemUrl);
+    
+    return {
+      item: itemData?.data,
+      isLoading: itemLoading,
+      error: itemError
+    };
+  };
 
   return {
+    // データ取得
     hierarchy: data?.data,
     isLoading,
-    isError: error,
-    mutate,
+    error: fetchError || error,
+    refetch,
+    
+    // CRUD操作
+    createItem,
+    updateItem,
+    deleteItem,
+    getItem,
+    
+    // 状態
+    isSubmitting
   };
-};
-
-/**
- * チェックリスト項目詳細を取得するためのフック
- */
-export const useCheckListItem = (setId: string | null, itemId: string | null) => {
-  const http = useHttp();
-  const url = setId && itemId ? `/checklist-sets/${setId}/items/${itemId}` : null;
-  
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<CheckListItem>>(url);
-
-  return {
-    checkListItem: data?.data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-};
-
-/**
- * チェックリスト項目を作成する関数
- */
-export const createCheckListItem = async (
-  setId: string,
-  item: {
-    name: string;
-    description?: string;
-    parentId?: string;
-    itemType: 'simple' | 'flow';
-    isConclusion: boolean;
-    flowData?: {
-      condition_type: 'YES_NO' | 'MULTI_CHOICE';
-      next_if_yes?: string;
-      next_if_no?: string;
-      options?: Array<{
-        option_id: string;
-        label: string;
-        next_check_id: string;
-      }>;
-    };
-    documentId?: string;
-  }
-): Promise<ApiResponse<CheckListItem>> => {
-  const http = useHttp();
-  const response = await http.post<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items`, item);
-  
-  // キャッシュを更新
-  mutate(`/checklist-sets/${setId}`);
-  mutate(`/checklist-sets/${setId}/items/hierarchy`);
-  
-  return response.data;
-};
-
-/**
- * チェックリスト項目を更新する関数
- */
-export const updateCheckListItem = async (
-  setId: string,
-  itemId: string,
-  updates: {
-    name?: string;
-    description?: string;
-    isConclusion?: boolean;
-    flowData?: {
-      condition_type: 'YES_NO' | 'MULTI_CHOICE';
-      next_if_yes?: string;
-      next_if_no?: string;
-      options?: Array<{
-        option_id: string;
-        label: string;
-        next_check_id: string;
-      }>;
-    };
-    documentId?: string;
-  }
-): Promise<ApiResponse<CheckListItem>> => {
-  const http = useHttp();
-  const response = await http.put<ApiResponse<CheckListItem>>(`/checklist-sets/${setId}/items/${itemId}`, updates);
-  
-  // キャッシュを更新
-  mutate(`/checklist-sets/${setId}`);
-  mutate(`/checklist-sets/${setId}/items/hierarchy`);
-  mutate(`/checklist-sets/${setId}/items/${itemId}`);
-  
-  return response.data;
-};
-
-/**
- * チェックリスト項目を削除する関数
- */
-export const deleteCheckListItem = async (
-  setId: string,
-  itemId: string
-): Promise<ApiResponse<{ deleted: boolean }>> => {
-  const http = useHttp();
-  const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${setId}/items/${itemId}`);
-  
-  // キャッシュを更新
-  mutate(`/checklist-sets/${setId}`);
-  mutate(`/checklist-sets/${setId}/items/hierarchy`);
-  
-  return response.data;
 };

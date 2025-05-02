@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createCheckListItem } from '../hooks/useCheckListItems';
+import { useCheckListItems } from '../hooks/useCheckListItems';
 import { HierarchicalCheckListItem } from '../types';
 
 type CheckListItemAddModalProps = {
@@ -33,6 +33,9 @@ export default function CheckListItemAddModal({
     name: '',
     flowData: ''
   });
+  
+  // コンポーネントのトップレベルでフックを呼び出す
+  const { createItem } = useCheckListItems(checkListSetId);
 
   // 入力値の変更ハンドラ
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -95,7 +98,7 @@ export default function CheckListItemAddModal({
     setIsSubmitting(true);
     
     try {
-      await createCheckListItem(checkListSetId, formData);
+      await createItem(checkListSetId, formData);
       onSuccess();
       onClose();
     } catch (error) {
