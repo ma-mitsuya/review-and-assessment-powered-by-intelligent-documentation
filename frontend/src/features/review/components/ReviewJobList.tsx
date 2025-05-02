@@ -2,14 +2,16 @@ import React from 'react';
 import { ReviewJob } from '../types';
 import ReviewJobItem from './ReviewJobItem';
 import { useReviewJobActions } from '../hooks/useReviewJobActions';
+import { TableSkeleton } from '../../../components/Skeleton';
 
 interface ReviewJobListProps {
   jobs: ReviewJob[];
   onJobClick?: (job: ReviewJob) => void;
   revalidate?: () => void;
+  isLoading?: boolean;
 }
 
-export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate }) => {
+export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate, isLoading }) => {
   const { deleteReviewJob } = useReviewJobActions();
 
   const handleDelete = async (jobId: string, e: React.MouseEvent) => {
@@ -28,6 +30,10 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
       }
     }
   };
+
+  if (isLoading) {
+    return <TableSkeleton rows={5} columns={6} />;
+  }
 
   if (jobs.length === 0) {
     return (

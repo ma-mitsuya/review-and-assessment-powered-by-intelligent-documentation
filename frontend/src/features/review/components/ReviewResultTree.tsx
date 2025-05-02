@@ -3,7 +3,7 @@
  */
 import { useReviewResultItems } from '../hooks/useReviewResultItems';
 import ReviewResultTreeNode from './ReviewResultTreeNode';
-import Spinner from '../../../components/Spinner';
+import { TreeSkeleton } from '../../../components/Skeleton';
 import { FilterType } from './ReviewResultFilter';
 
 interface ReviewResultTreeProps {
@@ -22,11 +22,7 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
   } = useReviewResultItems(jobId, undefined, filter);
   
   if (isLoadingRoot) {
-    return (
-      <div className="flex justify-center items-center py-10">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <TreeSkeleton nodes={3} />;
   }
   
   if (isErrorRoot) {

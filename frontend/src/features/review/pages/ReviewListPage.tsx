@@ -8,7 +8,7 @@ import { HiPlus, HiDocumentText } from 'react-icons/hi';
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { reviewJobs, revalidate } = useReviewJobs(1, 10, 'createdAt', 'desc');
+  const { reviewJobs, revalidate, isLoading } = useReviewJobs(1, 10, 'createdAt', 'desc');
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
@@ -43,7 +43,7 @@ export const ReviewListPage: React.FC = () => {
         </Button>
       </div>
 
-      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} revalidate={revalidate} />
+      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} revalidate={revalidate} isLoading={isLoading} />
     </div>
   );
 };

@@ -8,9 +8,9 @@ import { useReviewJobs } from '../hooks/useReviewJobs';
 import ReviewResultTree from '../components/ReviewResultTree';
 import ReviewResultFilter, { FilterType } from '../components/ReviewResultFilter';
 import Button from '../../../components/Button';
-import Spinner from '../../../components/Spinner';
 import { ErrorAlert } from '../../../components/ErrorAlert';
 import Slider from '../../../components/Slider';
+import { DetailSkeleton } from '../../../components/Skeleton';
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,11 +51,7 @@ export default function ReviewDetailPage() {
   
   // ローディング中の表示
   if (isLoadingJobs) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <DetailSkeleton lines={8} />;
   }
   
   // 審査ジョブが見つからない場合

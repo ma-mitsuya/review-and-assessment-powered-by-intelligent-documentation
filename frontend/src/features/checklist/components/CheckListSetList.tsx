@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { CheckListSetListProps } from "../types";
+import { TableSkeleton } from "../../../components/Skeleton";
 
 /**
  * チェックリストセット一覧コンポーネント
@@ -27,11 +28,7 @@ export default function CheckListSetList({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-fastPulse rounded-full h-12 w-12 border-t-2 border-b-2 border-aws-sea-blue-light"></div>
-      </div>
-    );
+    return <TableSkeleton rows={5} columns={4} />;
   }
 
   if (error) {

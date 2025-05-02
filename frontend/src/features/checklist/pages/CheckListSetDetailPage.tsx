@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCheckListItemHierarchy, useCheckListSetActions } from '../hooks/useCheckListSets';
 import CheckListViewer from '../components/CheckListViewer';
 import { useToast } from '../../../contexts/ToastContext';
+import { DetailSkeleton } from '../../../components/Skeleton';
 
 /**
  * チェックリストセット詳細ページ
@@ -29,11 +30,7 @@ export function CheckListSetDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-fastPulse rounded-full h-12 w-12 border-t-2 border-b-2 border-aws-sea-blue-light"></div>
-      </div>
-    );
+    return <DetailSkeleton lines={6} />;
   }
 
   if (isError) {

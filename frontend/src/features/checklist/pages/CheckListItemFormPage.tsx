@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCheckListItem, useCheckListItems, createCheckListItem, updateCheckListItem } from '../hooks/useCheckListItems';
+import { useCheckListItem, useCheckListItems, useCheckListItemMutations } from '../hooks/useCheckListItems';
 import { useCheckListSet } from '../hooks/useCheckListSets';
 import { CheckListItem } from '../types';
 
