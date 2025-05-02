@@ -137,13 +137,13 @@ export default function ReviewResultItem({
   return (
     <>
       <div className={`bg-white border ${isBelowThreshold ? 'border-yellow border-2' : 'border-light-gray'} rounded-md p-4 hover:bg-aws-paper-light transition-colors ${isBelowThreshold ? 'bg-light-yellow' : ''}`}>
-        <div className="flex justify-between items-start">
-          <div className="flex items-start">
-            {/* 展開/折りたたみボタン - チェックリストコンポーネントと同様 */}
+        <div className="grid grid-cols-[auto_1fr_auto] gap-4">
+          {/* 展開/折りたたみボタン - 1列目 */}
+          <div className="pt-1">
             {hasChildren && (
               <button 
                 onClick={onToggleExpand}
-                className="mr-2 text-aws-font-color-gray hover:text-aws-squid-ink-light transition-colors"
+                className="text-aws-font-color-gray hover:text-aws-squid-ink-light transition-colors"
                 disabled={isLoadingChildren}
               >
                 {isExpanded ? (
@@ -157,51 +157,52 @@ export default function ReviewResultItem({
                 )}
               </button>
             )}
-            
-            {/* 項目情報 */}
-            <div className="flex-1">
-              <div className="font-medium text-aws-squid-ink-light flex items-center">
-                {result.check_list.name}
-                <div className="ml-2">
-                  {renderStatusBadge()}
-                  {renderUserOverrideBadge()}
-                </div>
-              </div>
-              
-              <p className="text-sm text-aws-font-color-gray mt-1">
-                {result.check_list.description || '説明なし'}
-              </p>
-              
-              {/* 説明文と抽出テキスト */}
-              {(result.explanation || result.extracted_text || result.user_comment) && (
-                <div className="mt-3 space-y-3">
-                  {result.explanation && (
-                    <div className="bg-aws-paper-light rounded p-3 text-sm">
-                      <p className="font-medium text-aws-squid-ink-light mb-1">AI判断:</p>
-                      <p className="text-aws-font-color-gray">{result.explanation}</p>
-                    </div>
-                  )}
-                  
-                  {result.extracted_text && (
-                    <div className="bg-aws-paper-light rounded p-3 text-sm">
-                      <p className="font-medium text-aws-squid-ink-light mb-1">抽出テキスト:</p>
-                      <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extracted_text}</p>
-                    </div>
-                  )}
-                  
-                  {/* ユーザーコメント */}
-                  {result.user_comment && (
-                    <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
-                      <p className="font-medium text-aws-squid-ink-light mb-1">ユーザーコメント:</p>
-                      <p className="text-aws-font-color-gray">{result.user_comment}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
           
-          <div className="flex flex-col items-end space-y-2">
+          {/* 項目情報 - 2列目 */}
+          <div>
+            <div className="font-medium text-aws-squid-ink-light flex items-center">
+              {result.check_list.name}
+              <div className="ml-2">
+                {renderStatusBadge()}
+                {renderUserOverrideBadge()}
+              </div>
+            </div>
+            
+            <p className="text-sm text-aws-font-color-gray mt-1">
+              {result.check_list.description || '説明なし'}
+            </p>
+            
+            {/* 説明文と抽出テキスト */}
+            {(result.explanation || result.extracted_text || result.user_comment) && (
+              <div className="mt-3 grid grid-cols-1 gap-3">
+                {result.explanation && (
+                  <div className="bg-aws-paper-light rounded p-3 text-sm">
+                    <p className="font-medium text-aws-squid-ink-light mb-1">AI判断:</p>
+                    <p className="text-aws-font-color-gray">{result.explanation}</p>
+                  </div>
+                )}
+                
+                {result.extracted_text && (
+                  <div className="bg-aws-paper-light rounded p-3 text-sm">
+                    <p className="font-medium text-aws-squid-ink-light mb-1">抽出テキスト:</p>
+                    <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extracted_text}</p>
+                  </div>
+                )}
+                
+                {/* ユーザーコメント */}
+                {result.user_comment && (
+                  <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
+                    <p className="font-medium text-aws-squid-ink-light mb-1">ユーザーコメント:</p>
+                    <p className="text-aws-font-color-gray">{result.user_comment}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* 信頼度スコアと上書きボタン - 3列目 */}
+          <div className="flex flex-col items-end space-y-2 self-start">
             {renderConfidenceScore()}
             
             {/* 結果が確定している場合のみ上書きボタンを表示 */}
