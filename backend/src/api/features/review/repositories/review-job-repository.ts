@@ -65,27 +65,7 @@ export class ReviewJobRepository {
         },
       });
 
-      // チェックリスト項目を取得して審査結果を作成
-      const checkListSet = await tx.checkListSet.findUnique({
-        where: { id: params.checkListSetId },
-        include: { checkLists: true },
-      });
-
-      if (checkListSet) {
-        for (const checkList of checkListSet.checkLists) {
-          await tx.reviewResult.create({
-            data: {
-              id: generateId(),
-              reviewJobId: params.id,
-              checkId: checkList.id,
-              status: "pending",
-              userOverride: false,
-              createdAt: now,
-              updatedAt: now,
-            },
-          });
-        }
-      }
+      // 審査結果の作成はStep Functions側のprepareReview関数で行うため、ここでは行わない
 
       return job;
     });
