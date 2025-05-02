@@ -9,7 +9,6 @@ import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import FormTextArea from '../../../components/FormTextArea';
 import RadioGroup from '../../../components/RadioGroup';
-import { useToast } from '../../../contexts/ToastContext';
 import { HiCheck } from 'react-icons/hi';
 
 interface ReviewResultOverrideModalProps {
@@ -23,7 +22,6 @@ export default function ReviewResultOverrideModal({
   onClose,
   result
 }: ReviewResultOverrideModalProps) {
-  const { showToast } = useToast();
   const { updateReviewResult, isLoading } = useReviewResultActions();
   
   // フォーム状態
@@ -50,9 +48,14 @@ export default function ReviewResultOverrideModal({
   // 保存ハンドラー
   const handleSave = async () => {
     try {
-      // review_result_id から jobId を抽出する処理を修正
-      // 実際の実装ではAPIの仕様に合わせて適切に処理する必要がある
-      const jobId = result.review_job_id || result.review_result_id.split('-')[0];
+      // バックエンドから提供される review_job_id を使用
+      const jobId = result.review_job_id;
+      
+      // jobId が存在しない場合はエラー処理
+      if (!jobId) {
+        console.error('Review job ID is missing');
+        return;
+      }
       
       await updateReviewResult(
         jobId,
@@ -60,17 +63,9 @@ export default function ReviewResultOverrideModal({
         formData
       );
       
-      showToast({
-        title: '審査結果を更新しました',
-        type: 'success'
-      });
-      
       onClose();
     } catch (error) {
-      showToast({
-        title: '審査結果の更新に失敗しました',
-        type: 'error'
-      });
+      console.error('Failed to update review result:', error);
     }
   };
   

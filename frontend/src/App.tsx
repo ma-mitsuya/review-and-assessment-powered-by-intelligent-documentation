@@ -49,9 +49,6 @@ function App() {
                 <Route path="checklist" element={<CheckListPage />} />
                 <Route path="checklist/new" element={<CreateChecklistPage />} />
                 <Route path="checklist/:id" element={<CheckListSetDetailPage />} />
-                <Route path="checklist/:id/edit" element={<CheckListSetFormPage />} />
-                <Route path="checklist/:setId/items/new" element={<CheckListItemFormPage />} />
-                <Route path="checklist-items/:itemId/edit" element={<CheckListItemFormPage />} />
                 
                 {/* 審査関連のルート */}
                 <Route path="review" element={<ReviewListPage />} />

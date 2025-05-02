@@ -6,7 +6,6 @@ import { ReviewJobRepository } from "../repositories/review-job-repository";
 import {
   ReviewResultDto,
   ReviewResultItemDto,
-  ReviewResultHierarchyDto,
   UpdateReviewResultParams,
 } from "../types";
 import { getPrismaClient } from "../../../core/db";

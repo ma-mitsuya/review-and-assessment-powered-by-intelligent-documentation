@@ -3,6 +3,7 @@ import { ReviewJob } from '../types';
 import ReviewJobItem from './ReviewJobItem';
 import { useReviewJobActions } from '../hooks/useReviewJobActions';
 import { TableSkeleton } from '../../../components/Skeleton';
+import { HiEye, HiTrash, HiInformationCircle } from 'react-icons/hi';
 
 interface ReviewJobListProps {
   jobs: ReviewJob[];
@@ -39,9 +40,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
     return (
       <div className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm" role="alert">
         <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <HiInformationCircle className="h-6 w-6 mr-2" />
           <span>審査ジョブがありません。</span>
         </div>
       </div>
@@ -105,37 +104,14 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                     }}
                     className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <HiEye className="h-4 w-4 mr-1" />
                     詳細
                   </button>
                   <button
                     onClick={(e) => handleDelete(job.review_job_id, e)}
                     className="text-red hover:text-red flex items-center"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <HiTrash className="h-4 w-4 mr-1" />
                     削除
                   </button>
                 </div>
@@ -153,31 +129,31 @@ const renderStatusBadge = (status: ReviewJob['status']) => {
   switch (status) {
     case 'completed':
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
           完了
         </span>
       );
     case 'processing':
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
           処理中
         </span>
       );
     case 'pending':
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
           待機中
         </span>
       );
     case 'failed':
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
           失敗
         </span>
       );
     default:
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-gray">
           不明
         </span>
       );

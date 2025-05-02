@@ -71,13 +71,6 @@ export interface ReviewResultItemDto extends ReviewResultDto {
 }
 
 /**
- * 審査結果階層構造
- */
-export interface ReviewResultHierarchyDto extends ReviewResultDto {
-  children: ReviewResultHierarchyDto[];
-}
-
-/**
  * 審査ジョブ一覧取得パラメータ
  */
 export interface GetReviewJobsParams {

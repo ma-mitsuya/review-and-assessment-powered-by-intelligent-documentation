@@ -59,6 +59,7 @@ export interface ReviewJobSummary {
  */
 export interface ReviewResultItem {
   review_result_id: string;
+  review_job_id: string;  // 追加: 審査ジョブID
   check_id: string;
   status: string;
   result: string | null;
@@ -84,6 +85,7 @@ export interface ReviewResultItem {
  */
 export interface ReviewResult {
   review_result_id: string;
+  review_job_id: string;  // 追加: 審査ジョブID
   check_id: string;
   status: string;
   result: string | null;

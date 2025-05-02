@@ -32,6 +32,7 @@ export const getReviewResultItemsSchema: FastifySchema = {
             type: "object",
             properties: {
               review_result_id: { type: "string" },
+              review_job_id: { type: "string" },  // 追加: 審査ジョブID
               check_id: { type: "string" },
               status: { type: "string" },
               result: { type: ["string", "null"] },

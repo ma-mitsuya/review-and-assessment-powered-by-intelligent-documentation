@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import { CheckListItem } from '../types';
-import { useCheckListItemMutations } from '../hooks/useCheckListItems';
+import { updateCheckListItem } from '../hooks/useCheckListItems';
 
 type CheckListItemEditModalProps = {
   isOpen: boolean;
@@ -30,8 +30,6 @@ export default function CheckListItemEditModal({
   console.log('チェックリスト項目編集モーダル - 項目ID:', item.check_id);
   console.log('チェックリスト項目編集モーダル - セットID:', checkListSetId);
   console.log('チェックリスト項目編集モーダル - 項目タイプ:', item.item_type);
-  
-  const { updateCheckListItem } = useCheckListItemMutations(checkListSetId);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -61,7 +59,7 @@ export default function CheckListItemEditModal({
         }
       });
       
-      await updateCheckListItem(item.check_id, {
+      await updateCheckListItem(checkListSetId, item.check_id, {
         name: formData.name,
         description: formData.description,
       });

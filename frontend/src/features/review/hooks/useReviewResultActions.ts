@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { mutate } from 'swr';
 import useHttp from '../../../hooks/useHttp';
 import { UpdateReviewResultParams, ApiResponse } from '../types';
-import { getReviewResultHierarchyKey } from './useReviewResultHierarchy';
+import { getReviewResultItemsKey } from './useReviewResultItems';
 
 export function useReviewResultActions() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,8 +23,10 @@ export function useReviewResultActions() {
     try {
       const response = await http.put<ApiResponse<any>>(`/review-jobs/${jobId}/results/${resultId}`, params);
       
-      // キャッシュを無効化
-      mutate(getReviewResultHierarchyKey(jobId));
+      // 項目一覧のキャッシュを無効化
+      mutate(getReviewResultItemsKey(jobId));
+      // 親階層のキャッシュも無効化（親項目がある場合）
+      mutate((key) => typeof key === 'string' && key.startsWith(`/review-jobs/${jobId}/results/items`));
       
       return response.data.data;
     } catch (err) {

@@ -1,6 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useCheckListItemHierarchy, useCheckListSetActions } from '../hooks/useCheckListSets';
 import CheckListViewer from '../components/CheckListViewer';
+import CheckListItemAddModal from '../components/CheckListItemAddModal';
 import { useToast } from '../../../contexts/ToastContext';
 import { DetailSkeleton } from '../../../components/Skeleton';
 
@@ -11,7 +13,8 @@ export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { hierarchyItems, isError, isLoading } = useCheckListItemHierarchy(id);
+  const { hierarchyItems, isError, isLoading, mutate } = useCheckListItemHierarchy(id);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -61,15 +64,6 @@ export function CheckListSetDetailPage() {
           <p className="text-aws-font-color-gray mt-2">チェックリスト項目: {hierarchyItems.length}件</p>
         </div>
         <div className="flex space-x-3">
-          <Link
-            to={`/checklist/${id}/edit`}
-            className="bg-aws-aqua hover:bg-aws-sea-blue-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-            </svg>
-            編集
-          </Link>
           <button
             onClick={handleDelete}
             className="bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
@@ -109,17 +103,33 @@ export function CheckListSetDetailPage() {
         )}
         
         <div className="mt-6 flex justify-end">
-          <Link
-            to={`/checklist/${id}/items/new`}
+          <button
+            onClick={() => setIsAddModalOpen(true)}
             className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             チェック項目を追加
-          </Link>
+          </button>
         </div>
       </div>
+
+      {isAddModalOpen && (
+        <CheckListItemAddModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          checkListSetId={id || ''}
+          hierarchyItems={hierarchyItems}
+          onSuccess={() => {
+            // 追加成功時にデータを再取得
+            if (id) {
+              mutate();
+              addToast('チェックリスト項目を追加しました', 'success');
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

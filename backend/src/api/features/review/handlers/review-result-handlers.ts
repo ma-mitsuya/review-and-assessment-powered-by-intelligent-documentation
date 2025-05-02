@@ -29,6 +29,7 @@ export async function getReviewResultItemsHandler(
       // レスポンス形式に変換
       const formattedData = items.map(item => ({
         review_result_id: item.id,
+        review_job_id: item.reviewJobId,  // 追加: 審査ジョブIDをレスポンスに含める
         check_id: item.checkId,
         status: item.status,
         result: item.result,
