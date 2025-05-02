@@ -10,6 +10,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 import { Construct } from "constructs";
 import { DatabaseConnectionProps } from "./prisma-function";
+import { Auth } from "./auth";
 
 /**
  * API Constructのプロパティ
@@ -18,6 +19,7 @@ export interface ApiProps {
   vpc: ec2.IVpc;
   databaseConnection: DatabaseConnectionProps;
   environment?: { [key: string]: string };
+  auth: Auth; // Authインスタンスを追加
 }
 
 /**
@@ -26,9 +28,7 @@ export interface ApiProps {
 export class Api extends Construct {
   public readonly apiLambda: lambda.DockerImageFunction;
   public readonly api: apigateway.RestApi;
-  public readonly apiKey: apigateway.ApiKey;
-  public readonly usagePlan: apigateway.UsagePlan;
-  public readonly securityGroup: ec2.SecurityGroup; // 追加
+  public readonly securityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
@@ -73,6 +73,10 @@ export class Api extends Construct {
         // Aurora Serverless v2 cold start takes up to 15 seconds
         // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
         DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
+        // Cognito関連の環境変数を追加
+        COGNITO_USER_POOL_ID: props.auth.userPool.userPoolId,
+        COGNITO_CLIENT_ID: props.auth.client.userPoolClientId,
+        // AWS_REGIONは予約済み環境変数なので設定しない
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
@@ -154,47 +158,9 @@ export class Api extends Construct {
 
     // プロキシリソースの設定
     const proxyResource = this.api.root.addResource("{proxy+}");
-    proxyResource.addMethod("ANY", lambdaIntegration, {
-      apiKeyRequired: true,
-    });
+    proxyResource.addMethod("ANY", lambdaIntegration);
 
-    // API Key の作成
-    this.apiKey = new apigateway.ApiKey(this, "BeaconApiKey", {
-      apiKeyName: "beacon-api-key",
-      description: "API Key for BEACON API",
-      enabled: true,
-    });
-
-    // 使用量プランの作成
-    this.usagePlan = new apigateway.UsagePlan(this, "BeaconUsagePlan", {
-      name: "BeaconUsagePlan",
-      description: "Usage plan for BEACON API",
-      apiStages: [
-        {
-          api: this.api,
-          stage: this.api.deploymentStage,
-        },
-      ],
-      throttle: {
-        rateLimit: 10,
-        burstLimit: 20,
-      },
-      quota: {
-        limit: 10000,
-        period: apigateway.Period.DAY,
-      },
-    });
-
-    // 使用量プランに API Key を追加
-    this.usagePlan.addApiKey(this.apiKey);
-
-    // API Key 取得コマンドの出力
-    new cdk.CfnOutput(this, "ApiKeyCommand", {
-      value: `aws apigateway get-api-key --api-key ${
-        this.apiKey.keyId
-      } --include-value --region ${cdk.Stack.of(this).region}`,
-      description: "Command to get the API Key value",
-    });
+    // API Key関連のコードを削除
 
     // API URL の出力
     new cdk.CfnOutput(this, "ApiUrl", {

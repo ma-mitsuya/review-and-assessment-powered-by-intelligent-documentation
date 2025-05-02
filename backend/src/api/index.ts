@@ -5,12 +5,30 @@ import { createApp } from "./core/app";
 import { registerChecklistRoutes } from "./features/checklist";
 import { registerDocumentRoutes } from "./features/document";
 import { registerReviewRoutes } from "./features/review";
+import { authMiddleware } from "./core/middleware/auth";
 
 /**
  * アプリケーションを起動する
  */
 async function startApp() {
   const app = createApp();
+
+  // 認証ミドルウェアをデコレータとして登録
+  app.decorate('auth', (request: any, reply: any) => authMiddleware(request, reply));
+
+  // 認証が不要なパスのリスト
+  const publicPaths = ['/health', '/api/health'];
+
+  // グローバルなpreHandlerフックを追加して、すべてのルートに認証を適用
+  app.addHook('preHandler', async (request, reply) => {
+    // 公開パスの場合は認証をスキップ
+    if (publicPaths.some(path => request.url.startsWith(path))) {
+      return;
+    }
+    
+    // それ以外は認証を実行
+    await authMiddleware(request, reply);
+  });
 
   // ルートの登録
   registerChecklistRoutes(app);

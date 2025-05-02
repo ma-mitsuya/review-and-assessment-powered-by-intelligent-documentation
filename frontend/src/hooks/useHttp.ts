@@ -1,13 +1,10 @@
 import useSWR, { SWRConfiguration, Fetcher } from "swr";
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE =
   import.meta.env.VITE_APP_API_ENDPOINT || "http://localhost:3000";
 
 const API_ENDPOINT = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
-
-// TODO: remove api key
-const API_KEY =
-  import.meta.env.VITE_X_API_KEY || "QKdsxVfDQv3PwixITtrvo6rdExMZJiYG6iFtZYJv";
 
 // Define a response interface similar to AxiosResponse
 interface FetchResponse<T = any> {
@@ -18,21 +15,14 @@ interface FetchResponse<T = any> {
 }
 
 // Helper function to attach auth token to fetch requests
-const getAuthHeaders = async () => {
+const getAuthHeaders = async (getIdToken: () => Promise<string | null>) => {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
 
-  // const session = await fetchAuthSession();
-  // const idToken = session.tokens?.idToken;
-  const idToken = "dummy";
-  const apiKey = API_KEY;
-
-  if (idToken) {
-    headers["Authorization"] = `Bearer ${idToken.toString()}`;
-  }
-  if (apiKey) {
-    headers["x-api-key"] = apiKey.toString();
+  const token = await getIdToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   return headers;
@@ -41,6 +31,11 @@ const getAuthHeaders = async () => {
 // Helper function to handle fetch responses
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
+    // 401エラーの場合は認証エラーとして処理
+    if (response.status === 401) {
+      throw new Error('認証エラー: ログインが必要です');
+    }
+    
     const errorData = await response.json().catch(() => ({}));
     const error = new Error(errorData.message || response.statusText);
     throw Object.assign(error, {
@@ -53,44 +48,42 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json();
 };
 
-// Define the custom fetcher types
-type StringFetcher = Fetcher<any, string>;
-type ParamsFetcher = Fetcher<any, [string, Record<string, any>]>;
-
-// Basic fetcher for SWR - properly typed
-const fetcher: StringFetcher = async (url: string) => {
-  const headers = await getAuthHeaders();
-  const response = await fetch(`${API_ENDPOINT}${url}`, { headers });
-  return handleResponse(response);
-};
-
-// Fetcher with params for SWR - properly typed
-const fetchWithParams: ParamsFetcher = async ([url, params]: [
-  string,
-  Record<string, any>
-]) => {
-  const headers = await getAuthHeaders();
-  const queryParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      queryParams.append(key, String(value));
-    }
-  });
-
-  const queryString = queryParams.toString();
-  const fullUrl = `${API_ENDPOINT}${url}${
-    queryString ? `?${queryString}` : ""
-  }`;
-
-  const response = await fetch(fullUrl, { headers });
-  return handleResponse(response);
-};
-
 /**
  * Hooks for Http Request using fetch API
  */
 const useHttp = () => {
+  const { getIdToken } = useAuth();
+  
+  // Define the custom fetcher types
+  const fetcher: Fetcher<any, string> = async (url: string) => {
+    const headers = await getAuthHeaders(getIdToken);
+    const response = await fetch(`${API_ENDPOINT}${url}`, { headers });
+    return handleResponse(response);
+  };
+
+  // Fetcher with params for SWR
+  const fetchWithParams: Fetcher<any, [string, Record<string, any>]> = async ([url, params]: [
+    string,
+    Record<string, any>
+  ]) => {
+    const headers = await getAuthHeaders(getIdToken);
+    const queryParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const queryString = queryParams.toString();
+    const fullUrl = `${API_ENDPOINT}${url}${
+      queryString ? `?${queryString}` : ""
+    }`;
+
+    const response = await fetch(fullUrl, { headers });
+    return handleResponse(response);
+  };
+
   return {
     /**
      * GET Request with SWR - Simple string URL version
@@ -119,7 +112,7 @@ const useHttp = () => {
       errorProcess?: (err: any) => void
     ): Promise<FetchResponse<RES>> => {
       try {
-        const headers = await getAuthHeaders();
+        const headers = await getAuthHeaders(getIdToken);
         const queryParams = new URLSearchParams();
 
         if (params) {
@@ -162,7 +155,7 @@ const useHttp = () => {
       errorProcess?: (err: any) => void
     ): Promise<FetchResponse<RES>> => {
       try {
-        const headers = await getAuthHeaders();
+        const headers = await getAuthHeaders(getIdToken);
         const response = await fetch(`${API_ENDPOINT}${url}`, {
           method: "POST",
           headers,
@@ -192,7 +185,7 @@ const useHttp = () => {
       errorProcess?: (err: any) => void
     ): Promise<FetchResponse<RES>> => {
       try {
-        const headers = await getAuthHeaders();
+        const headers = await getAuthHeaders(getIdToken);
         const response = await fetch(`${API_ENDPOINT}${url}`, {
           method: "PUT",
           headers,
@@ -222,7 +215,7 @@ const useHttp = () => {
       errorProcess?: (err: any) => void
     ): Promise<FetchResponse<RES>> => {
       try {
-        const headers = await getAuthHeaders();
+        const headers = await getAuthHeaders(getIdToken);
         const queryParams = new URLSearchParams();
 
         if (params) {
@@ -268,7 +261,7 @@ const useHttp = () => {
       errorProcess?: (err: any) => void
     ): Promise<FetchResponse<RES>> => {
       try {
-        const headers = await getAuthHeaders();
+        const headers = await getAuthHeaders(getIdToken);
         const response = await fetch(`${API_ENDPOINT}${url}`, {
           method: "PATCH",
           headers,

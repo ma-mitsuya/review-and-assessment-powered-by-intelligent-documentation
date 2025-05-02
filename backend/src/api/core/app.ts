@@ -43,6 +43,16 @@ export function createApp(): FastifyInstance {
   app.get('/health', async (_, reply) => {
     reply.code(200).send({ status: 'ok' });
   });
+
+  // 認証情報確認エンドポイント
+  app.get('/auth/me', async (request, reply) => {
+    reply.code(200).send({ 
+      success: true, 
+      data: { 
+        user: request.user 
+      } 
+    });
+  });
   
   return app;
 }

@@ -112,6 +112,9 @@ export class BeaconStack extends cdk.Stack {
       databaseConnection: database.connection,
     });
 
+    // Auth構成の作成
+    const auth = new Auth(this, "Auth", {});
+
     // API Gatewayとそれに紐づくLambda関数の作成
     const api = new Api(this, "Api", {
       vpc,
@@ -123,6 +126,7 @@ export class BeaconStack extends cdk.Stack {
         REVIEW_PROCESSING_STATE_MACHINE_ARN:
           reviewProcessor.stateMachine.stateMachineArn,
       },
+      auth: auth, // Authインスタンスを渡す
     });
 
     // データベース接続権限の付与
@@ -148,7 +152,6 @@ export class BeaconStack extends cdk.Stack {
       // hostedZoneId: props.hostedZoneId,
     });
 
-    const auth = new Auth(this, "Auth", {});
     frontend.buildViteApp({
       backendApiEndpoint: api.api.url,
       userPoolDomainPrefix: "",
@@ -198,11 +201,6 @@ export class BeaconStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.api.url,
       description: "BEACON API URL",
-    });
-
-    new cdk.CfnOutput(this, "ApiKeyCommand", {
-      value: `aws apigateway get-api-key --api-key ${api.apiKey.keyId} --include-value --region ${this.region}`,
-      description: "API Keyを取得するためのコマンド",
     });
 
     new cdk.CfnOutput(this, "DatabaseEndpoint", {

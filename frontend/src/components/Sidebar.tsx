@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import iconImage from '../assets/icon.png';
-import { HiX, HiMenu, HiCheck, HiDocumentText, HiInformationCircle } from 'react-icons/hi';
+import { HiX, HiMenu, HiCheck, HiDocumentText, HiInformationCircle, HiLogout, HiUser } from 'react-icons/hi';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * サイドバーコンポーネント
@@ -10,6 +11,7 @@ import { HiX, HiMenu, HiCheck, HiDocumentText, HiInformationCircle } from 'react
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { signOut, user } = useAuth();
 
   // 現在のパスに基づいてアクティブなメニュー項目を判定
   const isActive = (path: string) => {
@@ -19,6 +21,11 @@ export default function Sidebar() {
   // サイドバーの開閉を切り替える
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+  };
+
+  // ログアウト処理
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -82,6 +89,22 @@ export default function Sidebar() {
           </nav>
           
           <div className="absolute bottom-0 left-0 right-0 p-6">
+            {/* ユーザーメニュー */}
+            {user && (
+              <div className="mb-4 border-t border-aws-font-color-white-light border-opacity-20 pt-4">
+                <div className="flex items-center mb-2">
+                  <HiUser className="h-5 w-5 mr-2" />
+                  <span className="text-sm truncate">{user.username || user.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-2 text-sm rounded-md hover:bg-aws-sea-blue-hover-light transition-colors"
+                >
+                  <HiLogout className="h-4 w-4 mr-2" />
+                  ログアウト
+                </button>
+              </div>
+            )}
             <div className="flex items-center text-sm text-aws-font-color-white-light opacity-75">
               <HiInformationCircle className="h-4 w-4 mr-2" />
               v1.0.0
