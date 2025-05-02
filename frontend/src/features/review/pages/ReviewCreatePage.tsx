@@ -6,7 +6,7 @@ import FormTextField from "../../../components/FormTextField";
 import FormFileUpload from "../../../components/FormFileUpload";
 import ChecklistSelector from "../components/ChecklistSelector";
 import ComparisonIndicator from "../components/ComparisonIndicator";
-import { useReviewCreation } from "../hooks/useReviewCreation";
+import { useReviewJobs } from "../hooks/useReviewJobs";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { useCheckListSets } from "../../checklist/hooks/useCheckListSets";
 import { CheckListSet } from "../../checklist/types";
@@ -33,10 +33,10 @@ export const ReviewCreatePage: React.FC = () => {
 
   // 審査ジョブ作成フック
   const {
-    createReviewJob,
-    isCreating,
+    createJob,
+    isSubmitting,
     error: createError,
-  } = useReviewCreation();
+  } = useReviewJobs();
 
   // ドキュメントアップロードフック
   const {
@@ -169,7 +169,7 @@ export const ReviewCreatePage: React.FC = () => {
 
     try {
       // 審査ジョブを作成
-      const result = await createReviewJob({
+      const result = await createJob({
         name: jobName,
         document: uploadedDocuments?.[0], // 審査では1ファイルのみ
         checkListSetId: selectedChecklist.check_list_set_id,
@@ -273,9 +273,9 @@ export const ReviewCreatePage: React.FC = () => {
             <Button
               variant="primary"
               type="submit"
-              disabled={!isReady || isCreating || isUploading}
+              disabled={!isReady || isSubmitting || isUploading}
             >
-              {(isCreating || isUploading) ? (
+              {(isSubmitting || isUploading) ? (
                 <>
                   <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
                     <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white"></div>

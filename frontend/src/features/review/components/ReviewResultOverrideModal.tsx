@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import { ReviewResultHierarchy, UpdateReviewResultParams } from '../types';
-import { useReviewResultActions } from '../hooks/useReviewResultActions';
+import { useReviewResults } from '../hooks/useReviewResults';
 import { REVIEW_RESULT } from '../constants';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
@@ -22,7 +22,7 @@ export default function ReviewResultOverrideModal({
   onClose,
   result
 }: ReviewResultOverrideModalProps) {
-  const { updateReviewResult, isLoading } = useReviewResultActions();
+  const { updateResult, isSubmitting } = useReviewResults(result.review_job_id);
   
   // フォーム状態
   const [formData, setFormData] = useState<UpdateReviewResultParams>({
@@ -57,7 +57,7 @@ export default function ReviewResultOverrideModal({
         return;
       }
       
-      await updateReviewResult(
+      await updateResult(
         jobId,
         result.review_result_id,
         formData
@@ -132,14 +132,14 @@ export default function ReviewResultOverrideModal({
           <Button
             onClick={onClose}
             variant="secondary"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
             キャンセル
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isLoading}
-            loading={isLoading}
+            disabled={isSubmitting}
+            loading={isSubmitting}
             icon={<HiCheck className="h-5 w-5" />}
           >
             保存

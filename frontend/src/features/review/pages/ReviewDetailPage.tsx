@@ -26,7 +26,7 @@ export default function ReviewDetailPage() {
   const { 
     reviewJobs, 
     isLoading: isLoadingJobs, 
-    mutate: refreshJobs 
+    revalidate 
   } = useReviewJobs();
   
   const currentJob = reviewJobs?.find(job => job.review_job_id === id);
@@ -34,9 +34,9 @@ export default function ReviewDetailPage() {
   // コンポーネントマウント時に明示的にデータを取得
   useEffect(() => {
     if (id) {
-      refreshJobs();
+      revalidate();
     }
-  }, [id, refreshJobs]);
+  }, [id, revalidate]);
   
   // フィルタリング状態が変更されたときの処理
   const handleFilterChange = (newFilter: FilterType) => {
