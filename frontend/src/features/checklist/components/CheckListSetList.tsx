@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { CheckListSetListProps } from "../types";
 import { TableSkeleton } from "../../../components/Skeleton";
-import { HiEye, HiPencil, HiTrash, HiExclamationCircle, HiInformationCircle } from 'react-icons/hi';
+import {
+  HiEye,
+  HiPencil,
+  HiTrash,
+  HiExclamationCircle,
+  HiInformationCircle,
+} from "react-icons/hi";
 
 /**
  * チェックリストセット一覧コンポーネント
@@ -166,13 +172,6 @@ export default function CheckListSetList({
                     >
                       <HiEye className="h-4 w-4 mr-1" />
                       詳細
-                    </Link>
-                    <Link
-                      to={`/checklist/${set.check_list_set_id}/edit`}
-                      className="text-aws-aqua hover:text-aws-sea-blue-light flex items-center"
-                    >
-                      <HiPencil className="h-4 w-4 mr-1" />
-                      編集
                     </Link>
                     <button
                       className="text-red hover:text-red flex items-center"
