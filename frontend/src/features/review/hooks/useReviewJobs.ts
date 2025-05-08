@@ -6,6 +6,7 @@ import {
   ReviewJob, 
   CreateReviewJobParams 
 } from '../types';
+import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 
 /**
  * 審査ジョブ一覧のキャッシュキーを生成する関数
@@ -57,12 +58,26 @@ export const useReviewJobs = (
   const revalidate = () => refetch();
   
   // 審査ジョブの作成
-  const createJob = async (params: CreateReviewJobParams): Promise<ReviewJob> => {
+  const createJob = async (params: {
+    name: string;
+    document: DocumentUploadResult;
+    checkListSetId: string;
+  }): Promise<ReviewJob> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', params);
+      // バックエンドが期待する形式に変換
+      const requestBody = {
+        name: params.name,
+        documentId: params.document.documentId,
+        checkListSetId: params.checkListSetId,
+        filename: params.document.filename,
+        s3Key: params.document.s3Key,
+        fileType: params.document.fileType
+      };
+      
+      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', requestBody);
       
       // キャッシュを更新
       mutate(getReviewJobsKey());

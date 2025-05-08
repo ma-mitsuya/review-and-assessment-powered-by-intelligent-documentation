@@ -68,6 +68,7 @@ export const useCheckListItemHierarchy = (setId: string | null) => {
 
 /**
  * チェックリストセット詳細を取得するためのフック
+ * 編集可否情報を含む
  */
 export const useCheckListSet = (id: string | null) => {
   const http = useHttp();
@@ -78,10 +79,15 @@ export const useCheckListSet = (id: string | null) => {
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
 
+  // isEditable フラグを追加
+  const isEditable = data?.data?.is_editable !== false;
+
   return {
     checkListSet: data?.data,
+    data: data?.data, // 互換性のために追加
     isLoading,
     isError: error,
+    isEditable, // 追加
     mutate,
     revalidate,
   };

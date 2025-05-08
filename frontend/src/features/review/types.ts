@@ -119,9 +119,9 @@ export interface CreateReviewJobParams {
   name: string;
   documentId: string;
   checkListSetId: string;
-  filename?: string;
-  s3Key?: string;
-  fileType?: string;
+  filename: string;
+  s3Key: string;
+  fileType: string;
 }
 
 /**

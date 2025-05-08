@@ -1,10 +1,11 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useCheckListItemHierarchy, useCheckListSetActions } from '../hooks/useCheckListSets';
+import { useCheckListItemHierarchy, useCheckListSetActions, useCheckListSet } from '../hooks/useCheckListSets';
 import CheckListViewer from '../components/CheckListViewer';
 import CheckListItemAddModal from '../components/CheckListItemAddModal';
 import { useToast } from '../../../contexts/ToastContext';
 import { DetailSkeleton } from '../../../components/Skeleton';
+import { HiExclamationCircle } from 'react-icons/hi';
 
 /**
  * チェックリストセット詳細ページ
@@ -14,10 +15,17 @@ export function CheckListSetDetailPage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { hierarchyItems, isError, isLoading, mutate } = useCheckListItemHierarchy(id);
+  const { data: checkListSet, isLoading: isLoadingSet, isEditable } = useChecklistSet(id || null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
+    
+    // 編集不可の場合は削除できない
+    if (!isEditable) {
+      addToast('このチェックリストセットは審査ジョブに紐づいているため削除できません', 'error');
+      return;
+    }
     
     if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
       try {
@@ -32,7 +40,7 @@ export function CheckListSetDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingSet) {
     return <DetailSkeleton lines={6} />;
   }
 
@@ -50,8 +58,29 @@ export function CheckListSetDetailPage() {
     );
   }
 
+  // 編集不可の場合の警告メッセージ
+  const renderEditabilityWarning = () => {
+    if (!isEditable) {
+      return (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-md mb-6">
+          <div className="flex items-center text-amber-700">
+            <HiExclamationCircle className="w-5 h-5 mr-2" />
+            <span className="font-medium">このチェックリストセットは審査ジョブに紐づいているため編集できません</span>
+          </div>
+          <p className="mt-2 text-amber-600 text-sm">
+            編集が必要な場合は、このチェックリストセットを複製して新しいバージョンを作成してください。
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div>
+      {/* 編集可否の警告メッセージ */}
+      {renderEditabilityWarning()}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <Link to="/checklist" className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center mb-2">
@@ -66,7 +95,8 @@ export function CheckListSetDetailPage() {
         <div className="flex space-x-3">
           <button
             onClick={handleDelete}
-            className="bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
+            disabled={!isEditable}
+            className={`bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -105,7 +135,8 @@ export function CheckListSetDetailPage() {
         <div className="mt-6 flex justify-end">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
+            disabled={!isEditable}
+            className={`bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -115,7 +146,7 @@ export function CheckListSetDetailPage() {
         </div>
       </div>
 
-      {isAddModalOpen && (
+      {isAddModalOpen && isEditable && (
         <CheckListItemAddModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}

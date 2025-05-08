@@ -27,12 +27,27 @@ export interface ChecklistSetWithDocuments extends CheckListSet {
 }
 
 /**
+ * 編集可否情報付きチェックリストセット
+ */
+export interface ChecklistSetWithEditability extends CheckListSet {
+  isEditable: boolean;
+}
+
+/**
  * チェックリストセット作成パラメータ
  */
 export interface CreateChecklistSetParams {
   name: string;
   description?: string;
   documents: DocumentInfo[];
+}
+
+/**
+ * チェックリストセット更新パラメータ
+ */
+export interface UpdateChecklistSetParams {
+  name?: string;
+  description?: string;
 }
 
 /**
@@ -43,6 +58,46 @@ export class ChecklistSetRepository {
 
   constructor(prismaClient: PrismaClient = prisma) {
     this.prisma = prismaClient;
+  }
+
+  /**
+   * チェックリストセットに紐づく審査ジョブの有無を確認する
+   * @param setId チェックリストセットID
+   * @returns 審査ジョブが存在する場合はtrue、存在しない場合はfalse
+   */
+  async hasLinkedReviewJobs(setId: string): Promise<boolean> {
+    const count = await this.prisma.reviewJob.count({
+      where: { checkListSetId: setId }
+    });
+    console.log(`hasLinkedReviewJobs: setId=${setId}, count=${count}`);
+    return count > 0;
+  }
+
+  /**
+   * 審査ジョブが紐づいているチェックリストセットIDを一括取得
+   * @param setIds チェックリストセットIDの配列
+   * @returns 審査ジョブが紐づいているチェックリストセットIDの配列
+   */
+  async getSetIdsWithReviewJobs(setIds: string[]): Promise<string[]> {
+    if (setIds.length === 0) {
+      console.log('getSetIdsWithReviewJobs: No setIds provided, returning empty array');
+      return [];
+    }
+
+    console.log('getSetIdsWithReviewJobs: Checking setIds:', setIds);
+
+    const setsWithReviewJobs = await this.prisma.checkListSet.findMany({
+      where: {
+        id: { in: setIds },
+        reviewJobs: { some: {} }
+      },
+      select: { id: true }
+    });
+
+    const result = setsWithReviewJobs.map(set => set.id);
+    console.log('getSetIdsWithReviewJobs: Found sets with review jobs:', result);
+    
+    return result;
   }
 
   /**
@@ -122,6 +177,25 @@ export class ChecklistSetRepository {
       });
 
       return checkListSet;
+    });
+  }
+
+  /**
+   * チェックリストセットを更新する
+   * @param id チェックリストセットID
+   * @param params 更新パラメータ
+   * @returns 更新されたチェックリストセット
+   */
+  async updateChecklistSet(
+    id: string,
+    params: UpdateChecklistSetParams
+  ): Promise<CheckListSet> {
+    return this.prisma.checkListSet.update({
+      where: { id },
+      data: {
+        name: params.name,
+        description: params.description,
+      },
     });
   }
 

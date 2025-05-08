@@ -5,6 +5,7 @@ import { CheckListDocument } from "../../../core/db";
 import {
   ChecklistSetRepository,
   GetChecklistSetsParams as RepoGetChecklistSetsParams,
+  UpdateChecklistSetParams,
 } from "../repositories/checklist-set-repository";
 import { DocumentRepository } from "../../document/repositories/document-repository";
 import { startStateMachineExecution } from "../../../core/sfn";
@@ -48,6 +49,7 @@ export interface GetChecklistSetsResult {
     name: string;
     description: string | null;
     processing_status: "pending" | "in_progress" | "completed";
+    is_editable: boolean; // 必須フィールドとして定義
   }>;
   total: number;
 }
@@ -132,22 +134,66 @@ export class ChecklistSetService {
       this.repository.getChecklistSetsCount(),
     ]);
 
+    // チェックリストセットIDの配列を作成
+    const setIds = checklistSets.map(set => set.id);
+    
+    console.log('setIds:', setIds);
+    
+    // 審査ジョブが紐づいているセットIDを取得
+    const setIdsWithReviewJobs = await this.repository.getSetIdsWithReviewJobs(setIds);
+    const setIdsWithReviewJobsSet = new Set(setIdsWithReviewJobs);
+    
+    console.log('setIdsWithReviewJobs:', setIdsWithReviewJobs);
+    console.log('setIdsWithReviewJobsSet:', [...setIdsWithReviewJobsSet]);
+
     // 処理状態を計算してレスポンス形式に変換
     const checkListSets = checklistSets.map((set) => {
       const processingStatus = this.calculateProcessingStatus(set.documents);
+      // 明示的に true/false を設定
+      const isEditable = !setIdsWithReviewJobsSet.has(set.id);
+      
+      console.log(`Set ${set.id}: isEditable = ${isEditable}`);
 
       return {
         check_list_set_id: set.id,
         name: set.name,
         description: set.description,
         processing_status: processingStatus,
+        is_editable: isEditable, // 必ず明示的に設定
       };
     });
 
-    return {
+    const result = {
       checkListSets,
       total,
     };
+    
+    console.log('Final result structure:', Object.keys(result));
+    console.log('checkListSets sample:', result.checkListSets.length > 0 ? Object.keys(result.checkListSets[0]) : 'No items');
+    
+    return result;
+  }
+
+  /**
+   * チェックリストセットを更新する
+   * @param setId チェックリストセットID
+   * @param params 更新パラメータ
+   * @returns 更新されたチェックリストセット
+   * @throws 審査ジョブが紐づいている場合はエラー
+   */
+  async updateChecklistSet(
+    setId: string,
+    params: UpdateChecklistSetParams
+  ) {
+    // 編集可能かどうかを確認
+    const isEditable = await this.isChecklistSetEditable(setId);
+
+    if (!isEditable) {
+      throw new Error("LINKED_REVIEW_JOBS");
+    }
+
+    // チェックリストセットを更新
+    return this.repository.updateChecklistSet(setId, params);
   }
 
   /**
@@ -157,6 +203,13 @@ export class ChecklistSetService {
    * @throws エラーが発生した場合
    */
   async deleteChecklistSet(checklistSetId: string): Promise<boolean> {
+    // 編集可能かどうかを確認
+    const isEditable = await this.isChecklistSetEditable(checklistSetId);
+
+    if (!isEditable) {
+      throw new Error("LINKED_REVIEW_JOBS");
+    }
+
     // 関連するドキュメント情報を取得
     const documents =
       await this.documentRepository.getDocumentsByChecklistSetId(
@@ -184,6 +237,15 @@ export class ChecklistSetService {
     }
 
     return true;
+  }
+
+  /**
+   * チェックリストセットが編集可能かどうかを確認する
+   * @param setId チェックリストセットID
+   * @returns 編集可能な場合はtrue、不可能な場合はfalse
+   */
+  async isChecklistSetEditable(setId: string): Promise<boolean> {
+    return !(await this.repository.hasLinkedReviewJobs(setId));
   }
 
   /**

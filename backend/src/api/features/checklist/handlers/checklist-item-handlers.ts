@@ -208,6 +208,15 @@ export async function createChecklistItemHandler(
       });
       return;
     }
+
+    if (errorMessage === 'LINKED_REVIEW_JOBS') {
+      reply.code(400).send({
+        success: false,
+        error: 'このチェックリスト項目は審査ジョブに紐づいているチェックリストセットに属しているため編集できません',
+        code: 'LINKED_REVIEW_JOBS'
+      });
+      return;
+    }
     
     reply.code(500).send({
       success: false,
@@ -264,6 +273,15 @@ export async function updateChecklistItemHandler(
       });
       return;
     }
+
+    if (errorMessage === 'LINKED_REVIEW_JOBS') {
+      reply.code(400).send({
+        success: false,
+        error: 'このチェックリスト項目は審査ジョブに紐づいているチェックリストセットに属しているため編集できません',
+        code: 'LINKED_REVIEW_JOBS'
+      });
+      return;
+    }
     
     reply.code(500).send({
       success: false,
@@ -294,10 +312,20 @@ export async function deleteChecklistItemHandler(
   } catch (error) {
     request.log.error(error);
     
-    if ((error as Error).message === 'チェックリスト項目が見つかりません') {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === 'チェックリスト項目が見つかりません') {
       reply.code(404).send({
         success: false,
         error: 'チェックリスト項目が見つかりません'
+      });
+      return;
+    }
+
+    if (errorMessage === 'LINKED_REVIEW_JOBS') {
+      reply.code(400).send({
+        success: false,
+        error: 'このチェックリスト項目は審査ジョブに紐づいているチェックリストセットに属しているため削除できません',
+        code: 'LINKED_REVIEW_JOBS'
       });
       return;
     }

@@ -6,6 +6,7 @@ import { DocumentRepository } from '../../document/repositories/document-reposit
 import { ChecklistSetRepository } from '../repositories/checklist-set-repository';
 import { HierarchicalChecklistItem } from '../types/checklist-item-types';
 import { ulid } from 'ulid'; // ulid をインポート
+import { ChecklistSetService } from './checklist-set-service';
 
 /**
  * チェックリスト項目サービス
@@ -14,11 +15,13 @@ export class ChecklistItemService {
   private repository: ChecklistItemRepository;
   private documentRepository: DocumentRepository;
   private checklistSetRepository: ChecklistSetRepository;
+  private checklistSetService: ChecklistSetService;
 
   constructor() {
     this.repository = new ChecklistItemRepository();
     this.documentRepository = new DocumentRepository();
     this.checklistSetRepository = new ChecklistSetRepository();
+    this.checklistSetService = new ChecklistSetService();
   }
 
   /**
@@ -97,6 +100,23 @@ export class ChecklistItemService {
   }
 
   /**
+   * チェックリスト項目が属するセットが編集可能かどうかを確認する
+   * @param checkId チェックリスト項目ID
+   * @returns 編集可能な場合はtrue、不可能な場合はfalse
+   */
+  async isChecklistItemEditable(checkId: string): Promise<boolean> {
+    // チェックリスト項目を取得
+    const item = await this.repository.getChecklistItem(checkId);
+
+    if (!item) {
+      throw new Error('チェックリスト項目が見つかりません');
+    }
+
+    // チェックリストセットの編集可否を確認
+    return this.checklistSetService.isChecklistSetEditable(item.checkListSetId);
+  }
+
+  /**
    * チェックリスト項目を作成する
    * @param params 作成パラメータ
    * @param checkListSetId チェックリストセットID
@@ -109,6 +129,12 @@ export class ChecklistItemService {
     
     if (!checklistSet) {
       throw new Error('チェックリストセットが見つかりません');
+    }
+
+    // セットが編集可能かどうかを確認
+    const isEditable = await this.checklistSetService.isChecklistSetEditable(checkListSetId);
+    if (!isEditable) {
+      throw new Error('LINKED_REVIEW_JOBS');
     }
 
     // 親項目が指定されている場合、存在確認と同じドキュメントに紐づけるルールを適用
@@ -163,6 +189,12 @@ export class ChecklistItemService {
       throw new Error('チェックリスト項目が見つかりません');
     }
 
+    // 編集可能かどうかを確認
+    const isEditable = await this.isChecklistItemEditable(checkId);
+    if (!isEditable) {
+      throw new Error('LINKED_REVIEW_JOBS');
+    }
+
     // ドキュメントが指定されている場合、存在確認
     if (params.documentId) {
       const documentExists = await this.documentRepository.documentExists(params.documentId);
@@ -187,6 +219,12 @@ export class ChecklistItemService {
     const belongsToSet = await this.repository.checkItemBelongsToSet(checkId, checkListSetId);
     if (!belongsToSet) {
       throw new Error('チェックリスト項目が見つかりません');
+    }
+
+    // 編集可能かどうかを確認
+    const isEditable = await this.isChecklistItemEditable(checkId);
+    if (!isEditable) {
+      throw new Error('LINKED_REVIEW_JOBS');
     }
 
     // チェックリスト項目を削除

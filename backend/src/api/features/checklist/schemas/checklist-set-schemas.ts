@@ -75,7 +75,8 @@ export const getChecklistSetsSchema = {
                   check_list_set_id: { type: 'string' },
                   name: { type: 'string' },
                   description: { type: ['string', 'null'] },
-                  processing_status: { type: 'string', enum: ['pending', 'in_progress', 'completed'] }
+                  processing_status: { type: 'string', enum: ['pending', 'in_progress', 'completed'] },
+                  is_editable: { type: 'boolean' }
                 }
               }
             },

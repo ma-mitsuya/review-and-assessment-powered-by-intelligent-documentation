@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useCheckListItems } from '../hooks/useCheckListItems';
+import { useCheckListSet } from '../hooks/useCheckListSets';
 import { HierarchicalCheckListItem } from '../types';
+import { useToast } from '../../../contexts/ToastContext';
 
 type CheckListItemAddModalProps = {
   isOpen: boolean;
@@ -33,6 +35,11 @@ export default function CheckListItemAddModal({
     name: '',
     flowData: ''
   });
+  
+  const { addToast } = useToast();
+  
+  // チェックリストセットの編集可否を取得
+  const { isEditable } = useChecklistSet(checkListSetId);
   
   // コンポーネントのトップレベルでフックを呼び出す
   const { createItem } = useCheckListItems(checkListSetId);
@@ -95,6 +102,12 @@ export default function CheckListItemAddModal({
     
     if (!validate()) return;
     
+    // 編集不可の場合は処理を中断
+    if (!isEditable) {
+      addToast("このチェックリストセットは審査ジョブに紐づいているため編集できません", "error");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -103,7 +116,13 @@ export default function CheckListItemAddModal({
       onClose();
     } catch (error) {
       console.error('保存に失敗しました', error);
-      alert('チェックリスト項目の保存に失敗しました');
+      
+      // エラーメッセージの処理
+      if (error instanceof Error && error.message.includes('LINKED_REVIEW_JOBS')) {
+        addToast("このチェックリストセットは審査ジョブに紐づいているため編集できません", "error");
+      } else {
+        addToast('チェックリスト項目の保存に失敗しました', 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -126,6 +145,17 @@ export default function CheckListItemAddModal({
           </button>
         </div>
         
+        {!isEditable && (
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-md mb-4">
+            <div className="flex items-center text-amber-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">このチェックリストセットは審査ジョブに紐づいているため編集できません</span>
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className="block text-aws-squid-ink-light font-medium mb-2">
@@ -141,6 +171,7 @@ export default function CheckListItemAddModal({
                 errors.name ? 'border-red' : 'border-light-gray'
               }`}
               placeholder="チェック項目の名前"
+              disabled={!isEditable}
             />
             {errors.name && (
               <p className="mt-1 text-red text-sm">{errors.name}</p>
@@ -159,6 +190,7 @@ export default function CheckListItemAddModal({
               rows={3}
               className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
               placeholder="チェック項目の説明"
+              disabled={!isEditable}
             />
           </div>
           
@@ -172,6 +204,7 @@ export default function CheckListItemAddModal({
               value={formData.parentId}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
+              disabled={!isEditable}
             >
               <option value="">親項目なし（ルート項目）</option>
               {hierarchyItems.map(item => (
@@ -195,6 +228,7 @@ export default function CheckListItemAddModal({
                   checked={formData.itemType === 'simple'}
                   onChange={handleChange}
                   className="form-radio h-5 w-5 text-aws-sea-blue-light"
+                  disabled={!isEditable}
                 />
                 <span className="ml-2 text-aws-squid-ink-light">単純チェック</span>
               </label>
@@ -206,6 +240,7 @@ export default function CheckListItemAddModal({
                   checked={formData.itemType === 'flow'}
                   onChange={handleChange}
                   className="form-radio h-5 w-5 text-aws-sea-blue-light"
+                  disabled={!isEditable}
                 />
                 <span className="ml-2 text-aws-squid-ink-light">フローチェック</span>
               </label>
@@ -220,6 +255,7 @@ export default function CheckListItemAddModal({
                 checked={formData.isConclusion}
                 onChange={handleChange}
                 className="form-checkbox h-5 w-5 text-aws-sea-blue-light"
+                disabled={!isEditable}
               />
               <span className="ml-2 text-aws-squid-ink-light">結論項目</span>
             </label>
@@ -246,6 +282,7 @@ export default function CheckListItemAddModal({
                     errors.flowData ? 'border-red' : 'border-light-gray'
                   }`}
                   placeholder="例: 適合性判断、書類確認など"
+                  disabled={!isEditable}
                 />
                 {errors.flowData && (
                   <p className="mt-1 text-red text-sm">{errors.flowData}</p>
@@ -264,7 +301,7 @@ export default function CheckListItemAddModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isEditable}
               className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && (

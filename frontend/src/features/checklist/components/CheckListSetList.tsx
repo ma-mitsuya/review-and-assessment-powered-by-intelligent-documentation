@@ -20,7 +20,13 @@ export default function CheckListSetList({
   meta,
 }: CheckListSetListProps) {
   // チェックリストセットの削除処理
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string, isEditable: boolean) => {
+    // 編集不可の場合は削除できない
+    if (isEditable === false) {
+      alert("このチェックリストセットは審査ジョブに紐づいているため削除できません");
+      return;
+    }
+
     if (
       confirm(`チェックリストセット「${name}」を削除してもよろしいですか？`)
     ) {
@@ -144,8 +150,16 @@ export default function CheckListSetList({
                 className="hover:bg-aws-paper-light transition-colors"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-aws-squid-ink-light">
-                    {set.name}
+                  <div className="flex items-center">
+                    <div className="text-sm font-medium text-aws-squid-ink-light">
+                      {set.name}
+                    </div>
+                    {/* 編集不可の場合に警告アイコンを表示 */}
+                    {set.is_editable === false && (
+                      <div className="ml-2 text-amber-500">
+                        <HiExclamationCircle className="h-5 w-5" title="審査に使用中" />
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -174,10 +188,9 @@ export default function CheckListSetList({
                       詳細
                     </Link>
                     <button
-                      className="text-red hover:text-red flex items-center"
-                      onClick={() =>
-                        handleDelete(set.check_list_set_id, set.name)
-                      }
+                      className={`text-red hover:text-red flex items-center ${set.is_editable === false ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => handleDelete(set.check_list_set_id, set.name, set.is_editable)}
+                      disabled={set.is_editable === false}
                     >
                       <HiTrash className="h-4 w-4 mr-1" />
                       削除

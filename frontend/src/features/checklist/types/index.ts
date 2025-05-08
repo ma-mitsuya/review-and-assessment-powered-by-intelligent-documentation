@@ -69,6 +69,7 @@ export type CheckListSet = {
   name: string;
   description?: string;
   processing_status: 'pending' | 'in_progress' | 'completed';
+  is_editable: boolean;
   documents?: Document[];
 };
 
