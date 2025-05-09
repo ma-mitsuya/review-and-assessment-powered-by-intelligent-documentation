@@ -8,20 +8,30 @@ import {
   createChecklistItemHandler,
   updateChecklistItemHandler,
   deleteChecklistItemHandler,
-} from "../handlers/checklist-item-handlers";
+} from "./handlers/checklist-item-handlers";
 import {
   getChecklistItemSchema,
   getChecklistItemHierarchySchema,
   createChecklistItemSchema,
   updateChecklistItemSchema,
   deleteChecklistItemSchema,
-} from "../schemas/checklist-item-schemas";
+} from "./schemas/checklist-item-schemas";
+import {
+  createChecklistSetHandler,
+  getChecklistSetsHandler,
+  deleteChecklistSetHandler,
+} from "./handlers/checklist-set-handlers";
+import {
+  createChecklistSetSchema,
+  getChecklistSetsSchema,
+  deleteChecklistSetSchema,
+} from "./schemas/checklist-set-schemas";
 
 /**
- * チェックリスト項目関連のルートを登録
+ * チェックリスト関連のルートを登録
  * @param fastify Fastifyインスタンス
  */
-export function registerChecklistItemRoutes(fastify: FastifyInstance): void {
+export function registerChecklistRoutes(fastify: FastifyInstance): void {
   // チェックリスト項目詳細取得エンドポイント
   fastify.get("/checklist-sets/:setId/items/:itemId", {
     schema: getChecklistItemSchema,
@@ -50,5 +60,22 @@ export function registerChecklistItemRoutes(fastify: FastifyInstance): void {
   fastify.get("/checklist-sets/:setId/items/hierarchy", {
     schema: getChecklistItemHierarchySchema,
     handler: getChecklistItemHierarchyHandler,
+  });
+  // チェックリストセット一覧取得エンドポイント
+  fastify.get("/checklist-sets", {
+    schema: getChecklistSetsSchema,
+    handler: getChecklistSetsHandler,
+  });
+
+  // チェックリストセット作成エンドポイント
+  fastify.post("/checklist-sets", {
+    schema: createChecklistSetSchema,
+    handler: createChecklistSetHandler,
+  });
+
+  // チェックリストセット削除エンドポイント
+  fastify.delete("/checklist-sets/:id", {
+    schema: deleteChecklistSetSchema,
+    handler: deleteChecklistSetHandler,
   });
 }
