@@ -1,11 +1,8 @@
 /**
- * ドキュメント関連のハンドラー
+ * チェックリストドキュメント関連のハンドラー
  */
 import { FastifyReply, FastifyRequest } from "fastify";
-import { DocumentService } from "../services/document-service";
-import { generateId } from "../../../core/utils/id-generator";
-import { getPresignedUrl } from "../../../core/aws";
-import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
+import { ChecklistDocumentService } from "../services/checklist-document-service";
 
 /**
  * Presigned URL取得リクエストの型定義
@@ -16,34 +13,21 @@ interface GetPresignedUrlRequest {
 }
 
 /**
- * Presigned URL取得ハンドラー
+ * チェックリストドキュメント用Presigned URL取得ハンドラー
  */
-export async function getPresignedUrlHandler(
+export async function getChecklistPresignedUrlHandler(
   request: FastifyRequest<{ Body: GetPresignedUrlRequest }>,
   reply: FastifyReply
 ): Promise<void> {
   try {
     const { filename, contentType } = request.body;
 
-    // ドキュメントIDの生成
-    const documentId = generateId();
-
-    // S3のキーを生成
-    const key = getChecklistOriginalKey(documentId, filename);
-
-    // バケット名を取得
-    const bucketName = process.env.DOCUMENT_BUCKET || "beacon-documents";
-
-    // Presigned URLを生成
-    const url = await getPresignedUrl(bucketName, key, contentType);
+    const documentService = new ChecklistDocumentService();
+    const result = await documentService.getPresignedUrl(filename, contentType);
 
     reply.code(200).send({
       success: true,
-      data: {
-        url,
-        key,
-        documentId,
-      },
+      data: result,
     });
   } catch (error) {
     request.log.error(error);
@@ -55,15 +39,15 @@ export async function getPresignedUrlHandler(
 }
 
 /**
- * ドキュメント削除ハンドラー
+ * チェックリストドキュメント削除ハンドラー
  */
-export async function deleteDocumentHandler(
+export async function deleteChecklistDocumentHandler(
   request: FastifyRequest<{ Params: { key: string } }>,
   reply: FastifyReply
 ): Promise<void> {
   try {
     const { key } = request.params;
-    const documentService = new DocumentService();
+    const documentService = new ChecklistDocumentService();
 
     // S3からファイルを削除
     await documentService.deleteS3File(key);

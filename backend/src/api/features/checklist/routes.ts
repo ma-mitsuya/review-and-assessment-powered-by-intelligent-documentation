@@ -26,6 +26,10 @@ import {
   getChecklistSetsSchema,
   deleteChecklistSetSchema,
 } from "./schemas/checklist-set-schemas";
+import {
+  getChecklistPresignedUrlHandler,
+  deleteChecklistDocumentHandler,
+} from "./handlers/checklist-document-handlers";
 
 /**
  * チェックリスト関連のルートを登録
@@ -78,4 +82,14 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
     schema: deleteChecklistSetSchema,
     handler: deleteChecklistSetHandler,
   });
+
+  // チェックリストドキュメント関連のルート
+  fastify.post(
+    "/documents/checklist/presigned-url",
+    getChecklistPresignedUrlHandler
+  );
+  fastify.delete(
+    "/documents/checklist/:key",
+    deleteChecklistDocumentHandler
+  );
 }

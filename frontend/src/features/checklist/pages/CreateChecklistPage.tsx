@@ -46,8 +46,8 @@ export function CreateChecklistPage() {
     isUploading,
     error: uploadError,
   } = useDocumentUpload({
-    presignedUrlEndpoint: '/documents/presigned-url',
-    deleteEndpointPrefix: '/documents/'
+    presignedUrlEndpoint: '/documents/checklist/presigned-url',
+    deleteEndpointPrefix: '/documents/checklist/'
   });
 
   // 入力値の変更ハンドラ

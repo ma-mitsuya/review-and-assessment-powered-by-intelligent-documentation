@@ -3,7 +3,6 @@
  */
 import { createApp } from "./core/app";
 import { registerChecklistRoutes } from "./features/checklist/routes";
-import { registerDocumentRoutes } from "./features/document";
 import { registerReviewRoutes } from "./features/review/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
@@ -38,7 +37,6 @@ async function startApp() {
 
   // ルートの登録
   registerChecklistRoutes(app);
-  registerDocumentRoutes(app);
   registerReviewRoutes(app);
 
   // アプリケーションの起動
