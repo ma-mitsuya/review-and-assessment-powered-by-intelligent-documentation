@@ -1,8 +1,8 @@
 /**
  * ドキュメント処理の共通サービス
  */
-import { getPresignedUrl as getS3PresignedUrl, deleteS3Object } from '../aws';
-import { generateId } from '../utils/id-generator';
+import { getPresignedUrl as getS3PresignedUrl, deleteS3Object } from "../s3";
+import { generateId } from "../utils/id-generator";
 
 export class CoreDocumentService {
   /**

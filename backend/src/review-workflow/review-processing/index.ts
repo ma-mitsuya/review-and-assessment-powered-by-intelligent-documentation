@@ -1,7 +1,7 @@
 import { PrismaClient } from "../../api/core/db";
 import { getPrismaClient } from "../../api/core/db";
-import { ReviewJobRepository } from "../../api/features/review/repositories/review-job-repository";
-import { ReviewResultRepository } from "../../api/features/review/repositories/review-result-repository";
+import { ReviewJobRepository } from "../../api/features/review_old/repositories/review-job-repository";
+import { ReviewResultRepository } from "../../api/features/review_old/repositories/review-result-repository";
 import { ChecklistSetRepository } from "../../api/features/checklist/repositories/checklist-set-repository";
 import { ChecklistItemRepository } from "../../api/features/checklist/repositories/checklist-item-repository";
 import { generateId } from "../../api/core/utils/id-generator";
@@ -9,7 +9,7 @@ import {
   REVIEW_JOB_STATUS,
   REVIEW_RESULT_STATUS,
   REVIEW_RESULT,
-} from "../../api/features/review/constants";
+} from "../../api/features/review_old/constants";
 
 /**
  * 審査準備パラメータ

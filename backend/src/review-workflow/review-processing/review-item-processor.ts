@@ -4,14 +4,14 @@ import {
   ConverseCommand,
   TokenUsage,
 } from "@aws-sdk/client-bedrock-runtime";
-import { ReviewResultRepository } from "../../api/features/review/repositories/review-result-repository";
+import { ReviewResultRepository } from "../../api/features/review_old/repositories/review-result-repository";
 import { ChecklistItemRepository } from "../../api/features/checklist/repositories/checklist-item-repository";
 import { getReviewDocumentKey } from "../../checklist-workflow/common/storage-paths";
 import {
   REVIEW_JOB_STATUS,
   REVIEW_RESULT_STATUS,
   REVIEW_RESULT,
-} from "../../api/features/review/constants";
+} from "../../api/features/review_old/constants";
 import { getPrismaClient } from "../../api/core/db";
 
 // 使用するモデルIDを定義

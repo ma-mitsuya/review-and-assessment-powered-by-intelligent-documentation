@@ -3,7 +3,7 @@
  */
 import { createApp } from "./core/app";
 import { registerChecklistRoutes } from "./features/checklist/routes";
-import { registerReviewRoutes } from "./features/review/routes";
+import { registerReviewRoutes } from "./features/review_old/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
 

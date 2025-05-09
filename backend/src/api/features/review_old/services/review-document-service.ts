@@ -6,7 +6,7 @@ import { ReviewDocumentDto } from "../types";
 import { getReviewDocumentKey } from "../../../../checklist-workflow/common/storage-paths";
 import { generateId } from "../../../core/utils/id-generator";
 import { CoreDocumentService } from "../../../core/document/document-service";
-import { deleteS3Object } from "../../../core/aws";
+import { deleteS3Object } from "../../../core/s3";
 
 /**
  * 審査ドキュメントサービス
