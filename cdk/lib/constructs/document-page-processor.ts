@@ -163,18 +163,6 @@ export class DocumentPageProcessor extends Construct {
       }
     );
 
-    // テキスト抽出用のLambda Invoke Task
-    const extractTextTask = new tasks.LambdaInvoke(this, "ExtractText", {
-      lambdaFunction: this.documentLambda,
-      payload: sfn.TaskInput.fromObject({
-        action: "extractText",
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
-        pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
-      }),
-      resultPath: "$.textExtraction",
-      outputPath: "$",
-    });
-
     // LLM処理用のLambda Invoke Task
     const processWithLLMTask = new tasks.LambdaInvoke(this, "ProcessWithLLM", {
       lambdaFunction: this.documentLambda,
@@ -183,7 +171,7 @@ export class DocumentPageProcessor extends Construct {
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
       }),
-      resultPath: "$.llmProcessing",
+      resultPath: "$",
       outputPath: "$",
     }).addRetry({
       errors: [
@@ -251,19 +239,11 @@ export class DocumentPageProcessor extends Construct {
       }
     );
 
-    // パラレル状態の定義
-    const parallelProcessing = new sfn.Parallel(this, "ParallelProcessing", {
-      resultPath: "$",
-      outputPath: "$",
-    })
-      .branch(extractTextTask)
-      .branch(processWithLLMTask);
+    // LLM処理にエラーハンドリングを追加
+    processWithLLMTask.addCatch(handleParallelErrorTask);
 
-    // エラーハンドリング
-    parallelProcessing.addCatch(handleParallelErrorTask);
-
-    // 各ページの処理フロー: パラレル処理 -> 結果結合
-    const processPageFlow = parallelProcessing.next(combinePageResultsTask);
+    // 各ページの処理フロー: LLM処理のみに簡略化
+    const processPageFlow = processWithLLMTask;
 
     // インラインMap State
     const inlineMapState = new sfn.Map(this, "ProcessAllPagesInline", {

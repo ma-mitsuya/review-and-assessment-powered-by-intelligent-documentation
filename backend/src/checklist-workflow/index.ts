@@ -2,7 +2,6 @@
  * Lambda ハンドラー - Step Functionsからのイベントを処理
  */
 import { processDocument } from "./document-processing";
-import { extractText } from "./text-extraction";
 import { processWithLLM } from "./document-processing/llm-processing";
 import { combinePageResults } from "./result-combining";
 import { aggregatePageResults } from "./aggregate-results";
@@ -15,8 +14,6 @@ export const handler = async (event: any): Promise<any> => {
   switch (event.action) {
     case "processDocument":
       return await handleProcessDocument(event);
-    case "extractText":
-      return await handleExtractText(event);
     case "processWithLLM":
       return await handleProcessWithLLM(event);
     case "combinePageResults":
@@ -39,16 +36,6 @@ async function handleProcessDocument(event: any) {
   return await processDocument({
     documentId: event.documentId,
     fileName: event.fileName,
-  });
-}
-
-/**
- * テキスト抽出ハンドラー
- */
-async function handleExtractText(event: any) {
-  return await extractText({
-    documentId: event.documentId,
-    pageNumber: event.pageNumber,
   });
 }
 
