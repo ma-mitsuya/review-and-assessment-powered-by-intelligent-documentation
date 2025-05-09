@@ -18,8 +18,8 @@ export const ReviewListPage: React.FC = () => {
 
   const handleJobClick = (job: any) => {
     // TBD: ジョブの詳細画面に遷移する実装
-    console.log('Job selected:', job.id || job.review_job_id);
-    navigate(`/review/${job.id || job.review_job_id}`);
+    console.log('Job selected:', job.id || job.reviewJobId);
+    navigate(`/review/${job.id || job.reviewJobId}`);
   };
 
   return (

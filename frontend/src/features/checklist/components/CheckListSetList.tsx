@@ -146,7 +146,7 @@ export default function CheckListSetList({
           <tbody className="bg-white divide-y divide-light-gray">
             {checkListSets.map((set) => (
               <tr
-                key={set.check_list_set_id}
+                key={set.checkListSetId}
                 className="hover:bg-aws-paper-light transition-colors"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -155,7 +155,7 @@ export default function CheckListSetList({
                       {set.name}
                     </div>
                     {/* 編集不可の場合に警告アイコンを表示 */}
-                    {set.is_editable === false && (
+                    {set.isEditable === false && (
                       <div className="ml-2 text-amber-500">
                         <HiExclamationCircle className="h-5 w-5" title="審査に使用中" />
                       </div>
@@ -168,9 +168,9 @@ export default function CheckListSetList({
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {/* ドキュメント情報がある場合はそれを表示、なければprocessing_statusを表示 */}
+                  {/* ドキュメント情報がある場合はそれを表示、なければprocessingStatusを表示 */}
                   <div className="flex items-center">
-                    {renderStatusBadge(set.processing_status)}
+                    {renderStatusBadge(set.processingStatus)}
                     {set.documents && set.documents.length > 0 && (
                       <span className="ml-2 text-xs text-aws-font-color-gray truncate max-w-xs">
                         {set.documents.map((doc) => doc.filename).join(", ")}
@@ -181,16 +181,16 @@ export default function CheckListSetList({
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex items-center space-x-3">
                     <Link
-                      to={`/checklist/${set.check_list_set_id}`}
+                      to={`/checklist/${set.checkListSetId}`}
                       className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
                     >
                       <HiEye className="h-4 w-4 mr-1" />
                       詳細
                     </Link>
                     <button
-                      className={`text-red hover:text-red flex items-center ${set.is_editable === false ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() => handleDelete(set.check_list_set_id, set.name, set.is_editable)}
-                      disabled={set.is_editable === false}
+                      className={`text-red hover:text-red flex items-center ${set.isEditable === false ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => handleDelete(set.checkListSetId, set.name, set.isEditable)}
+                      disabled={set.isEditable === false}
                     >
                       <HiTrash className="h-4 w-4 mr-1" />
                       削除

@@ -75,7 +75,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
         <tbody className="bg-white divide-y divide-light-gray">
           {jobs.map((job) => (
             <tr 
-              key={job.review_job_id} 
+              key={job.reviewJobId} 
               className="hover:bg-aws-paper-light transition-colors"
             >
               <td className="px-6 py-4 whitespace-nowrap">
@@ -85,14 +85,14 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                 <div className="text-sm text-aws-font-color-gray">{job.document.filename}</div>
               </td>
               <td className="px-6 py-4">
-                <div className="text-sm text-aws-font-color-gray">{job.check_list_set.name}</div>
+                <div className="text-sm text-aws-font-color-gray">{job.checkListSet.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {renderStatusBadge(job.status)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-aws-font-color-gray">
-                  {formatDate(job.created_at)}
+                  {formatDate(job.createdAt)}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -108,7 +108,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                     詳細
                   </button>
                   <button
-                    onClick={(e) => handleDelete(job.review_job_id, e)}
+                    onClick={(e) => handleDelete(job.reviewJobId, e)}
                     className="text-red hover:text-red flex items-center"
                   >
                     <HiTrash className="h-4 w-4 mr-1" />

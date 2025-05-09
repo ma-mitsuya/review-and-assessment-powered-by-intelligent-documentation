@@ -30,8 +30,8 @@ export default function ReviewResultItem({
   
   // 信頼度が閾値を下回る場合のスタイルを追加
   const isBelowThreshold = 
-    result.confidence_score !== null && 
-    result.confidence_score < confidenceThreshold;
+    result.confidenceScore !== null && 
+    result.confidenceScore < confidenceThreshold;
   
   // 結果に基づいてバッジの色とテキストを決定
   const renderStatusBadge = () => {
@@ -84,7 +84,7 @@ export default function ReviewResultItem({
   
   // ユーザー上書きバッジ
   const renderUserOverrideBadge = () => {
-    if (result.user_override) {
+    if (result.userOverride) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-sea-blue-light bg-opacity-20 text-aws-sea-blue-light ml-2">
           ユーザー上書き
@@ -96,17 +96,17 @@ export default function ReviewResultItem({
   
   // 信頼度スコアの表示
   const renderConfidenceScore = () => {
-    if (result.confidence_score === null) return null;
+    if (result.confidenceScore === null) return null;
     
     // 信頼度スコアに基づいて色を決定
     const getScoreColor = () => {
-      if (result.confidence_score >= confidenceThreshold) return 'text-aws-lab';
+      if (result.confidenceScore >= confidenceThreshold) return 'text-aws-lab';
       return 'text-yellow';
     };
     
     return (
       <span className={`text-sm ${getScoreColor()} ${isBelowThreshold ? 'font-bold' : ''}`}>
-        信頼度: {Math.round(result.confidence_score * 100)}%
+        信頼度: {Math.round(result.confidenceScore * 100)}%
         {isBelowThreshold && (
           <span className="ml-1 text-yellow">⚠️</span>
         )}
@@ -114,12 +114,12 @@ export default function ReviewResultItem({
     );
   };
   
-  // check_list が undefined の場合のフォールバック
-  if (!result.check_list) {
+  // checkList が undefined の場合のフォールバック
+  if (!result.checkList) {
     return (
       <div className="bg-white border border-light-gray rounded-md p-4">
         <div className="text-red">
-          データエラー: チェックリスト情報がありません (ID: {result.check_id})
+          データエラー: チェックリスト情報がありません (ID: {result.checkId})
         </div>
         <div className="mt-2">
           <Button
@@ -136,7 +136,10 @@ export default function ReviewResultItem({
   
   return (
     <>
-      <div className={`bg-white border ${isBelowThreshold ? 'border-yellow border-2' : 'border-light-gray'} rounded-md p-4 hover:bg-aws-paper-light transition-colors ${isBelowThreshold ? 'bg-light-yellow' : ''}`}>
+      <div 
+        id={`result-item-${result.reviewResultId}`}
+        className={`bg-white border ${isBelowThreshold ? 'border-yellow border-2' : 'border-light-gray'} rounded-md p-4 hover:bg-aws-paper-light transition-colors ${isBelowThreshold ? 'bg-light-yellow' : ''}`}
+>
         <div className="grid grid-cols-[auto_1fr_auto] gap-4">
           {/* 展開/折りたたみボタン - 1列目 */}
           <div className="pt-1">
@@ -162,7 +165,7 @@ export default function ReviewResultItem({
           {/* 項目情報 - 2列目 */}
           <div>
             <div className="font-medium text-aws-squid-ink-light flex items-center">
-              {result.check_list.name}
+              {result.checkList.name}
               <div className="ml-2">
                 {renderStatusBadge()}
                 {renderUserOverrideBadge()}
@@ -170,11 +173,11 @@ export default function ReviewResultItem({
             </div>
             
             <p className="text-sm text-aws-font-color-gray mt-1">
-              {result.check_list.description || '説明なし'}
+              {result.checkList.description || '説明なし'}
             </p>
             
             {/* 説明文と抽出テキスト */}
-            {(result.explanation || result.extracted_text || result.user_comment) && (
+            {(result.explanation || result.extractedText || result.userComment) && (
               <div className="mt-3 grid grid-cols-1 gap-3">
                 {result.explanation && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm">
@@ -183,18 +186,18 @@ export default function ReviewResultItem({
                   </div>
                 )}
                 
-                {result.extracted_text && (
+                {result.extractedText && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm">
                     <p className="font-medium text-aws-squid-ink-light mb-1">抽出テキスト:</p>
-                    <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extracted_text}</p>
+                    <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extractedText}</p>
                   </div>
                 )}
                 
                 {/* ユーザーコメント */}
-                {result.user_comment && (
+                {result.userComment && (
                   <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
                     <p className="font-medium text-aws-squid-ink-light mb-1">ユーザーコメント:</p>
-                    <p className="text-aws-font-color-gray">{result.user_comment}</p>
+                    <p className="text-aws-font-color-gray">{result.userComment}</p>
                   </div>
                 )}
               </div>

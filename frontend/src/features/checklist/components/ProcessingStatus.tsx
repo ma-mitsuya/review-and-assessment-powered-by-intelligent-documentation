@@ -7,7 +7,7 @@ import { DocumentStatus } from '../types';
 import { HiClock, HiRefresh, HiCheck, HiX, HiQuestionMarkCircle } from 'react-icons/hi';
 
 export interface DocumentStatusItem {
-  document_id: string;
+  documentId: string;
   filename: string;
   status: DocumentStatus;
 }
@@ -92,7 +92,7 @@ export function ProcessingStatus({ documents, onAllCompleted }: ProcessingStatus
           
           return (
             <div
-              key={document.document_id}
+              key={document.documentId}
               className="p-3 bg-gray-50 rounded flex items-center justify-between"
             >
               <div className="flex items-center">

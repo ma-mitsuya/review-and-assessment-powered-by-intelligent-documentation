@@ -11,13 +11,13 @@ type CheckListItemTreeProps = {
  */
 export default function CheckListItemTree({ items }: CheckListItemTreeProps) {
   // ルート項目（親を持たない項目）を抽出
-  const rootItems = items.filter(item => !item.parent_id);
+  const rootItems = items.filter(item => !item.parentId);
   
   return (
     <div className="space-y-4">
       {rootItems.map(item => (
         <CheckListItemNode 
-          key={item.check_id} 
+          key={item.checkId} 
           item={item} 
           level={0} 
         />
@@ -48,7 +48,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   
   // 項目タイプに応じたバッジ
   // 項目タイプに応じたバッジ
-  const typeBadge = item.item_type === 'SIMPLE' ? (
+  const typeBadge = item.itemType === 'SIMPLE' ? (
     <span className="bg-aws-sea-blue-light text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
       単純
     </span>
@@ -59,7 +59,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   );
   
   // 結論項目の場合のバッジ
-  const conclusionBadge = item.is_conclusion && (
+  const conclusionBadge = item.isConclusion && (
     <span className="bg-aws-orange text-aws-font-color-white-light text-xs px-2 py-1 rounded-full ml-2">
       結論
     </span>
@@ -117,22 +117,22 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
         </div>
         
         {/* フロー型の場合、追加情報を表示 */}
-        {item.item_type === 'FLOW' && item.flow_data && (
+        {item.itemType === 'FLOW' && item.flowData && (
           <div className="mt-3 pl-7 text-sm text-aws-font-color-gray">
             <div className="flex items-center">
               <span className="font-medium mr-2">条件タイプ:</span>
-              <span>{item.flow_data.condition_type}</span>
+              <span>{item.flowData.conditionType}</span>
             </div>
-            {item.flow_data.next_if_yes && (
+            {item.flowData.nextIfYes && (
               <div className="flex items-center">
                 <span className="font-medium mr-2">Yes の場合:</span>
-                <span>{item.flow_data.next_if_yes}</span>
+                <span>{item.flowData.nextIfYes}</span>
               </div>
             )}
-            {item.flow_data.next_if_no && (
+            {item.flowData.nextIfNo && (
               <div className="flex items-center">
                 <span className="font-medium mr-2">No の場合:</span>
-                <span>{item.flow_data.next_if_no}</span>
+                <span>{item.flowData.nextIfNo}</span>
               </div>
             )}
           </div>
@@ -145,7 +145,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           item={item}
-          checkListSetId={item.check_list_set_id}
+          checkListSetId={item.checkListSetId}
         />
       )}
       
@@ -154,7 +154,7 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
         <div className="mt-2 space-y-2">
           {item.children.map(child => (
             <CheckListItemNode 
-              key={child.check_id} 
+              key={child.checkId} 
               item={child} 
               level={level + 1} 
             />

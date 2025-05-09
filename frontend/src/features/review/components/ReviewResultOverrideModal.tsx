@@ -22,12 +22,12 @@ export default function ReviewResultOverrideModal({
   onClose,
   result
 }: ReviewResultOverrideModalProps) {
-  const { updateResult, isSubmitting } = useReviewResults(result.review_job_id);
+  const { updateResult, isSubmitting } = useReviewResults(result.reviewJobId);
   
   // フォーム状態
   const [formData, setFormData] = useState<UpdateReviewResultParams>({
     result: result.result || REVIEW_RESULT.UNKNOWN,
-    userComment: result.user_comment || ''
+    userComment: result.userComment || ''
   });
   
   // ラジオボタンの選択肢
@@ -48,8 +48,8 @@ export default function ReviewResultOverrideModal({
   // 保存ハンドラー
   const handleSave = async () => {
     try {
-      // バックエンドから提供される review_job_id を使用
-      const jobId = result.review_job_id;
+      // バックエンドから提供される reviewJobId を使用
+      const jobId = result.reviewJobId;
       
       // jobId が存在しない場合はエラー処理
       if (!jobId) {
@@ -59,7 +59,7 @@ export default function ReviewResultOverrideModal({
       
       await updateResult(
         jobId,
-        result.review_result_id,
+        result.reviewResultId,
         formData
       );
       
@@ -71,8 +71,8 @@ export default function ReviewResultOverrideModal({
   
   if (!isOpen) return null;
   
-  // check_list が undefined の場合のフォールバック
-  if (!result.check_list) {
+  // checkList が undefined の場合のフォールバック
+  if (!result.checkList) {
     return (
       <Modal
         isOpen={isOpen}
@@ -93,9 +93,9 @@ export default function ReviewResultOverrideModal({
       <div className="space-y-6">
         <div className="border-b border-light-gray pb-4">
           <h3 className="font-medium text-aws-squid-ink-light mb-2">チェック項目</h3>
-          <p className="text-aws-squid-ink-light">{result.check_list.name}</p>
+          <p className="text-aws-squid-ink-light">{result.checkList.name}</p>
           <p className="text-sm text-aws-font-color-gray mt-1">
-            {result.check_list.description || '説明なし'}
+            {result.checkList.description || '説明なし'}
           </p>
         </div>
         

@@ -47,7 +47,7 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
     <div className="space-y-4">
       {rootItems.map((item) => (
         <ReviewResultTreeNode 
-          key={item.review_result_id} 
+          key={item.reviewResultId} 
           jobId={jobId}
           item={item} 
           level={0} 

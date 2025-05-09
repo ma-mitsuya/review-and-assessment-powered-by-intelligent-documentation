@@ -30,11 +30,11 @@ export default function ReviewResultTreeNode({
 }: ReviewResultTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < maxDepth || autoExpand);
   
-  console.log(`[Frontend] ReviewResultTreeNode - jobId: ${jobId}, checkId: ${item.check_id}, level: ${level}, hasChildren: ${item.has_children}, filter: ${filter}`);
+  console.log(`[Frontend] ReviewResultTreeNode - jobId: ${jobId}, checkId: ${item.checkId}, level: ${level}, hasChildren: ${item.hasChildren}, filter: ${filter}`);
   
   // 子項目を取得（レベルが最大深度未満の場合は自動的に、それ以外は展開時に）
-  const shouldLoadChildren = item.has_children && (level < maxDepth || isExpanded);
-  console.log(`[Frontend] shouldLoadChildren: ${shouldLoadChildren}, parentId: ${shouldLoadChildren ? item.check_id : 'undefined'}`);
+  const shouldLoadChildren = item.hasChildren && (level < maxDepth || isExpanded);
+  console.log(`[Frontend] shouldLoadChildren: ${shouldLoadChildren}, parentId: ${shouldLoadChildren ? item.checkId : 'undefined'}`);
   
   const { 
     items: childItems, 
@@ -42,7 +42,7 @@ export default function ReviewResultTreeNode({
     isError: isErrorChildren
   } = useReviewResultItems(
     jobId,
-    shouldLoadChildren ? item.check_id : undefined,
+    shouldLoadChildren ? item.checkId : undefined,
     filter
   );
   
@@ -50,7 +50,7 @@ export default function ReviewResultTreeNode({
   
   // 展開/折りたたみの切り替え
   const toggleExpand = () => {
-    console.log(`[Frontend] Toggling expand for ${item.check_id} from ${isExpanded} to ${!isExpanded}`);
+    console.log(`[Frontend] Toggling expand for ${item.checkId} from ${isExpanded} to ${!isExpanded}`);
     setIsExpanded(!isExpanded);
   };
   
@@ -67,7 +67,7 @@ export default function ReviewResultTreeNode({
             ...item,
             children: [] // ReviewResultItemコンポーネントの型との互換性のため
           }}
-          hasChildren={item.has_children}
+          hasChildren={item.hasChildren}
           isExpanded={isExpanded}
           onToggleExpand={toggleExpand}
           confidenceThreshold={confidenceThreshold}
@@ -76,7 +76,7 @@ export default function ReviewResultTreeNode({
       </div>
       
       {/* 子項目を表示（展開時のみ） */}
-      {isExpanded && item.has_children && (
+      {isExpanded && item.hasChildren && (
         <div className="mt-2 space-y-2">
           {isLoadingChildren ? (
             <div className="flex justify-center py-4" style={{marginLeft: `${(level + 1) * 20}px`}}>
@@ -89,7 +89,7 @@ export default function ReviewResultTreeNode({
           ) : childItems.length > 0 ? (
             childItems.map(childItem => (
               <ReviewResultTreeNode 
-                key={childItem.review_result_id} 
+                key={childItem.reviewResultId} 
                 jobId={jobId}
                 item={childItem} 
                 level={level + 1}

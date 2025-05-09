@@ -30,9 +30,9 @@ export default function CheckListItemEditModal({
   // コンポーネントのトップレベルでフックを呼び出す
   const { updateItem } = useCheckListItems(checkListSetId);
   
-  console.log('チェックリスト項目編集モーダル - 項目ID:', item.check_id);
+  console.log('チェックリスト項目編集モーダル - 項目ID:', item.checkId);
   console.log('チェックリスト項目編集モーダル - セットID:', checkListSetId);
-  console.log('チェックリスト項目編集モーダル - 項目タイプ:', item.item_type);
+  console.log('チェックリスト項目編集モーダル - 項目タイプ:', item.itemType);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -54,7 +54,7 @@ export default function CheckListItemEditModal({
     
     try {
       console.log('更新リクエスト送信:', {
-        itemId: item.check_id,
+        itemId: item.checkId,
         setId: checkListSetId,
         data: {
           name: formData.name,
@@ -62,7 +62,7 @@ export default function CheckListItemEditModal({
         }
       });
       
-      await updateItem(checkListSetId, item.check_id, {
+      await updateItem(checkListSetId, item.checkId, {
         name: formData.name,
         description: formData.description,
       });

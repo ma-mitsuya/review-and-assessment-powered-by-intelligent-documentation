@@ -15,11 +15,11 @@ export interface ApiResponse<T> {
  * 審査ドキュメント
  */
 export interface ReviewDocument {
-  document_id: string;
+  documentId: string;
   filename: string;
-  s3_path: string;
-  file_type: string;
-  upload_date: string;
+  s3Path: string;
+  fileType: string;
+  uploadDate: string;
   status: string;
 }
 
@@ -27,20 +27,20 @@ export interface ReviewDocument {
  * 審査ジョブ
  */
 export interface ReviewJob {
-  review_job_id: string;
+  reviewJobId: string;
   name: string;
   status: string;
   document: {
-    document_id: string;
+    documentId: string;
     filename: string;
   };
-  check_list_set: {
-    check_list_set_id: string;
+  checkListSet: {
+    checkListSetId: string;
     name: string;
   };
-  created_at: string;
-  updated_at: string;
-  completed_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
   summary: ReviewJobSummary;
 }
 
@@ -58,25 +58,25 @@ export interface ReviewJobSummary {
  * 審査結果項目
  */
 export interface ReviewResultItem {
-  review_result_id: string;
-  review_job_id: string;  // 追加: 審査ジョブID
-  check_id: string;
+  reviewResultId: string;
+  reviewJobId: string;  // 追加: 審査ジョブID
+  checkId: string;
   status: string;
   result: string | null;
-  confidence_score: number | null;
+  confidenceScore: number | null;
   explanation: string | null;
-  extracted_text: string | null;
-  user_override: boolean;
-  user_comment: string | null;
-  has_children: boolean;
-  check_list: {
-    check_id: string;
+  extractedText: string | null;
+  userOverride: boolean;
+  userComment: string | null;
+  hasChildren: boolean;
+  checkList: {
+    checkId: string;
     name: string;
     description: string | null;
-    parent_id: string | null;
-    item_type: string;
-    is_conclusion: boolean;
-    flow_data?: any;
+    parentId: string | null;
+    itemType: string;
+    isConclusion: boolean;
+    flowData?: any;
   };
 }
 
@@ -84,24 +84,24 @@ export interface ReviewResultItem {
  * 審査結果
  */
 export interface ReviewResult {
-  review_result_id: string;
-  review_job_id: string;  // 追加: 審査ジョブID
-  check_id: string;
+  reviewResultId: string;
+  reviewJobId: string;  // 追加: 審査ジョブID
+  checkId: string;
   status: string;
   result: string | null;
-  confidence_score: number | null;
+  confidenceScore: number | null;
   explanation: string | null;
-  extracted_text: string | null;
-  user_override: boolean;
-  user_comment: string | null;
-  check_list: {
-    check_id: string;
+  extractedText: string | null;
+  userOverride: boolean;
+  userComment: string | null;
+  checkList: {
+    checkId: string;
     name: string;
     description: string | null;
-    parent_id: string | null;
-    item_type: string;
-    is_conclusion: boolean;
-    flow_data?: any;
+    parentId: string | null;
+    itemType: string;
+    isConclusion: boolean;
+    flowData?: any;
   };
 }
 
