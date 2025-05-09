@@ -6,6 +6,7 @@ import { registerChecklistRoutes } from "./features/checklist";
 import { registerDocumentRoutes } from "./features/document";
 import { registerReviewRoutes } from "./features/review";
 import { authMiddleware } from "./core/middleware/auth";
+import { errorHandler } from './core/errors';
 
 /**
  * アプリケーションを起動する
@@ -15,6 +16,9 @@ async function startApp() {
 
   // 認証ミドルウェアをデコレータとして登録
   app.decorate('auth', (request: any, reply: any) => authMiddleware(request, reply));
+
+  // エラーハンドラーを登録
+  app.setErrorHandler(errorHandler);
 
   // 認証が不要なパスのリスト
   const publicPaths = ['/health', '/api/health'];
