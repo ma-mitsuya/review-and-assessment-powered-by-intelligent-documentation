@@ -3,11 +3,15 @@
  */
 import { FastifyInstance } from "fastify";
 import {
+  createChecklistItemHandler,
   createChecklistSetHandler,
   deleteChecklistDocumentHandler,
+  deleteChecklistItemHandler,
   deleteChecklistSetHandler,
+  getChecklistItemHandler,
   getChecklistPresignedUrlHandler,
   getChecklistSetDetailHandler,
+  updateChecklistItemHandler,
 } from "./handlers";
 import { getChecklistSetsHandler } from "../../checklist_old/handlers/checklist-set-handlers";
 

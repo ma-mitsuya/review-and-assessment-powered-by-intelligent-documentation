@@ -7,6 +7,12 @@ import {
   getChecklistSetDetail,
 } from "../usecase/checklist-set";
 import { deleteS3Object } from "../../../core/s3";
+import {
+  createChecklistItem,
+  getCheckListItem,
+  modifyCheckListItem,
+  removeCheckListItem,
+} from "../usecase/checklist-item";
 
 interface Document {
   documentId: string;
@@ -27,10 +33,10 @@ export interface CreateChecklistSetRequest {
 /**
  * チェックリストセット作成ハンドラー
  */
-export async function createChecklistSetHandler(
+export const createChecklistSetHandler = async (
   request: FastifyRequest<{ Body: CreateChecklistSetRequest }>,
   reply: FastifyReply
-): Promise<void> {
+): Promise<void> => {
   await createChecklistSet({
     req: request.body,
   });
@@ -39,15 +45,15 @@ export async function createChecklistSetHandler(
     success: true,
     data: {},
   });
-}
+};
 
 /**
  * チェックリストセット削除ハンドラー
  */
-export async function deleteChecklistSetHandler(
+export const deleteChecklistSetHandler = async (
   request: FastifyRequest<{ Params: { checklistSetId: string } }>,
   reply: FastifyReply
-): Promise<void> {
+): Promise<void> => {
   const { checklistSetId } = request.params;
   await removeChecklistSet({
     checkListSetId: checklistSetId,
@@ -56,15 +62,15 @@ export async function deleteChecklistSetHandler(
     success: true,
     data: {},
   });
-}
+};
 
 /**
  * チェックリストセット一覧取得ハンドラー
  */
-export async function getAllChecklistSetsHandler(
+export const getAllChecklistSetsHandler = async (
   request: FastifyRequest,
   reply: FastifyReply
-): Promise<void> {
+): Promise<void> => {
   const checkLists = await getAllChecklistSets({});
   reply.code(200).send({
     success: true,
@@ -78,17 +84,17 @@ export async function getAllChecklistSetsHandler(
       })),
     },
   });
-}
+};
 
 interface GetPresignedUrlRequest {
   filename: string;
   contentType: string;
 }
 
-export async function getChecklistPresignedUrlHandler(
+export const getChecklistPresignedUrlHandler = async (
   request: FastifyRequest<{ Body: GetPresignedUrlRequest }>,
   reply: FastifyReply
-): Promise<void> {
+): Promise<void> => {
   const { filename, contentType } = request.body;
 
   const result = await getCheckListDocumentPresignedUrl({
@@ -100,12 +106,12 @@ export async function getChecklistPresignedUrlHandler(
     success: true,
     data: result,
   });
-}
+};
 
-export async function deleteChecklistDocumentHandler(
+export const deleteChecklistDocumentHandler = async (
   request: FastifyRequest<{ Params: { key: string } }>,
   reply: FastifyReply
-): Promise<void> {
+): Promise<void> => {
   const { key } = request.params;
   const bucketName = process.env.DOCUMENT_BUCKET;
   if (!bucketName) {
@@ -120,7 +126,7 @@ export async function deleteChecklistDocumentHandler(
       deleted: true,
     },
   });
-}
+};
 
 export async function getChecklistSetDetailHandler(
   request: FastifyRequest<{ Params: { setId: string } }>,
@@ -139,3 +145,97 @@ export async function getChecklistSetDetailHandler(
     },
   });
 }
+
+export const getChecklistItemHandler = async (
+  request: FastifyRequest<{ Params: { setId: string; itemId: string } }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { itemId } = request.params;
+  const detail = await getCheckListItem({
+    itemId,
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: {
+      detail,
+    },
+  });
+};
+
+/**
+ * チェックリスト項目作成リクエストの型定義
+ */
+export interface CreateChecklistItemRequest {
+  Params: {
+    setId: string;
+  };
+  Body: {
+    name: string;
+    description?: string;
+    parentId?: string;
+  };
+}
+
+export const createChecklistItemHandler = async (
+  request: FastifyRequest<CreateChecklistItemRequest>,
+  reply: FastifyReply
+): Promise<void> => {
+  await createChecklistItem({
+    req: {
+      Params: request.params,
+      Body: request.body,
+    },
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: {},
+  });
+};
+
+export interface UpdateChecklistItemRequest {
+  Params: {
+    setId: string;
+    itemId: string;
+  };
+  Body: {
+    name: string;
+    description: string;
+  };
+}
+
+export const updateChecklistItemHandler = async (
+  request: FastifyRequest<UpdateChecklistItemRequest>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { setId, itemId } = request.params;
+  const { name, description } = request.body;
+
+  await modifyCheckListItem({
+    req: {
+      Params: { setId, itemId },
+      Body: { name, description },
+    },
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: {},
+  });
+};
+
+export const deleteChecklistItemHandler = async (
+  request: FastifyRequest<{ Params: { setId: string; itemId: string } }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { setId, itemId } = request.params;
+  await removeCheckListItem({
+    setId,
+    itemId,
+  });
+  reply.code(200).send({
+    success: true,
+    data: {},
+  });
+};

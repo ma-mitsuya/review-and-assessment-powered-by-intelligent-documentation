@@ -1,4 +1,9 @@
 import { ulid } from "ulid";
+import {
+  CreateChecklistItemRequest,
+  CreateChecklistSetRequest,
+  UpdateChecklistItemRequest,
+} from "../../routes/handlers";
 
 export type CheckListStatus = "pending" | "processing" | "completed";
 export type ItemType = "simple" | "flow";
@@ -30,28 +35,53 @@ export interface ChecklistDocumentModel {
 
 export interface CheckListItemModel {
   id: string;
+  parentId?: string;
+  setId: string;
   name: string;
   description: string;
-  itemType: ItemType;
-  isConclusion: boolean;
 }
 
-export const CheckListDomain = {
-  fromUploadedDocuments: (params: {
-    name: string;
-    description?: string;
-    documents: Omit<ChecklistDocumentModel, "uploadDate" | "status">[];
-  }): CheckListSetModel => {
-    const { name, description, documents } = params;
+export const CheckListSetDomain = {
+  fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetModel => {
+    const { name, description, documents } = req;
     return {
       id: ulid(),
       name,
       description: description || "",
       documents: documents.map((doc) => ({
-        ...doc,
+        id: doc.documentId,
+        filename: doc.filename,
+        s3Key: doc.s3Key,
+        fileType: doc.fileType,
         uploadDate: new Date(),
-        status: "processing",
+        status: "pending",
       })),
+    };
+  },
+};
+
+export const CheckListItemDomain = {
+  fromCreateRequest: (req: CreateChecklistItemRequest): CheckListItemModel => {
+    const { Body } = req;
+    const { name, description } = Body;
+
+    return {
+      id: ulid(),
+      setId: req.Params.setId,
+      name,
+      description: description || "",
+    };
+  },
+
+  fromUpdateRequest: (req: UpdateChecklistItemRequest): CheckListItemModel => {
+    const { Params, Body } = req;
+    const { name, description } = Body;
+
+    return {
+      id: Params.itemId,
+      setId: Params.setId,
+      name,
+      description: description || "",
     };
   },
 };

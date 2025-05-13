@@ -4,13 +4,14 @@ import {
   makePrismaCheckRepository,
 } from "../domain/repository";
 import {
-  CheckListDomain,
+  CheckListSetDomain,
   CheckListItemModel,
   CheckListSetMetaModel,
 } from "../domain/model/checklist";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
 import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
+import { NotFoundError } from "../../../core/errors";
 
 export const createChecklistSet = async (params: {
   req: CreateChecklistSetRequest;
@@ -21,19 +22,7 @@ export const createChecklistSet = async (params: {
   const repo = params.deps?.repo || makePrismaCheckRepository();
 
   const { req } = params;
-  const { name, description, documents } = req;
-
-  const checkListSet = CheckListDomain.fromUploadedDocuments({
-    name,
-    description,
-    documents: documents.map((doc) => ({
-      id: doc.documentId,
-      filename: doc.filename,
-      s3Key: doc.s3Key,
-      fileType: doc.fileType,
-    })),
-  });
-
+  const checkListSet = CheckListSetDomain.fromCreateRequest(req);
   await repo.storeCheckListSet({
     checkListSet,
   });

@@ -3,6 +3,7 @@ import {
   CheckListDocument,
   CheckListSet,
 } from "../../../core/db";
+import { NotFoundError } from "../../../core/errors";
 import { prisma } from "../../../core/prisma";
 import {
   CheckListItemModel,
@@ -20,6 +21,15 @@ export interface CheckRepository {
     setId: string,
     rootItemId: string | null
   ): Promise<CheckListItemModel[]>;
+  storeCheckListItem(params: { item: CheckListItemModel }): Promise<void>;
+  findCheckListItemById(itemId: string): Promise<CheckListItemModel>;
+  validateParentItem(params: {
+    parentItemId: string;
+    setId: string;
+  }): Promise<Boolean>;
+  updateCheckListItem(params: { newItem: CheckListItemModel }): Promise<void>;
+  deleteCheckListItemById(params: { itemId: string }): Promise<void>;
+  checkSetEditable(params: { setId: string }): Promise<boolean>;
 }
 
 export const makePrismaCheckRepository = (
@@ -112,8 +122,6 @@ export const makePrismaCheckRepository = (
         name: true,
         description: true,
         parentId: true,
-        itemType: true,
-        isConclusion: true,
       },
       orderBy: { id: "asc" }, // ソートは任意
     });
@@ -126,10 +134,9 @@ export const makePrismaCheckRepository = (
     for (const item of rawItems) {
       map[item.id] = {
         id: item.id,
+        setId: setId,
         name: item.name,
         description: item.description ?? "",
-        itemType: item.itemType as ItemType,
-        isConclusion: item.isConclusion,
         children: [],
       };
     }
@@ -157,10 +164,112 @@ export const makePrismaCheckRepository = (
     return roots;
   };
 
+  const storeCheckListItem = async (params: {
+    item: CheckListItemModel;
+  }): Promise<void> => {
+    const { item } = params;
+    const { id, name, description } = item;
+
+    await client.checkList.create({
+      data: {
+        id,
+        name,
+        description,
+      },
+    });
+  };
+
+  const findCheckListItemById = async (
+    itemId: string
+  ): Promise<CheckListItemModel> => {
+    const item = await client.checkList.findUnique({
+      where: { id: itemId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        checkListSetId: true,
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundError("Item not found", itemId);
+    }
+
+    return {
+      id: item.id,
+      setId: item.checkListSetId,
+      name: item.name,
+      description: item.description ?? "",
+    };
+  };
+
+  const validateParentItem = async (params: {
+    parentItemId: string;
+    setId: string;
+  }): Promise<Boolean> => {
+    const parent = await client.checkList.findUnique({
+      where: { id: params.parentItemId },
+      select: {
+        id: true,
+        checkListSetId: true,
+        documentId: true,
+      },
+    });
+    if (!parent) {
+      return false;
+    }
+
+    const belongsTo = parent.checkListSetId === params.setId;
+    return belongsTo;
+  };
+
+  const updateCheckListItem = async (params: {
+    newItem: CheckListItemModel;
+  }): Promise<void> => {
+    const { newItem } = params;
+    const { id, name, description } = newItem;
+    await client.checkList.update({
+      where: { id },
+      data: {
+        name,
+        description,
+      },
+    });
+  };
+
+  const deleteCheckListItemById = async (params: {
+    itemId: string;
+  }): Promise<void> => {
+    const { itemId } = params;
+    await client.checkList.delete({
+      where: { id: itemId },
+    });
+  };
+
+  const checkSetEditable = async (params: {
+    setId: string;
+  }): Promise<boolean> => {
+    const set = await client.checkListSet.findUnique({
+      where: { id: setId },
+      select: { reviewJobs: { select: { id: true } } },
+    });
+    if (!set) {
+      throw new NotFoundError("Set not found", setId);
+    }
+    return set.reviewJobs.length === 0;
+  };
+
   return {
     storeCheckListSet,
     deleteCheckListSetById,
     findAllCheckListSets,
     findCheckListSetById,
+    storeCheckListItem,
+    findCheckListItemById,
+    validateParentItem,
+    updateCheckListItem,
+    deleteCheckListItemById,
+    checkSetEditable,
   };
 };
