@@ -40,8 +40,6 @@ async function main(): Promise<void> {
       id: parentCheckId,
       name: "基本契約情報の確認",
       description: "契約書の基本的な情報が正しく記載されているかの確認",
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -54,8 +52,6 @@ async function main(): Promise<void> {
       name: "契約当事者の記載",
       description: "契約書に両当事者の正式名称が正確に記載されているか",
       parentId: parentCheckId,
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -67,8 +63,6 @@ async function main(): Promise<void> {
       name: "契約日の記載",
       description: "契約締結日が明記され、両当事者の合意日と一致しているか",
       parentId: parentCheckId,
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -87,14 +81,7 @@ async function main(): Promise<void> {
       id: flowStartId,
       name: "リース契約判定",
       description: "この契約書がリース契約に該当するかの判断フロー",
-      itemType: "FLOW",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
-      flowData: {
-        condition_type: "YES_NO",
-        next_if_yes: yesNodeId,
-        next_if_no: noNodeId,
-      },
     },
   });
   console.log(`フローチャート開始ノードを作成しました: ${flowStart.name}`);
@@ -107,14 +94,7 @@ async function main(): Promise<void> {
       description:
         "顧客が使用期間全体を通じて特定された資産の使用から経済的利益のほとんどすべてを享受する権利を有しているか",
       parentId: flowStartId,
-      itemType: "FLOW",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
-      flowData: {
-        condition_type: "YES_NO",
-        next_if_yes: conclusionYesId,
-        next_if_no: conclusionNoId,
-      },
     },
   });
   console.log(`フロー中間ノード(Yes分岐)を作成しました: ${yesNode.name}`);
@@ -126,14 +106,7 @@ async function main(): Promise<void> {
       name: "特定資産の確認",
       description: "契約に特定された資産が含まれているか再確認",
       parentId: flowStartId,
-      itemType: "FLOW",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
-      flowData: {
-        condition_type: "YES_NO",
-        next_if_yes: yesNodeId,
-        next_if_no: conclusionNoId,
-      },
     },
   });
   console.log(`フロー中間ノード(No分岐)を作成しました: ${noNode.name}`);
@@ -145,13 +118,7 @@ async function main(): Promise<void> {
       name: "リース契約結論",
       description: "当該契約はリースを含む",
       parentId: flowStartId,
-      itemType: "FLOW",
-      isConclusion: true,
       checkListSetId: contractCheckListSetId,
-      metaData: {
-        document_id: "01HFR0N599QPC0DA14F0V42FE3",
-        page_number: 1,
-      },
     },
   });
   console.log(
@@ -165,13 +132,7 @@ async function main(): Promise<void> {
       name: "非リース契約結論",
       description: "当該契約はリースを含まない",
       parentId: flowStartId,
-      itemType: "FLOW",
-      isConclusion: true,
       checkListSetId: contractCheckListSetId,
-      metaData: {
-        document_id: "01HFR0N599QPC0DA14F0V42FE3",
-        page_number: 2,
-      },
     },
   });
   console.log(
@@ -191,17 +152,7 @@ async function main(): Promise<void> {
       name: "使用方法の指図権",
       description:
         "使用期間全体を通じて特定された資産の使用方法を指図する権利を有しているのは誰か",
-      itemType: "FLOW",
-      isConclusion: false,
       checkListSetId: contractCheckListSetId,
-      flowData: {
-        condition_type: "MULTI_CHOICE",
-        next_options: {
-          customer: customerOptionId,
-          supplier: supplierOptionId,
-          neither: neitherOptionId,
-        },
-      },
     },
   });
   console.log(`複数選択肢フローノードを作成しました: ${multiChoiceFlow.name}`);
@@ -213,8 +164,6 @@ async function main(): Promise<void> {
       name: "顧客指図権結論",
       description: "顧客が指図権を持つため、リース契約に該当する",
       parentId: multiChoiceFlowId,
-      itemType: "FLOW",
-      isConclusion: true,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -225,8 +174,6 @@ async function main(): Promise<void> {
       name: "サプライヤー指図権結論",
       description: "サプライヤーが指図権を持つため、リース契約に該当しない",
       parentId: multiChoiceFlowId,
-      itemType: "FLOW",
-      isConclusion: true,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -237,8 +184,6 @@ async function main(): Promise<void> {
       name: "指図権なし結論",
       description: "指図権が明確でないため、追加確認が必要",
       parentId: multiChoiceFlowId,
-      itemType: "FLOW",
-      isConclusion: true,
       checkListSetId: contractCheckListSetId,
     },
   });
@@ -272,8 +217,6 @@ async function main(): Promise<void> {
       id: applicantInfoId,
       name: "申請者情報",
       description: "申請者の基本情報が正しく記載されているかの確認",
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: buildingCheckListSetId,
     },
   });
@@ -285,8 +228,6 @@ async function main(): Promise<void> {
       id: buildingOverviewId,
       name: "建築物の概要",
       description: "建築物の基本情報が正しく記載されているかの確認",
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: buildingCheckListSetId,
     },
   });
@@ -298,8 +239,6 @@ async function main(): Promise<void> {
       id: drawingsId,
       name: "図面",
       description: "必要な図面が添付されているかの確認",
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: buildingCheckListSetId,
     },
   });
@@ -311,8 +250,6 @@ async function main(): Promise<void> {
       id: legalComplianceId,
       name: "法適合性",
       description: "建築基準法などの法規制に適合しているかの確認",
-      itemType: "SIMPLE",
-      isConclusion: false,
       checkListSetId: buildingCheckListSetId,
     },
   });
@@ -336,8 +273,6 @@ async function main(): Promise<void> {
         name: child.name,
         description: child.description,
         parentId: applicantInfoId,
-        itemType: "SIMPLE",
-        isConclusion: false,
         checkListSetId: buildingCheckListSetId,
       },
     });
@@ -362,8 +297,6 @@ async function main(): Promise<void> {
         name: child.name,
         description: child.description,
         parentId: buildingOverviewId,
-        itemType: "SIMPLE",
-        isConclusion: false,
         checkListSetId: buildingCheckListSetId,
       },
     });
@@ -384,8 +317,6 @@ async function main(): Promise<void> {
         name: child.name,
         description: child.description,
         parentId: drawingsId,
-        itemType: "SIMPLE",
-        isConclusion: false,
         checkListSetId: buildingCheckListSetId,
       },
     });
@@ -419,8 +350,6 @@ async function main(): Promise<void> {
         name: child.name,
         description: child.description,
         parentId: legalComplianceId,
-        itemType: "SIMPLE",
-        isConclusion: false,
         checkListSetId: buildingCheckListSetId,
       },
     });
@@ -442,8 +371,6 @@ async function main(): Promise<void> {
         id: ulid(),
         name: item.name,
         description: item.description,
-        itemType: "SIMPLE",
-        isConclusion: true,
         checkListSetId: buildingCheckListSetId,
       },
     });
@@ -577,7 +504,7 @@ async function main(): Promise<void> {
               processingTime: Math.floor(Math.random() * 5000) + 1000,
               aiModel: "gpt-4-1106-preview",
             }
-          : Prisma.JsonNull,
+          : null,
       },
     });
   }
@@ -587,15 +514,6 @@ async function main(): Promise<void> {
 
   console.log("シードデータの投入が完了しました");
 }
-
-main()
-  .catch((e) => {
-    console.error("シードデータの投入中にエラーが発生しました:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
 
 main()
   .catch((e) => {

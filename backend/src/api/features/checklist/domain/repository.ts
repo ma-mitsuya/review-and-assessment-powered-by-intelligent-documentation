@@ -114,6 +114,7 @@ export const makePrismaCheckRepository = (
     setId: string,
     rootItemId: string | null
   ): Promise<CheckListItemModel[]> => {
+    // TODO: logicの　domain service 　への移動を検討
     // 1) 当該セットの全アイテムを取得
     const rawItems = await client.checkList.findMany({
       where: { checkListSetId: setId },

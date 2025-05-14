@@ -12,8 +12,8 @@ import {
   getChecklistPresignedUrlHandler,
   getChecklistSetDetailHandler,
   updateChecklistItemHandler,
+  getAllChecklistSetsHandler,
 } from "./handlers";
-import { getChecklistSetsHandler } from "../../checklist_old/handlers/checklist-set-handlers";
 
 /**
  * チェックリスト関連のルートを登録
@@ -22,7 +22,7 @@ import { getChecklistSetsHandler } from "../../checklist_old/handlers/checklist-
 export function registerChecklistRoutes(fastify: FastifyInstance): void {
   // チェックリストセット一覧取得エンドポイント
   fastify.get("/checklist-sets", {
-    handler: getChecklistSetsHandler,
+    handler: getAllChecklistSetsHandler,
   });
 
   // チェックリストセット作成エンドポイント
