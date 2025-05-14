@@ -24,6 +24,13 @@ export const createChecklistItem = async (params: {
   const { setId } = req.Params;
   const { parentId } = req.Body;
 
+  const isEditable = await repo.checkSetEditable({
+    setId: params.req.Params.setId,
+  });
+  if (!isEditable) {
+    throw new ValidationError("Set is not editable");
+  }
+
   if (parentId != null) {
     const isValid = repo.validateParentItem({
       parentItemId: parentId,

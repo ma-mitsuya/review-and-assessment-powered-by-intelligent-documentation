@@ -169,13 +169,14 @@ export const makePrismaCheckRepository = (
     item: CheckListItemModel;
   }): Promise<void> => {
     const { item } = params;
-    const { id, name, description } = item;
+    const { id, name, description, setId } = item;
 
     await client.checkList.create({
       data: {
         id,
         name,
         description,
+        checkListSetId: setId,
       },
     });
   };
@@ -251,6 +252,7 @@ export const makePrismaCheckRepository = (
   const checkSetEditable = async (params: {
     setId: string;
   }): Promise<boolean> => {
+    const { setId } = params;
     const set = await client.checkListSet.findUnique({
       where: { id: setId },
       select: { reviewJobs: { select: { id: true } } },
