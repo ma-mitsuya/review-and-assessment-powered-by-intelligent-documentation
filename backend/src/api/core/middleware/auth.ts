@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { JwtVerifier } from '../utils/jwt-verifier';
+import { handleLocalDevelopmentAuth } from '../utils/stage-aware-auth';
 
 // 認証ミドルウェアのオプション
 export interface AuthOptions {
@@ -13,6 +14,12 @@ export async function authMiddleware(
   options: AuthOptions = { required: true }
 ) {
   try {
+    // ローカル開発環境の場合は認証をバイパス
+    const isLocalAuthHandled = await handleLocalDevelopmentAuth(request, reply);
+    if (isLocalAuthHandled) {
+      return; // ローカル開発環境では認証済みとして処理を続行
+    }
+
     // Authorizationヘッダーからトークンを取得
     const authHeader = request.headers.authorization;
     if (!authHeader) {

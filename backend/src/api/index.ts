@@ -6,12 +6,18 @@ import { registerChecklistRoutes } from "./features/checklist/routes";
 // import { registerReviewRoutes } from "./features/review_old/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
+import { isLocalDevelopment } from "./core/utils/stage-aware-auth";
 
 /**
  * アプリケーションを起動する
  */
 async function startApp() {
   const app = createApp();
+
+  // ローカル開発モードの場合、ログに表示
+  if (isLocalDevelopment()) {
+    console.log('⚠️ Running in local development mode with authentication bypassed');
+  }
 
   // 認証ミドルウェアをデコレータとして登録
   app.decorate("auth", (request: any, reply: any) =>
