@@ -11,6 +11,7 @@ interface ErrorResponse {
   success: false;
   error: string;
   code?: string;
+  errorType?: string;
 }
 
 /**
@@ -56,6 +57,7 @@ export function errorHandler(
   // その他のエラーの場合は500エラー
   reply.code(500).send({
     success: false,
-    error: 'Internal Server Error',
+    error: `${error.name}: ${error.message}`,
+    errorType: error.name
   });
 }
