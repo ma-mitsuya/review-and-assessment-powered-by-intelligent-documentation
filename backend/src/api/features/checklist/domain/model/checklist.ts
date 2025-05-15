@@ -6,7 +6,6 @@ import {
 } from "../../routes/handlers";
 
 export type CheckListStatus = "pending" | "processing" | "completed";
-export type ItemType = "simple" | "flow";
 
 export interface CheckListSetModel {
   id: string;

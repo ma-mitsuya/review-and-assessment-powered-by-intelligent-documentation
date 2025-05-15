@@ -2,32 +2,8 @@
  * チェックリスト機能の型定義
  */
 
-import { DocumentStatus } from '../../../types/file';
-import { ApiResponse as CoreApiResponse } from '../../../types/api';
-
-/**
- * チェックリスト項目タイプ
- */
-export type CheckListItemType = 'simple' | 'flow';
-
-/**
- * フロー条件タイプ
- */
-export type FlowConditionType = 'YES_NO' | 'MULTI_CHOICE';
-
-/**
- * フローデータ
- */
-export type FlowData = {
-  conditionType: FlowConditionType;
-  nextIfYes?: string;
-  nextIfNo?: string;
-  options?: Array<{
-    optionId: string;
-    label: string;
-    nextCheckId: string;
-  }>;
-};
+import { DocumentStatus } from "../../../types/file";
+import { ApiResponse as CoreApiResponse } from "../../../types/api";
 
 /**
  * メタデータ
@@ -46,10 +22,7 @@ export type CheckListItem = {
   name: string;
   description?: string;
   parentId?: string | null;
-  itemType: CheckListItemType;
   isConclusion: boolean;
-  flowData?: FlowData;
-  metaData?: MetaData;
   checkListSetId: string;
   documentId?: string;
 };
@@ -68,7 +41,7 @@ export type CheckListSet = {
   checkListSetId: string;
   name: string;
   description?: string;
-  processingStatus: 'pending' | 'in_progress' | 'completed';
+  processingStatus: "pending" | "in_progress" | "completed";
   isEditable: boolean;
   documents?: Document[];
 };
@@ -101,7 +74,9 @@ export type CheckListSetsResponse = ApiResponse<{
 /**
  * チェックリスト階層構造レスポンス
  */
-export type CheckListHierarchyResponse = ApiResponse<HierarchicalCheckListItem[]>;
+export type CheckListHierarchyResponse = ApiResponse<
+  HierarchicalCheckListItem[]
+>;
 
 /**
  * チェック結果
@@ -154,18 +129,7 @@ export type CreateChecklistItemRequest = {
   name: string;
   description?: string;
   parentId?: string | null;
-  itemType: 'simple' | 'flow';
   isConclusion: boolean;
-  flowData?: {
-    conditionType: 'YES_NO' | 'MULTI_CHOICE';
-    nextIfYes?: string;
-    nextIfNo?: string;
-    options?: Array<{
-      optionId: string;
-      label: string;
-      nextCheckId: string;
-    }>;
-  };
   documentId?: string;
 };
 

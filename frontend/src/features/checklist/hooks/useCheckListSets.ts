@@ -52,13 +52,13 @@ export const useCheckListItemHierarchy = (setId: string | null) => {
   const http = useHttp();
   const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<HierarchicalCheckListItem[]>>(url);
+  const { data, error, isLoading, mutate } = http.get<ApiResponse<{ detail: HierarchicalCheckListItem[] }>>(url);
 
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
 
   return {
-    hierarchyItems: data?.data || [],
+    hierarchyItems: data?.data?.detail || [],
     isLoading,
     isError: error,
     mutate,
@@ -72,22 +72,18 @@ export const useCheckListItemHierarchy = (setId: string | null) => {
  */
 export const useCheckListSet = (id: string | null) => {
   const http = useHttp();
-  const url = id ? `/checklist-sets/${id}` : null;
+  const url = id ? `/checklist-sets/${id}/items/hierarchy` : null;
   
   const { data, error, isLoading, mutate } = http.get<ApiResponse<CheckListSetDetail>>(url);
 
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
 
-  // isEditable フラグを追加
-  const isEditable = data?.data?.is_editable !== false;
-
   return {
     checkListSet: data?.data,
     data: data?.data, // 互換性のために追加
     isLoading,
     isError: error,
-    isEditable, // 追加
     mutate,
     revalidate,
   };

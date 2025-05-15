@@ -36,10 +36,9 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
   });
 
   // チェックリストドキュメントpresigned-url取得エンドポイント
-  fastify.post(
-    "/documents/checklist/presigned-url",
-    getChecklistPresignedUrlHandler
-  );
+  fastify.post("/documents/checklist/presigned-url", {
+    handler: getChecklistPresignedUrlHandler,
+  });
   // チェックリストドキュメント削除エンドポイント
   fastify.delete("/documents/checklist/:key", deleteChecklistDocumentHandler);
 

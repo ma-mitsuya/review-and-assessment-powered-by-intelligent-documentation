@@ -26,18 +26,6 @@ export const useCheckListItems = (setId: string | null) => {
       name: string;
       description?: string;
       parentId?: string;
-      itemType: 'simple' | 'flow';
-      isConclusion: boolean;
-      flowData?: {
-        condition_type: string;
-        next_if_yes?: string;
-        next_if_no?: string;
-        options?: Array<{
-          option_id: string;
-          label: string;
-          next_check_id: string;
-        }>;
-      };
       documentId?: string;
     }
   ): Promise<ApiResponse<CheckListItem>> => {
@@ -68,17 +56,6 @@ export const useCheckListItems = (setId: string | null) => {
     updates: {
       name?: string;
       description?: string;
-      isConclusion?: boolean;
-      flowData?: {
-        condition_type: 'YES_NO' | 'MULTI_CHOICE';
-        next_if_yes?: string;
-        next_if_no?: string;
-        options?: Array<{
-          option_id: string;
-          label: string;
-          next_check_id: string;
-        }>;
-      };
       documentId?: string;
     }
   ): Promise<ApiResponse<CheckListItem>> => {

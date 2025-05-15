@@ -3,7 +3,7 @@
  */
 import { createApp } from "./core/app";
 import { registerChecklistRoutes } from "./features/checklist/routes";
-// import { registerReviewRoutes } from "./features/review_old/routes";
+import { registerReviewRoutes } from "./features/review/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
 import { isLocalDevelopment } from "./core/utils/stage-aware-auth";
@@ -16,7 +16,9 @@ async function startApp() {
 
   // ローカル開発モードの場合、ログに表示
   if (isLocalDevelopment()) {
-    console.log('⚠️ Running in local development mode with authentication bypassed');
+    console.log(
+      "⚠️ Running in local development mode with authentication bypassed"
+    );
   }
 
   // 認証ミドルウェアをデコレータとして登録
@@ -43,7 +45,7 @@ async function startApp() {
 
   // ルートの登録
   registerChecklistRoutes(app);
-  // registerReviewRoutes(app);
+  registerReviewRoutes(app);
 
   // アプリケーションの起動
   try {

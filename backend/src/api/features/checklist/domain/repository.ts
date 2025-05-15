@@ -10,7 +10,6 @@ import {
   CheckListSetMetaModel,
   CheckListSetModel,
   CheckListStatus,
-  ItemType,
 } from "./model/checklist";
 
 export interface CheckRepository {
