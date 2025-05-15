@@ -109,7 +109,6 @@ model ReviewResult {
   userComment     String?   @map("user_comment") @db.Text
   createdAt       DateTime  @map("created_at") @db.Timestamp()
   updatedAt       DateTime  @map("updated_at") @db.Timestamp()
-  metaData        Json?     @map("meta_data") @db.Json
   reviewJob       ReviewJob @relation(fields: [reviewJobId], references: [id])
   checkList       CheckList @relation(fields: [checkId], references: [id])
 
@@ -117,6 +116,7 @@ model ReviewResult {
 }
 
 // 抽出項目
+// TODO: 不要？
 model ExtractedItem {
   id            String    @id @map("item_id") @db.VarChar(26)
   checkId       String    @map("check_id") @db.VarChar(26)
@@ -133,6 +133,7 @@ model ExtractedItem {
 }
 
 // チェック結果
+// TODO: 不要？
 model CheckResult {
   id              String            @id @map("result_id") @db.VarChar(26)
   checkId         String            @map("check_id") @db.VarChar(26)

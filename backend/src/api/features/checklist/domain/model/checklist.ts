@@ -37,7 +37,7 @@ export interface CheckListItemModel {
   parentId?: string;
   setId: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
 export const CheckListSetDomain = {

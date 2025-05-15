@@ -3,9 +3,11 @@ import {
   createReviewJob,
   getAllReviewJobs,
   getReviewDocumentPresignedUrl,
+  getReviewResults,
   removeReviewJob,
 } from "../usecase/review-job";
 import { deleteS3Object } from "../../../core/s3";
+import { REVIEW_RESULT } from "../domain/model/review";
 
 export const getAllReviewJobsHandler = async (
   request: FastifyRequest,
@@ -93,5 +95,25 @@ export const deleteReviewJobHandler = async (
   reply.code(200).send({
     success: true,
     data: {},
+  });
+};
+
+export const getReviewResultItemsHandler = async (
+  request: FastifyRequest<{
+    Params: { jobId: string };
+    Querystring: { parentId?: string; filter?: string };
+  }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const results = await getReviewResults({
+    reviewJobId: request.params.jobId,
+    parentId: request.query.parentId,
+    filter: request.query.filter
+      ? (request.query.filter as REVIEW_RESULT)
+      : undefined,
+  });
+  reply.code(200).send({
+    success: true,
+    data: results,
   });
 };

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useCheckListItems } from "../hooks/useCheckListItems";
-import { useCheckListSet } from "../hooks/useCheckListSets";
 import { HierarchicalCheckListItem } from "../types";
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -23,19 +22,14 @@ export default function CheckListItemAddModal({
     name: "",
     description: "",
     parentId: "",
-    isConclusion: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({
     name: "",
-    flowData: "",
   });
 
   const { addToast } = useToast();
-
-  // チェックリストセットの編集可否を取得
-  const { isEditable } = useChecklistSet(checkListSetId);
 
   // コンポーネントのトップレベルでフックを呼び出す
   const { createItem } = useCheckListItems(checkListSetId);
@@ -46,35 +40,15 @@ export default function CheckListItemAddModal({
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value, type } = e.target;
-
-    if (name === "isConclusion") {
-      setFormData((prev) => ({
-        ...prev,
-        isConclusion: (e.target as HTMLInputElement).checked,
-      }));
-    } else if (name.startsWith("flowData.")) {
-      const flowDataField = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        flowData: {
-          ...prev.flowData,
-          [flowDataField]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]:
-          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-      }));
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
     // エラークリア
     if (name === "name" && errors.name) {
       setErrors((prev) => ({ ...prev, name: "" }));
-    } else if (name.startsWith("flowData.") && errors.flowData) {
-      setErrors((prev) => ({ ...prev, flowData: "" }));
     }
   };
 
@@ -82,15 +56,10 @@ export default function CheckListItemAddModal({
   const validate = () => {
     const newErrors = {
       name: "",
-      flowData: "",
     };
 
     if (!formData.name.trim()) {
       newErrors.name = "名前は必須です";
-    }
-
-    if (formData.itemType === "flow" && !formData.flowData.condition_type) {
-      newErrors.flowData = "条件タイプは必須です";
     }
 
     setErrors(newErrors);
@@ -102,15 +71,6 @@ export default function CheckListItemAddModal({
     e.preventDefault();
 
     if (!validate()) return;
-
-    // 編集不可の場合は処理を中断
-    if (!isEditable) {
-      addToast(
-        "このチェックリストセットは審査ジョブに紐づいているため編集できません",
-        "error"
-      );
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -168,28 +128,6 @@ export default function CheckListItemAddModal({
           </button>
         </div>
 
-        {!isEditable && (
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-md mb-4">
-            <div className="flex items-center text-amber-700">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="font-medium">
-                このチェックリストセットは審査ジョブに紐づいているため編集できません
-              </span>
-            </div>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -208,7 +146,6 @@ export default function CheckListItemAddModal({
                 errors.name ? "border-red" : "border-light-gray"
               }`}
               placeholder="チェック項目の名前"
-              disabled={!isEditable}
             />
             {errors.name && (
               <p className="mt-1 text-red text-sm">{errors.name}</p>
@@ -230,7 +167,6 @@ export default function CheckListItemAddModal({
               rows={3}
               className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
               placeholder="チェック項目の説明"
-              disabled={!isEditable}
             />
           </div>
 
@@ -247,7 +183,6 @@ export default function CheckListItemAddModal({
               value={formData.parentId}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-              disabled={!isEditable}
             >
               <option value="">親項目なし（ルート項目）</option>
               {hierarchyItems.map((item) => (
@@ -257,91 +192,6 @@ export default function CheckListItemAddModal({
               ))}
             </select>
           </div>
-
-          <div className="mb-4">
-            <label className="block text-aws-squid-ink-light font-medium mb-2">
-              項目タイプ
-            </label>
-            <div className="flex space-x-4">
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  name="itemType"
-                  value="simple"
-                  checked={formData.itemType === "simple"}
-                  onChange={handleChange}
-                  className="form-radio h-5 w-5 text-aws-sea-blue-light"
-                  disabled={!isEditable}
-                />
-                <span className="ml-2 text-aws-squid-ink-light">
-                  単純チェック
-                </span>
-              </label>
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  name="itemType"
-                  value="flow"
-                  checked={formData.itemType === "flow"}
-                  onChange={handleChange}
-                  className="form-radio h-5 w-5 text-aws-sea-blue-light"
-                  disabled={!isEditable}
-                />
-                <span className="ml-2 text-aws-squid-ink-light">
-                  フローチェック
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                name="isConclusion"
-                checked={formData.isConclusion}
-                onChange={handleChange}
-                className="form-checkbox h-5 w-5 text-aws-sea-blue-light"
-                disabled={!isEditable}
-              />
-              <span className="ml-2 text-aws-squid-ink-light">結論項目</span>
-            </label>
-            <p className="text-sm text-aws-font-color-gray mt-1">
-              結論項目は、フローの最終結果を表します
-            </p>
-          </div>
-
-          {formData.itemType === "flow" && (
-            <div className="mb-4 p-4 bg-aws-paper-light rounded-md border border-light-gray">
-              <h3 className="text-lg font-medium text-aws-squid-ink-light mb-4">
-                フロー設定
-              </h3>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="flowData.condition_type"
-                  className="block text-aws-squid-ink-light font-medium mb-2"
-                >
-                  条件タイプ <span className="text-red">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="flowData.condition_type"
-                  name="flowData.condition_type"
-                  value={formData.flowData.condition_type}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
-                    errors.flowData ? "border-red" : "border-light-gray"
-                  }`}
-                  placeholder="例: 適合性判断、書類確認など"
-                  disabled={!isEditable}
-                />
-                {errors.flowData && (
-                  <p className="mt-1 text-red text-sm">{errors.flowData}</p>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-end space-x-3 mt-6">
             <button
@@ -353,7 +203,7 @@ export default function CheckListItemAddModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !isEditable}
+              disabled={isSubmitting}
               className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && (

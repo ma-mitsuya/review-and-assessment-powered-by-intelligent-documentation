@@ -5,6 +5,7 @@ import {
   deleteReviewJobHandler,
   getAllReviewJobsHandler,
   getReviewPresignedUrlHandler,
+  getReviewResultItemsHandler,
 } from "./handlers";
 
 /**
@@ -32,9 +33,9 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   });
 
   // 審査結果関連
-  // fastify.get("/review-jobs/:jobId/results/items", {
-  //   handler: getReviewResultItemsHandler,
-  // });
+  fastify.get("/review-jobs/:jobId/results/items", {
+    handler: getReviewResultItemsHandler,
+  });
   // fastify.put("/review-jobs/:jobId/results/:resultId", {
   //   handler: updateReviewResultHandler,
   // });

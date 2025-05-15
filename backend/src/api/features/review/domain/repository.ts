@@ -1,16 +1,28 @@
 import { prisma } from "../../../core/prisma";
 import { PrismaClient } from "../../../core/db";
-import { ReviewJobModel, ReviewJobMetaModel } from "./model/review";
+import {
+  ReviewJobModel,
+  ReviewJobMetaModel,
+  REVIEW_JOB_STATUS,
+  ReviewResultModel,
+  ReviewResultDetailModel,
+  REVIEW_RESULT,
+  REVIEW_RESULT_STATUS,
+} from "./model/review";
 
-export interface ReviewRepository {
+export interface ReviewJobRepository {
   findAllReviewJobs(): Promise<ReviewJobMetaModel[]>;
   createReviewJob(params: ReviewJobModel): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
+  updateJobStatus(params: {
+    reviewJobId: string;
+    status: REVIEW_JOB_STATUS;
+  }): Promise<void>;
 }
 
-export const makePrismaReviewRepository = (
+export const makePrismaReviewJobRepository = (
   client: PrismaClient = prisma
-): ReviewRepository => {
+): ReviewJobRepository => {
   const findAllReviewJobs = async (): Promise<ReviewJobMetaModel[]> => {
     const jobs = await client.reviewJob.findMany({
       orderBy: { createdAt: "desc" },
@@ -54,13 +66,13 @@ export const makePrismaReviewRepository = (
       return {
         id: job.id,
         name: job.name,
-        status: job.status,
+        status: job.status as REVIEW_JOB_STATUS,
         documentId: job.documentId,
         checkListSetId: job.checkListSetId,
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
-        completedAt: job.completedAt,
-        userId: job.userId,
+        completedAt: job.completedAt || undefined,
+        userId: job.userId || undefined,
         document: {
           id: job.document.id,
           filename: job.document.filename,
@@ -93,11 +105,11 @@ export const makePrismaReviewRepository = (
       });
 
       // 審査ジョブを作成
-      const job = await tx.reviewJob.create({
+      await tx.reviewJob.create({
         data: {
           id: params.id,
           name: params.name,
-          status: "pending",
+          status: params.status,
           documentId: params.documentId,
           checkListSetId: params.checkListSetId,
           createdAt: now,
@@ -110,9 +122,20 @@ export const makePrismaReviewRepository = (
         },
       });
 
-      // 審査結果の作成はStep Functions側のprepareReview関数で行うため、ここでは行わない
-
-      return job;
+      // 審査結果を作成
+      for (const result of params.results) {
+        await tx.reviewResult.create({
+          data: {
+            id: result.id,
+            reviewJobId: params.id,
+            checkId: result.checkId,
+            status: result.status,
+            userOverride: result.userOverride,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+      }
     });
   };
 
@@ -123,6 +146,21 @@ export const makePrismaReviewRepository = (
     await client.$transaction(async (tx) => {
       await tx.reviewResult.deleteMany({ where: { reviewJobId } });
       await tx.reviewJob.delete({ where: { id: reviewJobId } });
+      await tx.reviewDocument.delete({ where: { id: reviewJobId } });
+    });
+  };
+
+  const updateJobStatus = async (params: {
+    reviewJobId: string;
+    status: REVIEW_JOB_STATUS;
+  }): Promise<void> => {
+    const { reviewJobId, status } = params;
+    await client.reviewJob.update({
+      where: { id: reviewJobId },
+      data: {
+        status,
+        updatedAt: new Date(),
+      },
     });
   };
 
@@ -130,5 +168,163 @@ export const makePrismaReviewRepository = (
     findAllReviewJobs,
     createReviewJob,
     deleteReviewJobById,
+    updateJobStatus,
+  };
+};
+
+export interface ReviewResultRepository {
+  findReviewResultsById(params: {
+    jobId: string;
+    parentId?: string;
+    filter?: REVIEW_RESULT;
+  }): Promise<ReviewResultDetailModel[]>;
+  updateResult(params: { newResult: ReviewResultModel }): Promise<void>;
+  bulkUpdateResults(params: { results: ReviewResultModel[] }): Promise<void>;
+}
+
+export const makePrismaReviewResultRepository = (
+  client: PrismaClient = prisma
+): ReviewResultRepository => {
+  const findReviewResultsById = async (params: {
+    jobId: string;
+    parentId?: string;
+    filter?: REVIEW_RESULT;
+  }): Promise<ReviewResultDetailModel[]> => {
+    const { jobId, parentId, filter } = params;
+
+    console.log(
+      `[Repository] findReviewResultsById - jobId: ${jobId}, parentId: ${
+        parentId || "null"
+      }, filter: ${filter || "all"}`
+    );
+
+    // クエリの基本条件を構築
+    const whereCondition: any = {
+      reviewJobId: jobId,
+      checkList: {
+        parentId: parentId || null,
+      },
+    };
+
+    // フィルター条件を追加
+    if (filter) {
+      whereCondition.status = REVIEW_RESULT_STATUS.COMPLETED;
+      whereCondition.result = filter;
+    }
+
+    // 審査結果を取得
+    const results = await client.reviewResult.findMany({
+      where: whereCondition,
+      include: {
+        checkList: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    console.log(`[Repository] Found ${results.length} results`);
+
+    if (results.length === 0) {
+      return [];
+    }
+
+    // 子要素の有無を一括確認
+    const checkIds = results.map((result) => result.checkId);
+
+    // すべてのチェックIDに対する子の存在を一度に確認する
+    // まず、jobIdに関連するすべての結果を取得し、checkListのparentIdがcheckIdsに含まれるものを選択
+    const childResults = await client.reviewResult.findMany({
+      where: {
+        reviewJobId: jobId,
+        checkList: {
+          parentId: {
+            in: checkIds,
+          },
+        },
+      },
+      select: {
+        checkList: {
+          select: {
+            parentId: true,
+          },
+        },
+      },
+    });
+
+    // 子を持つ親IDのセットを作成
+    const parentsWithChildren = new Set(
+      childResults.map((child) => child.checkList.parentId)
+    );
+
+    // 結果を新しいモデル形式に変換して返す
+    return results.map((result) => ({
+      id: result.id,
+      reviewJobId: result.reviewJobId,
+      checkId: result.checkId,
+      status: result.status as REVIEW_RESULT_STATUS,
+      result: result.result as REVIEW_RESULT | undefined,
+      confidenceScore: result.confidenceScore || undefined,
+      explanation: result.explanation || undefined,
+      extractedText: result.extractedText || undefined,
+      userOverride: result.userOverride,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      checkList: {
+        id: result.checkList.id,
+        setId: result.checkList.checkListSetId,
+        name: result.checkList.name,
+        description: result.checkList.description || undefined,
+        parentId: result.checkList.parentId || undefined,
+      },
+      hasChildren: parentsWithChildren.has(result.checkId),
+    }));
+  };
+
+  const updateResult = async (params: {
+    newResult: ReviewResultModel;
+  }): Promise<void> => {
+    const { newResult } = params;
+    await client.reviewResult.update({
+      where: { id: newResult.id },
+      data: {
+        status: newResult.status,
+        result: newResult.result,
+        confidenceScore: newResult.confidenceScore,
+        explanation: newResult.explanation,
+        extractedText: newResult.extractedText,
+        userOverride: newResult.userOverride,
+        updatedAt: newResult.updatedAt,
+      },
+    });
+  };
+
+  const bulkUpdateResults = async (params: {
+    results: ReviewResultModel[];
+  }): Promise<void> => {
+    const { results } = params;
+
+    await client.$transaction(async (tx) => {
+      for (const result of results) {
+        await tx.reviewResult.update({
+          where: { id: result.id },
+          data: {
+            status: result.status,
+            result: result.result,
+            confidenceScore: result.confidenceScore,
+            explanation: result.explanation,
+            extractedText: result.extractedText,
+            userOverride: result.userOverride,
+            updatedAt: result.updatedAt,
+          },
+        });
+      }
+    });
+  };
+
+  return {
+    findReviewResultsById,
+    updateResult,
+    bulkUpdateResults,
   };
 };
