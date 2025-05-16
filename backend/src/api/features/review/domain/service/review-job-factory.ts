@@ -4,12 +4,12 @@ import { CheckRepository } from "../../../checklist/domain/repository";
 import { CreateReviewJobRequest } from "../../routes/handlers";
 import {
   REVIEW_RESULT_STATUS,
-  REVIEW_JOB_STATUS
+  REVIEW_JOB_STATUS,
   ReviewJobModel,
   ReviewResultModel,
+  REVIEW_RESULT,
 } from "../model/review";
 import { ReviewJobRepository } from "../repository";
-
 
 export const createInitialReviewJobModel = async (params: {
   req: CreateReviewJobRequest;

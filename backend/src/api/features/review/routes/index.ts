@@ -6,6 +6,7 @@ import {
   getAllReviewJobsHandler,
   getReviewPresignedUrlHandler,
   getReviewResultItemsHandler,
+  overrideReviewResultHandler,
 } from "./handlers";
 
 /**
@@ -36,7 +37,7 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   fastify.get("/review-jobs/:jobId/results/items", {
     handler: getReviewResultItemsHandler,
   });
-  // fastify.put("/review-jobs/:jobId/results/:resultId", {
-  //   handler: updateReviewResultHandler,
-  // });
+  fastify.put("/review-jobs/:jobId/results/:resultId", {
+    handler: overrideReviewResultHandler,
+  });
 }

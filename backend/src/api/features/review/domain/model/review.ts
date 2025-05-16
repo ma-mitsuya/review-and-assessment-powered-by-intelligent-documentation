@@ -82,6 +82,7 @@ export interface ReviewResultModel {
   confidenceScore?: number;
   explanation?: string;
   extractedText?: string;
+  userComment?: string;
   userOverride: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -92,33 +93,21 @@ export interface ReviewResultDetailModel extends ReviewResultModel {
   hasChildren: boolean;
 }
 
-// export const ReviewJobDomain = (() => {
-//   return {
-//     updateJobStatus: (
-//       currentJob: ReviewJobModel,
-//       status: REVIEW_JOB_STATUS
-//     ): ReviewJobModel => {
-//       return {
-//         ...currentJob,
-//         status,
-//       };
-//     },
-//   };
-// })();
-
-// export const ReviewResultDomain = {
-//   fromInitializeRequest: (
-//     reviewJobId: string,
-//     checkId: string
-//   ): ReviewResultModel => {
-//     return {
-//       id: ulid(),
-//       reviewJobId,
-//       checkId,
-//       status: REVIEW_RESULT_STATUS.PENDING,
-//       userOverride: false,
-//       createdAt: new Date(),
-//       updatedAt: new Date(),
-//     };
-//   },
-// };
+export const ReviewResultDomain = (() => {
+  return {
+    fromOverrideRequest: (params: {
+      current: ReviewResultDetailModel;
+      result: REVIEW_RESULT;
+      userComment: string;
+    }): ReviewResultDetailModel => {
+      const { current, result, userComment } = params;
+      return {
+        ...current,
+        result,
+        userComment,
+        userOverride: true,
+        updatedAt: new Date(),
+      };
+    },
+  };
+})();

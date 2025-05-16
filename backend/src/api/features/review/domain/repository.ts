@@ -173,6 +173,9 @@ export const makePrismaReviewJobRepository = (
 };
 
 export interface ReviewResultRepository {
+  findDetailedReviewResultById(params: {
+    resultId: string;
+  }): Promise<ReviewResultDetailModel>;
   findReviewResultsById(params: {
     jobId: string;
     parentId?: string;
@@ -185,6 +188,57 @@ export interface ReviewResultRepository {
 export const makePrismaReviewResultRepository = (
   client: PrismaClient = prisma
 ): ReviewResultRepository => {
+  const findDetailedReviewResultById = async (params: {
+    resultId: string;
+  }): Promise<ReviewResultDetailModel> => {
+    const { resultId } = params;
+
+    // 1) 対象の ReviewResult と紐づく CheckList を取得
+    const result = await client.reviewResult.findUnique({
+      where: { id: resultId },
+      include: { checkList: true },
+    });
+
+    if (!result) {
+      throw new Error(`ReviewResult not found: ${resultId}`);
+    }
+
+    // 2) 同じジョブ内で、このチェック項目に対する子結果があるかをカウント
+    const childCount = await client.reviewResult.count({
+      where: {
+        reviewJobId: result.reviewJobId,
+        checkList: {
+          parentId: result.checkId,
+        },
+      },
+    });
+
+    // 3) ドメインモデルにマッピングして返却
+    return {
+      id: result.id,
+      reviewJobId: result.reviewJobId,
+      checkId: result.checkId,
+      status: result.status as REVIEW_RESULT_STATUS,
+      result: result.result as REVIEW_RESULT | undefined,
+      confidenceScore: result.confidenceScore ?? undefined,
+      explanation: result.explanation ?? undefined,
+      extractedText: result.extractedText ?? undefined,
+      userOverride: result.userOverride,
+      // schema に userComment があるならこちらもマッピング
+      userComment: (result as any).userComment ?? undefined,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      checkList: {
+        id: result.checkList.id,
+        setId: result.checkList.checkListSetId,
+        name: result.checkList.name,
+        description: result.checkList.description ?? undefined,
+        parentId: result.checkList.parentId ?? undefined,
+      },
+      hasChildren: childCount > 0,
+    };
+  };
+
   const findReviewResultsById = async (params: {
     jobId: string;
     parentId?: string;
@@ -323,6 +377,7 @@ export const makePrismaReviewResultRepository = (
   };
 
   return {
+    findDetailedReviewResultById,
     findReviewResultsById,
     updateResult,
     bulkUpdateResults,

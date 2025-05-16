@@ -8,6 +8,7 @@ import {
 } from "../usecase/review-job";
 import { deleteS3Object } from "../../../core/s3";
 import { REVIEW_RESULT } from "../domain/model/review";
+import { overrideReviewResult } from "../usecase/review-result";
 
 export const getAllReviewJobsHandler = async (
   request: FastifyRequest,
@@ -115,5 +116,33 @@ export const getReviewResultItemsHandler = async (
   reply.code(200).send({
     success: true,
     data: results,
+  });
+};
+
+export interface OverrideReviewResultRequest {
+  result: REVIEW_RESULT;
+  userComment: string;
+}
+
+export const overrideReviewResultHandler = async (
+  request: FastifyRequest<{
+    Params: { jobId: string; resultId: string };
+    Body: OverrideReviewResultRequest;
+  }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { jobId, resultId } = request.params;
+  const { result, userComment } = request.body;
+
+  await overrideReviewResult({
+    reviewJobId: jobId,
+    resultId,
+    result,
+    userComment,
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: {},
   });
 };

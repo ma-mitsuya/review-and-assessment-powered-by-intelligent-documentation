@@ -1,0 +1,120 @@
+import { ulid } from "ulid";
+import { NotFoundError } from "../../../../core/errors";
+import { CheckRepository } from "../../../checklist/domain/repository";
+import { CreateReviewJobRequest } from "../../routes/handlers";
+import {
+  REVIEW_RESULT_STATUS,
+  REVIEW_JOB_STATUS,
+  ReviewJobModel,
+  ReviewResultModel,
+  REVIEW_RESULT,
+  ReviewResultDetailModel,
+} from "../model/review";
+import { ReviewJobRepository, ReviewResultRepository } from "../repository";
+
+export const updateCheckResultCascade = async (params: {
+  updated: ReviewResultDetailModel;
+  deps: {
+    reviewResultRepo: ReviewResultRepository;
+  };
+}): Promise<void> => {
+  const {
+    updated,
+    deps: { reviewResultRepo },
+  } = params;
+
+  // 1) Fetch all review results for the given review job
+  const all = await reviewResultRepo.findReviewResultsById({
+    jobId: updated.reviewJobId,
+  });
+  if (all.length === 0) {
+    throw new NotFoundError(`Review job not found`, updated.reviewJobId);
+  }
+
+  // 2) Create a map to store the review results and their children
+  const modelMap = new Map<string, ReviewResultDetailModel>();
+  const childrenMap = new Map<string, string[]>();
+  all.forEach((r) => {
+    modelMap.set(r.checkId, { ...r });
+    const pid = r.checkList.parentId;
+    if (pid) {
+      if (!childrenMap.has(pid)) {
+        childrenMap.set(pid, []);
+      }
+      childrenMap.get(pid)!.push(r.checkId);
+    }
+  });
+
+  // 3) Update the status of the current review result
+  modelMap.set(updated.checkId, updated);
+
+  // 4) 再帰的に親を辿り、必要なら更新モデルを toUpdate に収集
+  // 4) Traverse the parent nodes recursively and collect the models to be updated
+  const toUpdate: ReviewResultModel[] = [];
+
+  const recurse = (checkId: string) => {
+    const node = modelMap.get(checkId);
+    if (!node) return;
+    const childIds = childrenMap.get(checkId);
+    if (!childIds || childIds.length === 0) return;
+
+    const childModels = childIds.map((cid) => modelMap.get(cid)!);
+    // Are all child models completed?
+    if (childModels.every((c) => c.status === REVIEW_RESULT_STATUS.COMPLETED)) {
+      // Are all child models pass?
+      const allPass = childModels.every((c) => c.result === REVIEW_RESULT.PASS);
+
+      // Update the parent node
+      node.status = REVIEW_RESULT_STATUS.COMPLETED;
+      node.result = allPass ? REVIEW_RESULT.PASS : REVIEW_RESULT.FAIL;
+      node.confidenceScore = calculateAverageConfidence(childModels);
+      node.explanation = generateParentExplanation(childModels, allPass);
+
+      toUpdate.push(node);
+
+      // Recursively check the parent node
+      const nextPid = node.checkList.parentId;
+      if (nextPid) {
+        recurse(nextPid);
+      }
+    }
+  };
+
+  // 5) 最初は「更新されたノードの親」からスタート
+  const startParent = updated.checkList.parentId;
+  if (startParent) {
+    recurse(startParent);
+  }
+
+  // 6) 変更があれば一括更新
+  if (toUpdate.length > 0) {
+    await reviewResultRepo.bulkUpdateResults({
+      results: toUpdate,
+    });
+  }
+};
+
+/** 子アイテムの confidenceScore 平均を計算 */
+const calculateAverageConfidence = (
+  children: ReviewResultDetailModel[]
+): number => {
+  if (children.length === 0) return 0;
+  const sum = children.reduce((acc, c) => acc + (c.confidenceScore ?? 0), 0);
+  return sum / children.length;
+};
+
+/** 子アイテムの結果から、親の説明文を生成 */
+const generateParentExplanation = (
+  children: ReviewResultDetailModel[],
+  allPass: boolean
+): string => {
+  if (allPass) {
+    return "すべての子項目がパスしています。";
+  } else {
+    const failed = children
+      .filter((c) => c.result === REVIEW_RESULT.FAIL)
+      .map((c) => c.checkList.name || "不明な項目")
+      .join("、");
+    return `以下の子項目が不適合です: ${failed}`;
+  }
+};

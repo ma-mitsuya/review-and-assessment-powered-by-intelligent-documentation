@@ -1,0 +1,59 @@
+import {
+  REVIEW_JOB_STATUS,
+  REVIEW_RESULT,
+  ReviewJobMetaModel,
+  ReviewResultDetailModel,
+  ReviewResultDomain,
+} from "../domain/model/review";
+import {
+  ReviewJobRepository,
+  ReviewResultRepository,
+  makePrismaReviewJobRepository,
+  makePrismaReviewResultRepository,
+} from "../domain/repository";
+import { updateCheckResultCascade } from "../domain/service/review-result-cascade-update";
+
+export const getReviewResults = async (params: {
+  reviewJobId: string;
+  parentId?: string;
+  filter?: REVIEW_RESULT;
+  deps?: {
+    repo?: ReviewResultRepository;
+  };
+}): Promise<ReviewResultDetailModel[]> => {
+  const repo = params.deps?.repo || makePrismaReviewResultRepository();
+  const reviewJob = await repo.findReviewResultsById({
+    jobId: params.reviewJobId,
+    parentId: params.parentId,
+    filter: params.filter,
+  });
+  return reviewJob;
+};
+
+export const overrideReviewResult = async (params: {
+  reviewJobId: string;
+  resultId: string;
+  result: REVIEW_RESULT;
+  userComment: string;
+  deps?: {
+    repo?: ReviewResultRepository;
+  };
+}): Promise<void> => {
+  const repo = params.deps?.repo || makePrismaReviewResultRepository();
+
+  const current = await repo.findDetailedReviewResultById({
+    resultId: params.resultId,
+  });
+  const updated = ReviewResultDomain.fromOverrideRequest({
+    current,
+    result: params.result,
+    userComment: params.userComment,
+  });
+
+  await updateCheckResultCascade({
+    updated,
+    deps: {
+      reviewResultRepo: repo,
+    },
+  });
+};
