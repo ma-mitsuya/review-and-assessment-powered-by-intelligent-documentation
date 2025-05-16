@@ -1,8 +1,16 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import iconImage from '../assets/icon.png';
-import { HiX, HiMenu, HiCheck, HiDocumentText, HiInformationCircle, HiLogout, HiUser } from 'react-icons/hi';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import iconImage from "../assets/icon.png";
+import {
+  HiX,
+  HiMenu,
+  HiCheck,
+  HiDocumentText,
+  HiInformationCircle,
+  HiLogout,
+  HiUser,
+} from "react-icons/hi";
+import { useAuth } from "../contexts/AuthContext";
 
 /**
  * サイドバーコンポーネント
@@ -42,28 +50,24 @@ export default function Sidebar() {
       {/* サイドバー */}
       <div
         className={`fixed top-0 left-0 h-full bg-aws-squid-ink-light text-aws-font-color-white-light w-64 transform transition-transform duration-300 ease-in-out z-40 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         <div className="p-6">
           <div className="flex items-center mb-8">
-            <img 
-              src={iconImage} 
-              alt="BEACON Logo" 
-              className="h-16 w-16 mr-3"
-            />
-            <h1 className="text-2xl font-bold">BEACON</h1>
+            <img src={iconImage} alt="RAPID Logo" className="h-16 w-16 mr-3" />
+            <h1 className="text-2xl font-bold">RAPID</h1>
           </div>
-          
+
           <nav>
             <ul className="space-y-2">
               <li className="mb-1">
                 <Link
                   to="/checklist"
                   className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                    isActive('/checklist')
-                      ? 'bg-aws-sea-blue-light text-aws-font-color-white-light'
-                      : 'text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light'
+                    isActive("/checklist")
+                      ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
+                      : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
@@ -75,9 +79,9 @@ export default function Sidebar() {
                 <Link
                   to="/review"
                   className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                    isActive('/review')
-                      ? 'bg-aws-sea-blue-light text-aws-font-color-white-light'
-                      : 'text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light'
+                    isActive("/review")
+                      ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
+                      : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
@@ -87,14 +91,16 @@ export default function Sidebar() {
               </li>
             </ul>
           </nav>
-          
+
           <div className="absolute bottom-0 left-0 right-0 p-6">
             {/* ユーザーメニュー */}
             {user && (
               <div className="mb-4 border-t border-aws-font-color-white-light border-opacity-20 pt-4">
                 <div className="flex items-center mb-2">
                   <HiUser className="h-5 w-5 mr-2" />
-                  <span className="text-sm truncate">{user.username || user.email}</span>
+                  <span className="text-sm truncate">
+                    {user.username || user.email}
+                  </span>
                 </div>
                 <button
                   onClick={handleLogout}
