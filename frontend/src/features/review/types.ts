@@ -1,131 +1,229 @@
 /**
- * 審査機能の型定義
+ * Review feature type definitions
+ * These types correspond to the backend API endpoints in backend/src/api/features/review/routes
  */
 
+// Enum types
 /**
- * API レスポンスの型
+ * Review job status enum
  */
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  error?: string;
+export enum REVIEW_JOB_STATUS {
+  PENDING = "pending",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
 }
 
 /**
- * 審査ドキュメント
+ * Review result status enum
  */
-export interface ReviewDocument {
-  documentId: string;
+export enum REVIEW_RESULT_STATUS {
+  PENDING = "pending",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
+}
+
+/**
+ * Review result enum
+ */
+export enum REVIEW_RESULT {
+  PASS = "pass",
+  FAIL = "fail",
+}
+
+// Request types
+
+/**
+ * Request type for getting a presigned URL for review document upload
+ * POST /documents/review/presigned-url
+ */
+export interface GetReviewPresignedUrlRequest {
   filename: string;
-  s3Path: string;
-  fileType: string;
-  uploadDate: string;
-  status: string;
+  contentType: string;
 }
 
 /**
- * 審査ジョブ
+ * Request type for creating a review job
+ * POST /review-jobs
  */
-export interface ReviewJob {
-  reviewJobId: string;
-  name: string;
-  status: string;
-  document: {
-    documentId: string;
-    filename: string;
-  };
-  checkListSet: {
-    checkListSetId: string;
-    name: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  completedAt: string | null;
-  summary: ReviewJobSummary;
-}
-
-/**
- * 審査ジョブサマリー
- */
-export interface ReviewJobSummary {
-  total: number;
-  passed: number;
-  failed: number;
-  processing?: number;
-}
-
-/**
- * 審査結果項目
- */
-export interface ReviewResultItem {
-  reviewResultId: string;
-  reviewJobId: string; // 追加: 審査ジョブID
-  checkId: string;
-  status: string;
-  result: string | null;
-  confidenceScore: number | null;
-  explanation: string | null;
-  extractedText: string | null;
-  userOverride: boolean;
-  userComment: string | null;
-  hasChildren: boolean;
-  checkList: {
-    checkId: string;
-    name: string;
-    description: string | null;
-    parentId: string | null;
-    isConclusion: boolean;
-    flowData?: any;
-  };
-}
-
-/**
- * 審査結果
- */
-export interface ReviewResult {
-  reviewResultId: string;
-  reviewJobId: string; // 追加: 審査ジョブID
-  checkId: string;
-  status: string;
-  result: string | null;
-  confidenceScore: number | null;
-  explanation: string | null;
-  extractedText: string | null;
-  userOverride: boolean;
-  userComment: string | null;
-  checkList: {
-    checkId: string;
-    name: string;
-    description: string | null;
-    parentId: string | null;
-    isConclusion: boolean;
-    flowData?: any;
-  };
-}
-
-/**
- * 審査結果階層構造
- */
-export interface ReviewResultHierarchy extends ReviewResult {
-  children: ReviewResultHierarchy[];
-}
-
-/**
- * 審査ジョブ作成パラメータ
- */
-export interface CreateReviewJobParams {
+export interface CreateReviewJobRequest {
   name: string;
   documentId: string;
   checkListSetId: string;
   filename: string;
   s3Key: string;
   fileType: string;
+  userId?: string;
 }
 
 /**
- * 審査結果更新パラメータ
+ * Request type for overriding a review result
+ * PUT /review-jobs/:jobId/results/:resultId
  */
-export interface UpdateReviewResultParams {
-  result: string;
+export interface OverrideReviewResultRequest {
+  result: REVIEW_RESULT;
+  userComment: string;
+}
+
+// Response types
+
+/**
+ * Response type for getting all review jobs
+ * GET /review-jobs
+ */
+export interface GetAllReviewJobsResponse {
+  success: boolean;
+  data: ReviewJobMetaModel[];
+}
+
+/**
+ * Response type for getting a presigned URL for review document upload
+ * POST /documents/review/presigned-url
+ */
+export interface GetReviewPresignedUrlResponse {
+  success: boolean;
+  data: {
+    url: string;
+    key: string;
+    documentId: string;
+  };
+}
+
+/**
+ * Response type for deleting a review document
+ * DELETE /documents/review/:key
+ */
+export interface DeleteReviewDocumentResponse {
+  success: boolean;
+  data: {
+    deleted: boolean;
+  };
+}
+
+/**
+ * Response type for creating a review job
+ * POST /review-jobs
+ */
+export interface CreateReviewJobResponse {
+  success: boolean;
+  data: Record<string, never>;
+}
+
+/**
+ * Response type for deleting a review job
+ * DELETE /review-jobs/:id
+ */
+export interface DeleteReviewJobResponse {
+  success: boolean;
+  data: Record<string, never>;
+}
+
+/**
+ * Response type for getting review result items
+ * GET /review-jobs/:jobId/results/items
+ */
+export interface GetReviewResultItemsResponse {
+  success: boolean;
+  data: ReviewResultDetailModel[];
+}
+
+/**
+ * Response type for overriding a review result
+ * PUT /review-jobs/:jobId/results/:resultId
+ */
+export interface OverrideReviewResultResponse {
+  success: boolean;
+  data: Record<string, never>;
+}
+
+// Model types
+
+/**
+ * Review job summary model
+ */
+export interface ReviewJobSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  processing: number;
+}
+
+/**
+ * Review job model
+ */
+export interface ReviewJobModel {
+  id: string;
+  name: string;
+  status: REVIEW_JOB_STATUS;
+  documentId: string;
+  checkListSetId: string;
+  userId?: string;
+  filename: string;
+  s3Key: string;
+  fileType: string;
+  results: ReviewResultModel[];
+}
+
+/**
+ * Review job meta model (for list view)
+ */
+export interface ReviewJobMetaModel {
+  id: string;
+  name: string;
+  status: REVIEW_JOB_STATUS;
+  documentId: string;
+  checkListSetId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+  userId?: string;
+  document: {
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: string;
+  };
+  checkListSet: {
+    id: string;
+    name: string;
+  };
+  summary: ReviewJobSummary;
+}
+
+/**
+ * Review result model
+ */
+export interface ReviewResultModel {
+  id: string;
+  reviewJobId: string;
+  checkId: string;
+  status: REVIEW_RESULT_STATUS;
+  result?: REVIEW_RESULT;
+  confidenceScore?: number;
+  explanation?: string;
+  extractedText?: string;
   userComment?: string;
+  userOverride: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Review result detail model (includes checklist item)
+ */
+export interface ReviewResultDetailModel extends ReviewResultModel {
+  checkList: CheckListItemModel;
+  hasChildren: boolean;
+}
+
+/**
+ * Checklist item model (imported from checklist feature)
+ */
+export interface CheckListItemModel {
+  id: string;
+  parentId?: string;
+  setId: string;
+  name: string;
+  description?: string;
 }
