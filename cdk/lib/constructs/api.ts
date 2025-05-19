@@ -11,6 +11,8 @@ import * as path from "path";
 import { Construct } from "constructs";
 import { DatabaseConnectionProps } from "./prisma-function";
 import { Auth } from "./auth";
+import { platform } from "os";
+import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 
 /**
  * API Constructのプロパティ
@@ -51,11 +53,15 @@ export class Api extends Construct {
       )
     );
 
+
     // Lambda 関数の作成
     this.apiLambda = new lambda.DockerImageFunction(this, "ApiFunction", {
       role: handlerRole,
       code: lambda.DockerImageCode.fromImageAsset(
-        path.join(__dirname, "../../../backend")
+        path.join(__dirname, "../../../backend"),
+        {
+          platform: Platform.LINUX_AMD64
+        }
       ),
       vpc: props.vpc,
       vpcSubnets: {

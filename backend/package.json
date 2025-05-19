@@ -26,8 +26,6 @@
     "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@fastify/cors": "^8.3.0",
     "@prisma/client": "^6.6.0",
-    "canvas": "^3.1.0",
-    "csv-parser": "^3.2.0",
     "fastify": "^4.24.3",
     "jose": "^5.10.0",
     "mysql2": "^3.6.1",
