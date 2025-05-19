@@ -36,7 +36,6 @@ model CheckList {
   checkListSet   CheckListSet       @relation(fields: [checkListSetId], references: [id])
   parent         CheckList?         @relation("CheckListToCheckList", fields: [parentId], references: [id])
   children       CheckList[]        @relation("CheckListToCheckList")
-  checkResults   CheckResult[]
   documentId     String?            @map("document_id") @db.VarChar(26)
   document       CheckListDocument? @relation(fields: [documentId], references: [id])
   reviewResults  ReviewResult[]
@@ -46,16 +45,15 @@ model CheckList {
 
 // チェックリスト作成元ドキュメント
 model CheckListDocument {
-  id             String        @id @map("document_id") @db.VarChar(26)
-  filename       String        @db.VarChar(255)
-  s3Path         String        @map("s3_path") @db.VarChar(512)
-  fileType       String        @map("file_type") @db.VarChar(50)
-  uploadDate     DateTime      @map("upload_date") @db.Timestamp()
-  checkListSetId String        @map("check_list_set_id") @db.VarChar(26)
-  userId         String?       @map("user_id") @db.VarChar(50)
-  status         String        @default("pending") @db.VarChar(20)
-  checkListSet   CheckListSet  @relation(fields: [checkListSetId], references: [id])
-  checkResults   CheckResult[]
+  id             String       @id @map("document_id") @db.VarChar(26)
+  filename       String       @db.VarChar(255)
+  s3Path         String       @map("s3_path") @db.VarChar(512)
+  fileType       String       @map("file_type") @db.VarChar(50)
+  uploadDate     DateTime     @map("upload_date") @db.Timestamp()
+  checkListSetId String       @map("check_list_set_id") @db.VarChar(26)
+  userId         String?      @map("user_id") @db.VarChar(50)
+  status         String       @default("pending") @db.VarChar(20)
+  checkListSet   CheckListSet @relation(fields: [checkListSetId], references: [id])
   checkLists     CheckList[]
 
   @@map("checklist_documents")

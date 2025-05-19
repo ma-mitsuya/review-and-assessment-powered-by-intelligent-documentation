@@ -407,10 +407,6 @@ async function main(): Promise<void> {
       createdAt: new Date(),
       updatedAt: new Date(),
       userId: "user123",
-      metaData: {
-        priority: "high",
-        notes: "初回審査",
-      },
     },
   });
   console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
@@ -499,12 +495,6 @@ async function main(): Promise<void> {
         userComment,
         createdAt: new Date(),
         updatedAt: new Date(),
-        metaData: isCompleted
-          ? {
-              processingTime: Math.floor(Math.random() * 5000) + 1000,
-              aiModel: "gpt-4-1106-preview",
-            }
-          : null,
       },
     });
   }

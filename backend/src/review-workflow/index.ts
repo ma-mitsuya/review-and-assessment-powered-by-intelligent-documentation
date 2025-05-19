@@ -1,7 +1,5 @@
 import { prepareReview, finalizeReview } from "./review-processing";
 import { processReviewItem } from "./review-processing/review-item-processor";
-import { ReviewJobRepository } from "../api/features/review_old/repositories/review-job-repository";
-import { REVIEW_JOB_STATUS } from "../api/features/review_old/constants";
 
 export const handler = async (event: any): Promise<any> => {
   console.log("受信イベント:", JSON.stringify(event, null, 2));
@@ -61,18 +59,4 @@ async function handleFinalizeReview(event: any) {
 async function handleReviewError(event: any) {
   console.error("審査エラー発生:", event.error);
   console.error("エラー詳細:", event.cause);
-
-  // ジョブステータスをエラーに更新
-  const jobRepository = new ReviewJobRepository();
-  await jobRepository.updateReviewJobStatus(
-    event.reviewJobId,
-    REVIEW_JOB_STATUS.FAILED
-  );
-
-  return {
-    status: "error",
-    error: event.error,
-    cause: event.cause,
-    reviewJobId: event.reviewJobId,
-  };
 }

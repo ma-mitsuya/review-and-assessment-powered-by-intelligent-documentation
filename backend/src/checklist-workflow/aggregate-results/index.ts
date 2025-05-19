@@ -10,8 +10,7 @@ import {
   getChecklistAggregateKey,
   getChecklistCombinedKey,
 } from "../common/storage-paths";
-import { ChecklistItem, AggregatePageResult } from "../common/types";
-import { ulid } from "ulid";
+import { ParsedChecklistItem, AggregatePageResult } from "../common/types";
 
 export interface AggregatePageResultsParams {
   documentId: string;
@@ -34,7 +33,7 @@ export async function aggregatePageResults({
   const bucketName = process.env.DOCUMENT_BUCKET || "";
 
   // 各ページの結果を統合
-  const allChecklistItems: ChecklistItem[] = [];
+  const allChecklistItems: ParsedChecklistItem[] = [];
 
   // 各ページごとに処理
   for (const page of processedPages) {
@@ -42,7 +41,7 @@ export async function aggregatePageResults({
 
     // S3から結合済み結果を取得
     const combinedKey = getChecklistCombinedKey(documentId, pageNumber);
-    let pageItems: ChecklistItem[];
+    let pageItems: ParsedChecklistItem[];
 
     try {
       const response = await s3Client.send(
@@ -81,27 +80,6 @@ export async function aggregatePageResults({
       // parent_idの変換
       if (newItem.parent_id !== null && newItem.parent_id !== undefined) {
         newItem.parent_id = idMapping[newItem.parent_id] || null;
-      }
-
-      // flow_dataの変換
-      if (newItem.flow_data) {
-        if (newItem.flow_data.next_if_yes !== undefined) {
-          newItem.flow_data.next_if_yes =
-            idMapping[newItem.flow_data.next_if_yes];
-        }
-        if (newItem.flow_data.next_if_no !== undefined) {
-          newItem.flow_data.next_if_no =
-            idMapping[newItem.flow_data.next_if_no];
-        }
-        if (newItem.flow_data.next_options) {
-          const newOptions: Record<string, string> = {};
-          for (const [key, value] of Object.entries(
-            newItem.flow_data.next_options
-          )) {
-            newOptions[key] = idMapping[value];
-          }
-          newItem.flow_data.next_options = newOptions;
-        }
       }
 
       allChecklistItems.push(newItem);
