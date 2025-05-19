@@ -1,6 +1,6 @@
-# BEACON ローカル開発環境セットアップ
+# RAPID ローカル開発環境セットアップ
 
-このドキュメントでは、BEACON（Building & Engineering Approval Compliance Navigator）のローカル開発環境のセットアップ方法について説明します。
+このドキュメントでは、RAPID（Building & Engineering Approval Compliance Navigator）のローカル開発環境のセットアップ方法について説明します。
 
 ## 前提条件
 
@@ -22,11 +22,11 @@ docker-compose up -d
 
 - ホスト: localhost
 - ポート: 3306
-- データベース名: beacon_db
-- ユーザー名: beacon_user
-- パスワード: beacon_password
+- データベース名: rapid_db
+- ユーザー名: rapid_user
+- パスワード: rapid_password
 
-注意: Docker 起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`beacon_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
+注意: Docker 起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`rapid_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
 
 1. ボリュームを削除して再作成する：
 
@@ -38,7 +38,7 @@ docker-compose up -d
 2. 手動で権限を付与する：
 
 ```bash
-docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
+docker exec -it rapid-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'rapid_user'@'%'; FLUSH PRIVILEGES;"
 ```
 
 ### 2. バックエンドの依存関係インストール
@@ -168,7 +168,7 @@ Error: P3014
 Prisma Migrate could not create the shadow database. Please make sure the database user has permission to create databases.
 ```
 
-これは、`beacon_user`ユーザーに`CREATE DATABASE`権限がない場合に発生します。以下の対処法を試してください：
+これは、`rapid_user`ユーザーに`CREATE DATABASE`権限がない場合に発生します。以下の対処法を試してください：
 
 1. Docker 起動時に自動的に権限が付与されるはずですが、既存のボリュームがある場合は初期化スクリプトが実行されません。その場合は、ボリュームを削除して再作成します：
 
@@ -180,12 +180,12 @@ Prisma Migrate could not create the shadow database. Please make sure the databa
 2. または、手動で権限を付与します：
 
    ```bash
-   docker exec -it beacon-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'beacon_user'@'%'; FLUSH PRIVILEGES;"
+   docker exec -it rapid-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'rapid_user'@'%'; FLUSH PRIVILEGES;"
    ```
 
 3. 権限が正しく設定されているか確認：
    ```bash
-   docker exec -it beacon-mysql mysql -uroot -ppassword -e "SHOW GRANTS FOR 'beacon_user'@'%';"
+   docker exec -it rapid-mysql mysql -uroot -ppassword -e "SHOW GRANTS FOR 'rapid_user'@'%';"
    ```
 
 ### その他の問題

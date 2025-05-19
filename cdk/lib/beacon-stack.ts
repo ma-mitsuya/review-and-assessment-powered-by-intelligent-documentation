@@ -13,13 +13,13 @@ import { PrismaMigration } from "./constructs/prisma-migration";
 import { Distribution } from "aws-cdk-lib/aws-cloudfront";
 import { S3 } from "aws-cdk-lib/aws-ses-actions";
 
-export interface BeaconStackProps extends cdk.StackProps {
+export interface RapidStackProps extends cdk.StackProps {
   readonly webAclId: string;
   readonly enableIpV6: boolean;
 }
 
-export class BeaconStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: BeaconStackProps) {
+export class RapidStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: RapidStackProps) {
     super(scope, id, props);
 
     const prefix = cdk.Stack.of(this).region;
@@ -46,7 +46,7 @@ export class BeaconStack extends cdk.Stack {
     });
 
     // VPCの作成
-    const vpc = new ec2.Vpc(this, "BeaconVpc", {
+    const vpc = new ec2.Vpc(this, "RapidVpc", {
       maxAzs: 2,
       natGateways: 1,
       subnetConfiguration: [
@@ -71,7 +71,7 @@ export class BeaconStack extends cdk.Stack {
     // データベースの作成
     const database = new Database(this, "Database", {
       vpc,
-      databaseName: "beacon",
+      databaseName: "rapid",
       minCapacity: 0.5,
       maxCapacity: 1,
       autoPause: true,
@@ -200,7 +200,7 @@ export class BeaconStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.api.url,
-      description: "BEACON API URL",
+      description: "RAPID API URL",
     });
 
     new cdk.CfnOutput(this, "DatabaseEndpoint", {

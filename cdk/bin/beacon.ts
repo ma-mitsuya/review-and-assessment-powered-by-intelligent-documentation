@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { BeaconStack } from "../lib/beacon-stack";
+import { RapidStack } from "../lib/rapid-stack";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
 
 const app = new cdk.App();
@@ -8,7 +8,7 @@ const app = new cdk.App();
 // WAF for frontend
 // 2025/4: Currently, the WAF for CloudFront needs to be created in the North America region (us-east-1), so the stacks are separated
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafv2-webacl.html
-const waf = new FrontendWafStack(app, `BeaconFrontendWafStack`, {
+const waf = new FrontendWafStack(app, `RapidFrontendWafStack`, {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: "us-east-1",
@@ -21,13 +21,13 @@ const waf = new FrontendWafStack(app, `BeaconFrontendWafStack`, {
   ],
 });
 
-new BeaconStack(app, "BeaconStack", {
+new RapidStack(app, "RapidStack", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || "us-west-2",
   },
   description:
-    "BEACON (Building & Engineering Approval Compliance Navigator) - ドキュメント処理ワークフロー",
+    "RAPID (Building & Engineering Approval Compliance Navigator) - ドキュメント処理ワークフロー",
   crossRegionReferences: true,
   webAclId: waf.webAclArn.value,
   enableIpV6: waf.ipV6Enabled,

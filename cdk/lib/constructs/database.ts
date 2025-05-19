@@ -1,5 +1,5 @@
 /**
- * BEACON データベース構成
+ * RAPID データベース構成
  */
 import * as cdk from "aws-cdk-lib";
 import * as rds from "aws-cdk-lib/aws-rds";
@@ -30,7 +30,7 @@ export interface DatabaseConnectionProps {
 }
 
 /**
- * BEACON データベース Construct
+ * RAPID データベース Construct
  */
 export class Database extends Construct {
   public readonly cluster: rds.DatabaseCluster;
@@ -42,12 +42,12 @@ export class Database extends Construct {
     super(scope, id);
 
     // データベース名の設定
-    const databaseName = props.databaseName || "beacon";
+    const databaseName = props.databaseName || "rapid";
 
     // セキュリティグループの作成
     this.securityGroup = new ec2.SecurityGroup(this, "DatabaseSecurityGroup", {
       vpc: props.vpc,
-      description: "Security group for BEACON database",
+      description: "Security group for RAPID database",
       allowAllOutbound: true,
     });
 
@@ -103,8 +103,8 @@ export class Database extends Construct {
     };
 
     // マネジメントコンソールからのアクセスを許可するためのタグを追加
-    cdk.Tags.of(this.cluster).add("Name", `BEACON-${databaseName}`);
-    cdk.Tags.of(this.cluster).add("Project", "BEACON");
+    cdk.Tags.of(this.cluster).add("Name", `RAPID-${databaseName}`);
+    cdk.Tags.of(this.cluster).add("Project", "RAPID");
   }
 
   /**

@@ -1,7 +1,7 @@
 {
-  "name": "beacon-backend",
+  "name": "rapid-backend",
   "version": "1.0.0",
-  "description": "BEACON (Building & Engineering Approval Compliance Navigator) Backend",
+  "description": "RAPID (Building & Engineering Approval Compliance Navigator) Backend",
   "main": "dist/api/index.js",
   "prisma": {
     "seed": "tsx src/scripts/seed-db.ts"

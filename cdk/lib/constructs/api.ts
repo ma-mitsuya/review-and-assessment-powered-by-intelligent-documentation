@@ -1,5 +1,5 @@
 /**
- * BEACON API 構成
+ * RAPID API 構成
  */
 import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
@@ -25,7 +25,7 @@ export interface ApiProps {
 }
 
 /**
- * BEACON API Construct
+ * RAPID API Construct
  */
 export class Api extends Construct {
   public readonly apiLambda: lambda.DockerImageFunction;
@@ -53,14 +53,13 @@ export class Api extends Construct {
       )
     );
 
-
     // Lambda 関数の作成
     this.apiLambda = new lambda.DockerImageFunction(this, "ApiFunction", {
       role: handlerRole,
       code: lambda.DockerImageCode.fromImageAsset(
         path.join(__dirname, "../../../backend"),
         {
-          platform: Platform.LINUX_AMD64
+          platform: Platform.LINUX_AMD64,
         }
       ),
       vpc: props.vpc,
@@ -91,38 +90,48 @@ export class Api extends Construct {
     // CloudWatch Logs グループの作成
     const accessLogGroup = new logs.LogGroup(this, "ApiGatewayAccessLogs", {
       retention: logs.RetentionDays.ONE_WEEK,
-      logGroupName: `/aws/apigateway/beacon-api-access-logs`,
+      logGroupName: `/aws/apigateway/rapid-api-access-logs`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const executionLogGroup = new logs.LogGroup(this, "ApiGatewayExecutionLogs", {
-      retention: logs.RetentionDays.ONE_WEEK,
-      logGroupName: `/aws/apigateway/beacon-api-execution-logs`,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
+    const executionLogGroup = new logs.LogGroup(
+      this,
+      "ApiGatewayExecutionLogs",
+      {
+        retention: logs.RetentionDays.ONE_WEEK,
+        logGroupName: `/aws/apigateway/rapid-api-execution-logs`,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      }
+    );
 
     // API Gateway CloudWatch ロールの作成
-    const apiGatewayCloudWatchRole = new iam.Role(this, "ApiGatewayCloudWatchRole", {
-      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-        ),
-      ],
-    });
+    const apiGatewayCloudWatchRole = new iam.Role(
+      this,
+      "ApiGatewayCloudWatchRole",
+      {
+        assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+        managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+          ),
+        ],
+      }
+    );
 
     // API Gateway の作成
-    this.api = new apigateway.RestApi(this, "BeaconApi", {
-      restApiName: "BEACON API",
+    this.api = new apigateway.RestApi(this, "RapidApi", {
+      restApiName: "RAPID API",
       description:
-        "BEACON (Building & Engineering Approval Compliance Navigator) API",
+        "RAPID (Building & Engineering Approval Compliance Navigator) API",
       deployOptions: {
         stageName: "api",
         tracingEnabled: true,
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         // アクセスログの設定を追加
-        accessLogDestination: new apigateway.LogGroupLogDestination(accessLogGroup),
+        accessLogDestination: new apigateway.LogGroupLogDestination(
+          accessLogGroup
+        ),
         accessLogFormat: apigateway.AccessLogFormat.jsonWithStandardFields({
           caller: true,
           httpMethod: true,
@@ -171,7 +180,7 @@ export class Api extends Construct {
     // API URL の出力
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.url,
-      description: "URL of the BEACON API",
+      description: "URL of the RAPID API",
     });
 
     // ロググループの ARN を出力

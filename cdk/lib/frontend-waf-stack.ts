@@ -42,7 +42,7 @@ export class FrontendWafStack extends Stack {
       );
       rules.push({
         priority: 0,
-        name: "BeaconFrontendWebAclIpV4RuleSet",
+        name: "RapidFrontendWebAclIpV4RuleSet",
         action: { allow: {} },
         visibilityConfig: {
           cloudWatchMetricsEnabled: true,
@@ -66,7 +66,7 @@ export class FrontendWafStack extends Stack {
       );
       rules.push({
         priority: 1,
-        name: "BeaconFrontendWebAclIpV6RuleSet",
+        name: "RapidFrontendWebAclIpV6RuleSet",
         action: { allow: {} },
         visibilityConfig: {
           cloudWatchMetricsEnabled: true,
@@ -85,7 +85,7 @@ export class FrontendWafStack extends Stack {
     if (rules.length > 0) {
       const webAcl = new wafv2.CfnWebACL(this, "WebAcl", {
         defaultAction: { block: {} },
-        name: `${props.envPrefix}${sepHyphen}BeaconFrontendWebAcl`,
+        name: `${props.envPrefix}${sepHyphen}RapidFrontendWebAcl`,
         scope: "CLOUDFRONT",
         visibilityConfig: {
           cloudWatchMetricsEnabled: true,

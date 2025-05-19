@@ -1,6 +1,6 @@
 {
-  "name": "BEACON",
-  "short_name": "BEACON",
+  "name": "RAPID",
+  "short_name": "RAPID",
   "description": "Building & Engineering Approval Compliance Navigator",
   "start_url": "/",
   "display": "standalone",

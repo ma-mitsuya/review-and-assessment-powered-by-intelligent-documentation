@@ -1,7 +1,7 @@
 /**
  * ステージに応じた認証処理を提供するモジュール
  */
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from "fastify";
 
 /**
  * ローカル開発環境かどうかを判定する
@@ -10,10 +10,10 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 export const isLocalDevelopment = (): boolean => {
   // AWS_LAMBDA_FUNCTION_NAME が存在する場合はLambda環境
   const isLambdaEnvironment = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
-  
+
   // ローカル開発環境の判定
   // Lambda環境でなく、かつ明示的にローカル開発モードが指定されている場合
-  return !isLambdaEnvironment && process.env.BEACON_LOCAL_DEV === 'true';
+  return !isLambdaEnvironment && process.env.RAPID_LOCAL_DEV === "true";
 };
 
 /**
@@ -22,13 +22,13 @@ export const isLocalDevelopment = (): boolean => {
  */
 export const setupLocalDevelopmentUser = (request: FastifyRequest): void => {
   request.user = {
-    sub: 'local-dev-user-id',
-    email: 'local-dev@example.com',
-    name: 'Local Development User',
-    'cognito:groups': ['Developers'],
+    sub: "local-dev-user-id",
+    email: "local-dev@example.com",
+    name: "Local Development User",
+    "cognito:groups": ["Developers"],
     // 必要に応じて追加の属性を設定
   };
-  
+
   // デバッグ用にリクエストにマークを付ける（ログ出力用）
   (request as any).isLocalDevAuth = true;
 };

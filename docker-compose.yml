@@ -3,13 +3,13 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
-    container_name: beacon-mysql
+    container_name: rapid-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: beacon
-      MYSQL_USER: beacon_user
-      MYSQL_PASSWORD: beacon_password
+      MYSQL_DATABASE: rapid
+      MYSQL_USER: rapid_user
+      MYSQL_PASSWORD: rapid_password
     ports:
       - "3306:3306"
     volumes:
