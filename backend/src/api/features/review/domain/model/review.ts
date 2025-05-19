@@ -109,5 +109,25 @@ export const ReviewResultDomain = (() => {
         updatedAt: new Date(),
       };
     },
+
+    fromLlmReviewData: (params: {
+      current: ReviewResultDetailModel;
+      result: REVIEW_RESULT;
+      confidenceScore: number;
+      explanation: string;
+      extractedText: string;
+    }): ReviewResultModel => {
+      const { result, confidenceScore, explanation, extractedText } = params;
+      return {
+        ...params.current,
+        status: REVIEW_RESULT_STATUS.COMPLETED,
+        result,
+        confidenceScore,
+        explanation,
+        extractedText,
+        userOverride: false,
+        updatedAt: new Date(),
+      };
+    },
   };
 })();

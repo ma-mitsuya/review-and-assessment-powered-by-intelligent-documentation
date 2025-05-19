@@ -1,16 +1,11 @@
-import { ulid } from "ulid";
 import { NotFoundError } from "../../../../core/errors";
-import { CheckRepository } from "../../../checklist/domain/repository";
-import { CreateReviewJobRequest } from "../../routes/handlers";
 import {
   REVIEW_RESULT_STATUS,
-  REVIEW_JOB_STATUS,
-  ReviewJobModel,
   ReviewResultModel,
   REVIEW_RESULT,
   ReviewResultDetailModel,
 } from "../model/review";
-import { ReviewJobRepository, ReviewResultRepository } from "../repository";
+import { ReviewResultRepository } from "../repository";
 
 export const updateCheckResultCascade = async (params: {
   updated: ReviewResultDetailModel;

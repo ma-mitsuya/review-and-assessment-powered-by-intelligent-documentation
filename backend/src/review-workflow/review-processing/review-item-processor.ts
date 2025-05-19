@@ -4,15 +4,16 @@ import {
   ConverseCommand,
   TokenUsage,
 } from "@aws-sdk/client-bedrock-runtime";
-import { ReviewResultRepository } from "../../api/features/review_old/repositories/review-result-repository";
-import { ChecklistItemRepository } from "../../api/features/checklist/repositories/checklist-item-repository";
 import { getReviewDocumentKey } from "../../checklist-workflow/common/storage-paths";
 import {
+  makePrismaReviewJobRepository,
+  makePrismaReviewResultRepository,
+} from "../../api/features/review/domain/repository";
+import {
   REVIEW_JOB_STATUS,
-  REVIEW_RESULT_STATUS,
-  REVIEW_RESULT,
-} from "../../api/features/review_old/constants";
-import { getPrismaClient } from "../../api/core/db";
+  ReviewResultDomain,
+} from "../../api/features/review/domain/model/review";
+import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
 
 // 使用するモデルIDを定義
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
@@ -90,13 +91,13 @@ export async function processReviewItem(
   params: ProcessReviewItemParams
 ): Promise<any> {
   const { reviewJobId, documentId, fileName, checkId, reviewResultId } = params;
-  const prisma = getPrismaClient();
-  const resultRepository = new ReviewResultRepository(prisma);
-  const checklistItemRepository = new ChecklistItemRepository(prisma);
+  const reviewJobRepository = makePrismaReviewJobRepository();
+  const reviewResultRepository = makePrismaReviewResultRepository();
+  const checkRepository = makePrismaCheckRepository();
 
   try {
     // チェックリスト項目の取得
-    const checkList = await checklistItemRepository.getChecklistItem(checkId);
+    const checkList = await checkRepository.findCheckListItemById(checkId);
 
     if (!checkList) {
       throw new Error(`Check list item not found: ${checkId}`);
@@ -287,12 +288,18 @@ ${prompt}
     }
 
     // 審査結果を更新
-    await resultRepository.updateReviewResult(reviewResultId, {
-      status: REVIEW_RESULT_STATUS.COMPLETED,
+    const current = await reviewResultRepository.findDetailedReviewResultById({
+      resultId: reviewResultId,
+    });
+    const updated = ReviewResultDomain.fromLlmReviewData({
+      current,
       result: reviewData.result,
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
+    });
+    await reviewResultRepository.updateResult({
+      newResult: updated,
     });
 
     return {
@@ -305,10 +312,10 @@ ${prompt}
     console.error(`Error processing review item ${reviewResultId}:`, error);
 
     // エラー発生時は審査結果のステータスを失敗に更新
-    await resultRepository.updateReviewResult(reviewResultId, {
-      status: REVIEW_RESULT_STATUS.FAILED,
+    await reviewJobRepository.updateJobStatus({
+      reviewJobId,
+      status: REVIEW_JOB_STATUS.FAILED,
     });
-
     throw error;
   }
 }
