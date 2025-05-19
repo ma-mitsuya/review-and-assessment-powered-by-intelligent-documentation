@@ -38,7 +38,6 @@ export const CreateReviewPage: React.FC = () => {
     uploadDocument,
     uploadedDocuments,
     clearUploadedDocuments,
-    removeDocument,
     deleteDocument,
     isUploading,
     error: uploadError,

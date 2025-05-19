@@ -1,20 +1,4 @@
 /**
- * チェックリスト機能の型定義
- */
-
-import { DocumentStatus } from "../../../types/file";
-import { ApiResponse as CoreApiResponse } from "../../../types/api";
-
-/**
- * メタデータ
- */
-export type MetaData = {
-  documentId?: string;
-  pageNumber?: number;
-  [key: string]: any;
-};
-
-/**
  * チェックリスト項目
  */
 export type CheckListItem = {
@@ -91,7 +75,6 @@ export type CheckResult = {
   llmExplanation?: string;
   userOverride: boolean;
   timestamp: string;
-  metaData?: MetaData;
 };
 
 /**
@@ -105,7 +88,6 @@ export type Document = {
   uploadDate: string;
   checkListSetId?: string;
   userId?: string;
-  status: DocumentStatus;
 };
 
 /**

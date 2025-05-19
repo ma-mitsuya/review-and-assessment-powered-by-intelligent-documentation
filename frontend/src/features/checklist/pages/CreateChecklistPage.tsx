@@ -2,7 +2,7 @@
  * チェックリスト作成ページ
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../../components/PageHeader";
 import FormTextField from "../../../components/FormTextField";
@@ -10,11 +10,7 @@ import FormTextArea from "../../../components/FormTextArea";
 import FormFileUpload from "../../../components/FormFileUpload";
 import Button from "../../../components/Button";
 import { useChecklistCreation } from "../hooks/useChecklistCreation";
-import {
-  useDocumentUpload,
-  DocumentUploadResult,
-} from "../../../hooks/useDocumentUpload";
-import { ProcessingStatus } from "../components/ProcessingStatus";
+import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { HiExclamationCircle } from "react-icons/hi";
 
 /**
@@ -41,7 +37,6 @@ export function CreateChecklistPage() {
     uploadDocument,
     uploadedDocuments,
     clearUploadedDocuments,
-    removeDocument,
     deleteDocument,
     isUploading,
     error: uploadError,
@@ -151,7 +146,7 @@ export function CreateChecklistPage() {
     if (!validate()) return;
 
     try {
-      const result = await createChecklist({
+      await createChecklist({
         name: formData.name,
         description: formData.description,
         documents: uploadedDocuments,

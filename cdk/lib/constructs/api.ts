@@ -122,7 +122,7 @@ export class Api extends Construct {
     this.api = new apigateway.RestApi(this, "RapidApi", {
       restApiName: "RAPID API",
       description:
-        "RAPID (Building & Engineering Approval Compliance Navigator) API",
+        "RAPID (Review & Assessment Powered by Intelligent Documentation) API",
       deployOptions: {
         stageName: "api",
         tracingEnabled: true,

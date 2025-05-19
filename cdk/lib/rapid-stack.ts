@@ -144,35 +144,35 @@ export class RapidStack extends cdk.Stack {
     // S3バケットアクセス権限の付与
     documentBucket.grantReadWrite(api.apiLambda);
 
-    const frontend = new Frontend(this, "Frontend", {
-      accessLogBucket,
-      webAclId: props.webAclId,
-      enableIpV6: props.enableIpV6,
-      // alternateDomainName: props.alternateDomainName,
-      // hostedZoneId: props.hostedZoneId,
-    });
+    // const frontend = new Frontend(this, "Frontend", {
+    //   accessLogBucket,
+    //   webAclId: props.webAclId,
+    //   enableIpV6: props.enableIpV6,
+    //   // alternateDomainName: props.alternateDomainName,
+    //   // hostedZoneId: props.hostedZoneId,
+    // });
 
-    frontend.buildViteApp({
-      backendApiEndpoint: api.api.url,
-      userPoolDomainPrefix: "",
-      auth,
-    });
+    // frontend.buildViteApp({
+    //   backendApiEndpoint: api.api.url,
+    //   userPoolDomainPrefix: "",
+    //   auth,
+    // });
 
-    documentBucket.addCorsRule({
-      allowedMethods: [s3.HttpMethods.POST],
-      allowedOrigins: [
-        `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
-        "http://localhost:5173",
-        "*", // TODO: remove
-      ],
-      allowedHeaders: ["*"],
-      maxAge: 3000,
-    });
+    // documentBucket.addCorsRule({
+    //   allowedMethods: [s3.HttpMethods.POST],
+    //   allowedOrigins: [
+    //     `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
+    //     "http://localhost:5173",
+    //     "*", // TODO: remove
+    //   ],
+    //   allowedHeaders: ["*"],
+    //   maxAge: 3000,
+    // });
 
-    // 出力
-    new cdk.CfnOutput(this, "FrontendURL", {
-      value: frontend.getOrigin(),
-    });
+    // // 出力
+    // new cdk.CfnOutput(this, "FrontendURL", {
+    //   value: frontend.getOrigin(),
+    // });
     new cdk.CfnOutput(this, "DocumentBucketName", {
       value: documentBucket.bucketName,
       description: "ドキュメントを保存するS3バケット名",

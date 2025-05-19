@@ -27,7 +27,7 @@ new RapidStack(app, "RapidStack", {
     region: process.env.CDK_DEFAULT_REGION || "us-west-2",
   },
   description:
-    "RAPID (Building & Engineering Approval Compliance Navigator) - ドキュメント処理ワークフロー",
+    "RAPID (Review & Assessment Powered by Intelligent Documentation)",
   crossRegionReferences: true,
   webAclId: waf.webAclArn.value,
   enableIpV6: waf.ipV6Enabled,

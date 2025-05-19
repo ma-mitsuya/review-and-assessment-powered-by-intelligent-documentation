@@ -2,5 +2,5 @@
  * 共通フックのエクスポート
  */
 
-export * from './useFetch';
-export * from './useDocumentUpload';
+export * from "./useHttp";
+export * from "./useDocumentUpload";

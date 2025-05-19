@@ -1,7 +1,7 @@
 {
   "name": "RAPID",
   "short_name": "RAPID",
-  "description": "Building & Engineering Approval Compliance Navigator",
+  "description": "Review & Assessment Powered by Intelligent Documentation",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

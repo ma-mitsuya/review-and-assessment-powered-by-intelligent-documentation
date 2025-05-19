@@ -1,6 +1,6 @@
 # RAPID ローカル開発環境セットアップ
 
-このドキュメントでは、RAPID（Building & Engineering Approval Compliance Navigator）のローカル開発環境のセットアップ方法について説明します。
+このドキュメントでは、RAPID（Review & Assessment Powered by Intelligent Documentation）のローカル開発環境のセットアップ方法について説明します。
 
 ## 前提条件
 
