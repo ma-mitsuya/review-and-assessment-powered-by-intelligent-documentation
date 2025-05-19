@@ -3,7 +3,7 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
-import { DocumentPageProcessor } from "./constructs/document-page-processor";
+import { ChecklistProcessor } from "./constructs/checklist-processor";
 import { ReviewProcessor } from "./constructs/review-processor";
 import { Database } from "./constructs/database";
 import { Api } from "./constructs/api";
@@ -89,7 +89,7 @@ export class BeaconStack extends cdk.Stack {
     database.grantSecretAccess(prismaMigration.migrationLambda);
 
     // ドキュメント処理ワークフローの作成
-    const documentProcessor = new DocumentPageProcessor(
+    const documentProcessor = new ChecklistProcessor(
       this,
       "DocumentProcessor",
       {

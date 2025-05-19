@@ -15,7 +15,7 @@ import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 /**
  * ドキュメント処理ワークフローのプロパティ
  */
-export interface DocumentPageProcessorProps {
+export interface ChecklistProcessorProps {
   /**
    * ドキュメントを保存するS3バケット
    */
@@ -64,7 +64,7 @@ export interface DocumentPageProcessorProps {
 /**
  * ドキュメント処理ワークフローを実装するCDK Construct
  */
-export class DocumentPageProcessor extends Construct {
+export class ChecklistProcessor extends Construct {
   /**
    * ステートマシン
    */
@@ -80,7 +80,7 @@ export class DocumentPageProcessor extends Construct {
    */
   public readonly securityGroup: ec2.SecurityGroup;
 
-  constructor(scope: Construct, id: string, props: DocumentPageProcessorProps) {
+  constructor(scope: Construct, id: string, props: ChecklistProcessorProps) {
     super(scope, id);
 
     // デフォルト値の設定
