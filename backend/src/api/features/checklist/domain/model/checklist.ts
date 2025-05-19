@@ -4,6 +4,7 @@ import {
   CreateChecklistSetRequest,
   UpdateChecklistItemRequest,
 } from "../../routes/handlers";
+import { ParsedChecklistItem } from "../../../../../checklist-workflow/common/types";
 
 export type CheckListStatus = "pending" | "processing" | "completed";
 
@@ -81,6 +82,20 @@ export const CheckListItemDomain = {
       setId: Params.setId,
       name,
       description: description || "",
+    };
+  },
+
+  fromParsedChecklistItem: (params: {
+    setId: string;
+    item: ParsedChecklistItem;
+  }): CheckListItemModel => {
+    const { id, name, description, parent_id } = params.item;
+    return {
+      id,
+      setId: params.setId,
+      name,
+      description: description || "",
+      parentId: parent_id ? String(parent_id) : undefined,
     };
   },
 };

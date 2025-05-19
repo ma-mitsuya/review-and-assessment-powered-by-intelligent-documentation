@@ -83,8 +83,8 @@ export const modifyCheckListItem = async (params: {
     throw new ValidationError("Invalid setId");
   }
 
-  await repo.storeCheckListItem({
-    item: newItem,
+  await repo.updateCheckListItem({
+    newItem,
   });
   return;
 };

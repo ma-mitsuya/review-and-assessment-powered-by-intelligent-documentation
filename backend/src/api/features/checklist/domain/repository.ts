@@ -21,6 +21,13 @@ export interface CheckRepository {
     rootItemId: string | null
   ): Promise<CheckListItemModel[]>;
   storeCheckListItem(params: { item: CheckListItemModel }): Promise<void>;
+  bulkStoreCheckListItems(params: {
+    items: CheckListItemModel[];
+  }): Promise<void>;
+  updateDocumentStatus(params: {
+    documentId: string;
+    status: CheckListStatus;
+  }): Promise<void>;
   findCheckListItemById(itemId: string): Promise<CheckListItemModel>;
   validateParentItem(params: {
     parentItemId: string;
@@ -180,6 +187,32 @@ export const makePrismaCheckRepository = (
     });
   };
 
+  const bulkStoreCheckListItems = async (params: {
+    items: CheckListItemModel[];
+  }): Promise<void> => {
+    const { items } = params;
+
+    await client.checkList.createMany({
+      data: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        checkListSetId: item.setId,
+      })),
+    });
+  };
+
+  const updateDocumentStatus = async (params: {
+    documentId: string;
+    status: CheckListStatus;
+  }): Promise<void> => {
+    const { documentId, status } = params;
+    await client.checkListDocument.update({
+      where: { id: documentId },
+      data: { status },
+    });
+  };
+
   const findCheckListItemById = async (
     itemId: string
   ): Promise<CheckListItemModel> => {
@@ -268,6 +301,8 @@ export const makePrismaCheckRepository = (
     findAllCheckListSets,
     findCheckListSetById,
     storeCheckListItem,
+    bulkStoreCheckListItems,
+    updateDocumentStatus,
     findCheckListItemById,
     validateParentItem,
     updateCheckListItem,

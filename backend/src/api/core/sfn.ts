@@ -1,7 +1,8 @@
 /**
  * Step Functions関連のユーティリティ
  */
-import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { ApplicationError } from "./errors";
 
 // SFNクライアントのシングルトンインスタンス
 let sfnClient: SFNClient | null = null;
@@ -13,7 +14,7 @@ let sfnClient: SFNClient | null = null;
 export function getSfnClient(): SFNClient {
   if (!sfnClient) {
     sfnClient = new SFNClient({
-      region: process.env.AWS_REGION || 'ap-northeast-1'
+      region: process.env.AWS_REGION || "ap-northeast-1",
     });
   }
   return sfnClient;
@@ -32,9 +33,16 @@ export async function startStateMachineExecution(
   const client = getSfnClient();
   const command = new StartExecutionCommand({
     stateMachineArn,
-    input: JSON.stringify(input)
+    input: JSON.stringify(input),
   });
-  
+
   const response = await client.send(command);
-  return response.executionArn || '';
+
+  if (response.$metadata.httpStatusCode !== 200) {
+    throw new ApplicationError(
+      `Failed to start state machine execution: ${response}`
+    );
+  }
+
+  return response.executionArn || "";
 }

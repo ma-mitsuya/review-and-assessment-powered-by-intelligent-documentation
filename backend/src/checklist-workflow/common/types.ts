@@ -13,19 +13,11 @@ export interface ExtractTextResult {
   pageNumber: number;
 }
 
-export interface ChecklistItem {
+export interface ParsedChecklistItem {
+  id: string;
   name: string;
   description: string;
   parent_id: string | null;
-  item_type: "SIMPLE" | "FLOW";
-  is_conclusion: boolean;
-  id: string; // IDフィールドを必須に変更
-  flow_data?: {
-    condition_type: "YES_NO" | "MULTI_CHOICE";
-    next_if_yes?: string;
-    next_if_no?: string;
-    next_options?: Record<string, string>;
-  };
 }
 
 export interface ProcessWithLLMResult {

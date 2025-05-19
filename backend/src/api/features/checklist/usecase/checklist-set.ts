@@ -11,7 +11,8 @@ import {
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
 import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
-import { NotFoundError } from "../../../core/errors";
+import { ApplicationError, NotFoundError } from "../../../core/errors";
+import { startStateMachineExecution } from "../../../core/sfn";
 
 export const createChecklistSet = async (params: {
   req: CreateChecklistSetRequest;
@@ -25,6 +26,27 @@ export const createChecklistSet = async (params: {
   const checkListSet = CheckListSetDomain.fromCreateRequest(req);
   await repo.storeCheckListSet({
     checkListSet,
+  });
+
+  const stateMachineArn = process.env.DOCUMENT_PROCESSING_STATE_MACHINE_ARN;
+  if (!stateMachineArn) {
+    throw new ApplicationError(
+      "DOCUMENT_PROCESSING_STATE_MACHINE_ARN is not defined"
+    );
+  }
+
+  // NOTE: Currently, only the first document is processed.
+  if (req.documents.length === 0) {
+    throw new ApplicationError("No documents found in the request");
+  } else if (req.documents.length > 1) {
+    throw new ApplicationError("Multiple documents are not supported");
+  }
+  const doc = req.documents[0];
+
+  await startStateMachineExecution(stateMachineArn, {
+    documentId: doc.documentId,
+    fileName: doc.filename,
+    checkListSetId: checkListSet.id,
   });
 };
 
