@@ -9,7 +9,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
-import { DatabaseConnectionProps, PrismaFunction } from "./prisma-function";
+import { DatabaseConnectionProps } from "./prisma-function";
 import { DockerPrismaFunction } from "./docker-prisma-function";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 export interface ReviewProcessorProps {
@@ -103,32 +103,40 @@ export class ReviewProcessor extends Construct {
         "documentId.$": "$.documentId",
         "fileName.$": "$.fileName",
         "checkId.$": "$$.Map.Item.Value.checkId",
-        "reviewResultId.$": "$$.Map.Item.Value.reviewResultId"
-      }
+        "reviewResultId.$": "$$.Map.Item.Value.reviewResultId",
+      },
     });
-    
+
     // Map内で各項目を処理するLambda
-    const processReviewItemTask = new tasks.LambdaInvoke(this, "ProcessReviewItem", {
-      lambdaFunction: this.reviewLambda,
-      payload: sfn.TaskInput.fromObject({
-        action: "processReviewItem",
-        reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
-        fileName: sfn.JsonPath.stringAt("$.fileName"),
-        checkId: sfn.JsonPath.stringAt("$.checkId"),
-        reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
-      }),
-      resultPath: "$.itemResult",
-    });
-    
+    const processReviewItemTask = new tasks.LambdaInvoke(
+      this,
+      "ProcessReviewItem",
+      {
+        lambdaFunction: this.reviewLambda,
+        payload: sfn.TaskInput.fromObject({
+          action: "processReviewItem",
+          reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
+          documentId: sfn.JsonPath.stringAt("$.documentId"),
+          fileName: sfn.JsonPath.stringAt("$.fileName"),
+          checkId: sfn.JsonPath.stringAt("$.checkId"),
+          reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
+        }),
+        resultPath: "$.itemResult",
+      }
+    );
+
     // Add retry configuration for throttling errors
     processReviewItemTask.addRetry({
-      errors: ["ThrottlingException", "ServiceQuotaExceededException", "TooManyRequestsException"],
+      errors: [
+        "ThrottlingException",
+        "ServiceQuotaExceededException",
+        "TooManyRequestsException",
+      ],
       interval: cdk.Duration.seconds(2),
       maxAttempts: 5,
-      backoffRate: 2
+      backoffRate: 2,
     });
-    
+
     processItemsMap.iterator(processReviewItemTask);
 
     // 審査結果を集計するLambda
