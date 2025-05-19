@@ -12,12 +12,11 @@ import { useCheckListSets } from "../../checklist/hooks/useCheckListSets";
 import { CheckListSet } from "../../checklist/types";
 import { HiExclamationCircle } from "react-icons/hi";
 
-export const ReviewCreatePage: React.FC = () => {
+export const CreateReviewPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedChecklist, setSelectedChecklist] = useState<CheckListSet | null>(
-    null
-  );
+  const [selectedChecklist, setSelectedChecklist] =
+    useState<CheckListSet | null>(null);
   const [jobName, setJobName] = useState("");
   const [errors, setErrors] = useState({
     name: "",
@@ -25,18 +24,14 @@ export const ReviewCreatePage: React.FC = () => {
   });
 
   // チェックリストセット一覧を取得
-  const { 
-    checkListSets, 
-    isLoading: isLoadingCheckListSets, 
-    isError: checkListSetsError 
+  const {
+    checkListSets,
+    isLoading: isLoadingCheckListSets,
+    isError: checkListSetsError,
   } = useCheckListSets();
 
   // 審査ジョブ作成フック
-  const {
-    createJob,
-    isSubmitting,
-    error: createError,
-  } = useReviewJobs();
+  const { createJob, isSubmitting, error: createError } = useReviewJobs();
 
   // ドキュメントアップロードフック
   const {
@@ -48,13 +43,15 @@ export const ReviewCreatePage: React.FC = () => {
     isUploading,
     error: uploadError,
   } = useDocumentUpload({
-    presignedUrlEndpoint: '/documents/review/presigned-url',
-    deleteEndpointPrefix: '/documents/review/'
+    presignedUrlEndpoint: "/documents/review/presigned-url",
+    deleteEndpointPrefix: "/documents/review/",
   });
 
   // ファイルが選択されチェックリストも選択されているかチェック
   const isReady =
-    uploadedDocuments?.length > 0 && selectedChecklist !== null && jobName.trim() !== "";
+    uploadedDocuments?.length > 0 &&
+    selectedChecklist !== null &&
+    jobName.trim() !== "";
 
   // 入力値の変更ハンドラ
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +74,8 @@ export const ReviewCreatePage: React.FC = () => {
     setSelectedFiles(newFiles);
 
     // 新しく追加されたファイルのみをアップロード
-    const existingFilenames = uploadedDocuments?.map((doc) => doc.filename) || [];
+    const existingFilenames =
+      uploadedDocuments?.map((doc) => doc.filename) || [];
     const filesToUpload = newFiles.filter(
       (file) => !existingFilenames.includes(file.name)
     );
@@ -259,7 +257,9 @@ export const ReviewCreatePage: React.FC = () => {
               ) : (
                 <ChecklistSelector
                   checklists={checkListSets || []}
-                  selectedChecklistId={selectedChecklist?.check_list_set_id || null}
+                  selectedChecklistId={
+                    selectedChecklist?.check_list_set_id || null
+                  }
                   onSelectChecklist={handleChecklistSelect}
                 />
               )}
@@ -275,7 +275,7 @@ export const ReviewCreatePage: React.FC = () => {
               type="submit"
               disabled={!isReady || isSubmitting || isUploading}
             >
-              {(isSubmitting || isUploading) ? (
+              {isSubmitting || isUploading ? (
                 <>
                   <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
                     <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white"></div>
@@ -293,4 +293,4 @@ export const ReviewCreatePage: React.FC = () => {
   );
 };
 
-export default ReviewCreatePage;
+export default CreateReviewPage;
