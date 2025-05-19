@@ -23,10 +23,11 @@ export function FileUploader({
   files, 
   acceptedFileTypes = {
     'application/pdf': ['.pdf'],
-    'image/png': ['.png'],
-    'image/jpeg': ['.jpg', '.jpeg'],
+    // 将来的に他のファイル形式を追加する場合はここに追加
+    // 'image/png': ['.png'],
+    // 'image/jpeg': ['.jpg', '.jpeg'],
   },
-  multiple = true,
+  multiple = false,
   isUploading = false,
   uploadedDocuments = [],
   onDeleteFile

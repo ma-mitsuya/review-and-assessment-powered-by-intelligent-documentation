@@ -1,5 +1,5 @@
-import React from 'react';
-import { FileUploader } from './FileUploader';
+import React from "react";
+import { FileUploader } from "./FileUploader";
 
 interface FormFileUploadProps {
   label: string;
@@ -25,8 +25,8 @@ export const FormFileUpload: React.FC<FormFileUploadProps> = ({
   required = false,
   error,
   isUploading = false,
-  multiple = true,
-  className = '',
+  multiple = false,
+  className = "",
   uploadedDocuments = [],
   onDeleteFile,
 }) => {
@@ -35,7 +35,7 @@ export const FormFileUpload: React.FC<FormFileUploadProps> = ({
       <label className="block text-aws-squid-ink-light dark:text-aws-font-color-white-dark font-medium mb-2">
         {label} {required && <span className="text-red">*</span>}
       </label>
-      <FileUploader 
+      <FileUploader
         files={files}
         onFilesChange={onFilesChange}
         isUploading={isUploading}
@@ -43,9 +43,7 @@ export const FormFileUpload: React.FC<FormFileUploadProps> = ({
         uploadedDocuments={uploadedDocuments}
         onDeleteFile={onDeleteFile}
       />
-      {error && (
-        <p className="mt-1 text-red text-sm">{error}</p>
-      )}
+      {error && <p className="mt-1 text-red text-sm">{error}</p>}
     </div>
   );
 };

@@ -46,8 +46,8 @@ export function CreateChecklistPage() {
     isUploading,
     error: uploadError,
   } = useDocumentUpload({
-    presignedUrlEndpoint: '/documents/checklist/presigned-url',
-    deleteEndpointPrefix: '/documents/checklist/'
+    presignedUrlEndpoint: "/documents/checklist/presigned-url",
+    deleteEndpointPrefix: "/documents/checklist/",
   });
 
   // 入力値の変更ハンドラ
@@ -82,10 +82,9 @@ export function CreateChecklistPage() {
     if (filesToUpload.length === 0) return;
 
     try {
-      // 各ファイルを個別にアップロード
-      for (const file of filesToUpload) {
-        await uploadDocument(file);
-      }
+      // 現状、単一ファイルのみサポート
+      const file = filesToUpload[0];
+      await uploadDocument(file);
 
       // ファイル選択時にエラーをクリア
       if (errors.files) {
@@ -224,6 +223,7 @@ export function CreateChecklistPage() {
             required
             error={errors.files}
             isUploading={isUploading}
+            multiple={false}
             uploadedDocuments={uploadedDocuments}
             onDeleteFile={handleFileRemove}
           />
