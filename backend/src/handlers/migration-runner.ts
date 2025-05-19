@@ -13,23 +13,9 @@ export const handler: Handler = async (event, _) => {
     });
   });
 
-  // Check node_modules/.bin directory
+  // Check prisma directory
   await new Promise((resolve, _) => {
-    exec("ls -la /var/task/node_modules/.bin/", (error, stdout, stderr) => {
-      if (error) {
-        console.log("Error listing bin directory:", error.message);
-      } else {
-        console.log("Bin directory contents:");
-        console.log(stdout);
-      }
-      if (stderr) console.error(stderr);
-      resolve(null);
-    });
-  });
-
-  // Check node_modules/prisma directory
-  await new Promise((resolve, _) => {
-    exec("ls -la /var/task/node_modules/prisma/", (error, stdout, stderr) => {
+    exec("ls -la /var/task/prisma/", (error, stdout, stderr) => {
       if (error) {
         console.log("Error listing prisma directory:", error.message);
       } else {
@@ -41,7 +27,36 @@ export const handler: Handler = async (event, _) => {
     });
   });
 
+  // Check prisma client directory
+  await new Promise((resolve, _) => {
+    exec("ls -la /var/task/prisma/client/", (error, stdout, stderr) => {
+      if (error) {
+        console.log("Error listing prisma client directory:", error.message);
+      } else {
+        console.log("Prisma client directory contents:");
+        console.log(stdout);
+      }
+      if (stderr) console.error(stderr);
+      resolve(null);
+    });
+  });
+
   console.log("--- End directory inspection ---");
+
+  console.log("--- Inspect .env configuration ---");
+  await new Promise((resolve, _) => {
+    exec("cat /var/task/prisma/.env", (error, stdout, stderr) => {
+      if (error) {
+        console.log("Error reading .env file:", error.message);
+      } else {
+        console.log(".env file contents:");
+        console.log(stdout);
+      }
+      if (stderr) console.error(stderr);
+      resolve(null);
+    });
+  });
+  console.log("--- End .env configuration ---");
 
   const command: string = event.command ?? "deploy";
 
