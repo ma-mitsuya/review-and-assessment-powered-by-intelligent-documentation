@@ -45,7 +45,7 @@ export class PrismaMigration extends Construct {
         {
           file: "Dockerfile.prisma.lambda",
           platform: Platform.LINUX_AMD64,
-          cmd: ["handlers.migration-runner.handler"],
+          cmd: ["dist/handlers/migration-runner.handler"],
         }
       ),
       vpc: props.vpc,
