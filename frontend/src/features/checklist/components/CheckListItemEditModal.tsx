@@ -1,13 +1,14 @@
 import { useState } from "react";
 import Modal from "../../../components/Modal";
 import Button from "../../../components/Button";
-import { CheckListItem } from "../types";
-import { useCheckListItems } from "../hooks/useCheckListItems";
+import { CheckListItemModel } from "../types";
+import { useUpdateCheckListItem } from "../hooks/useCheckListItemMutations";
+import { useToast } from "../../../contexts/ToastContext";
 
 type CheckListItemEditModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  item: CheckListItem;
+  item: CheckListItemModel;
   checkListSetId: string;
 };
 
@@ -26,12 +27,14 @@ export default function CheckListItemEditModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { addToast } = useToast();
 
   // コンポーネントのトップレベルでフックを呼び出す
-  const { updateItem } = useCheckListItems(checkListSetId);
-
-  console.log("チェックリスト項目編集モーダル - 項目ID:", item.checkId);
-  console.log("チェックリスト項目編集モーダル - セットID:", checkListSetId);
+  const {
+    updateCheckListItem,
+    status: updateStatus,
+    error: updateError,
+  } = useUpdateCheckListItem(checkListSetId);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -54,23 +57,16 @@ export default function CheckListItemEditModal({
     setIsSubmitting(true);
 
     try {
-      console.log("更新リクエスト送信:", {
-        itemId: item.checkId,
-        setId: checkListSetId,
-        data: {
-          name: formData.name,
-          description: formData.description,
-        },
-      });
-
-      await updateItem(checkListSetId, item.checkId, {
+      await updateCheckListItem(item.id, {
         name: formData.name,
         description: formData.description,
       });
+      addToast("チェックリスト項目を更新しました", "success");
       onClose();
     } catch (err) {
       console.error("項目の更新に失敗しました", err);
       setError("項目の更新に失敗しました。もう一度お試しください。");
+      addToast("チェックリスト項目の更新に失敗しました", "error");
     } finally {
       setIsSubmitting(false);
     }

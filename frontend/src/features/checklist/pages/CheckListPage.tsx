@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useCheckListSets, useCheckListSet } from "../hooks/useCheckListSets";
+import { useChecklistSets } from "../hooks/useCheckListSetQueries";
+import { useDeleteChecklistSet } from "../hooks/useCheckListSetMutations";
 import { useToast } from "../../../contexts/ToastContext";
 import CheckListSetList from "../components/CheckListSetList";
 import CreateChecklistButton from "../components/CreateChecklistButton";
@@ -15,23 +16,23 @@ export function CheckListPage() {
   const location = useLocation();
   const { addToast } = useToast();
 
-  const { checkListSets, total, isLoading, isError, mutate, revalidate } =
-    useCheckListSets(currentPage, itemsPerPage);
+  const { items: checkListSets, total, isLoading, error, refetch } =
+    useChecklistSets(currentPage, itemsPerPage);
 
-  const { deleteCheckListSet } = useCheckListSet();
+  const { deleteChecklistSet, status: deleteStatus, error: deleteError } = useDeleteChecklistSet();
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
     // 新規作成後に一覧画面に戻ってきた場合など、locationが変わった時にデータを再取得
-    revalidate();
-  }, [location, revalidate]);
+    refetch();
+  }, [location, refetch]);
 
   // チェックリストセットの削除処理
   const handleDelete = async (id: string, name: string) => {
     try {
-      await deleteCheckListSet(id);
+      await deleteChecklistSet(id);
       // 削除後にリストを再取得
-      mutate();
+      refetch();
       // 削除成功のトースト通知を表示
       addToast(`チェックリスト「${name}」を削除しました`, "success");
     } catch (error) {
@@ -61,7 +62,7 @@ export function CheckListPage() {
       <CheckListSetList
         checkListSets={checkListSets || []}
         isLoading={isLoading}
-        error={isError}
+        error={error}
         onDelete={handleDelete}
         meta={{
           page: currentPage,

@@ -1,15 +1,11 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import {
-  useCheckListSetDetail,
-  useCheckListSet,
-  useCheckListSet,
-} from "../hooks/useCheckListSets";
+import { useChecklistSetDetail } from "../hooks/useCheckListSetQueries";
+import { useDeleteChecklistSet } from "../hooks/useCheckListSetMutations";
 import CheckListItemDetail from "../components/CheckListItemDetail";
 import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
-import { HiExclamationCircle } from "react-icons/hi";
 
 /**
  * チェックリストセット詳細ページ
@@ -18,10 +14,17 @@ export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { checkItems, isError, isLoading, mutate } = useCheckListSetDetail(id);
-  const { data: checkListSet, isLoading: isLoadingSet } = useCheckListSet(
-    id || null
-  );
+  const {
+    items: checkItems,
+    isLoading,
+    error,
+    refetch,
+  } = useChecklistSetDetail(id || null);
+  const {
+    deleteChecklistSet,
+    status: deleteStatus,
+    error: deleteError,
+  } = useDeleteChecklistSet();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleDelete = async () => {
@@ -29,8 +32,7 @@ export function CheckListSetDetailPage() {
 
     if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
       try {
-        const { deleteCheckListSet } = useCheckListSet();
-        await deleteCheckListSet(id);
+        await deleteChecklistSet(id);
         addToast(`チェックリスト #${id} を削除しました`, "success");
         navigate("/checklist", { replace: true });
       } catch (error) {
@@ -40,11 +42,11 @@ export function CheckListSetDetailPage() {
     }
   };
 
-  if (isLoading || isLoadingSet) {
+  if (isLoading) {
     return <DetailSkeleton lines={6} />;
   }
 
-  if (isError) {
+  if (error) {
     return (
       <div
         className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm"
@@ -98,7 +100,8 @@ export function CheckListSetDetailPage() {
             チェックリスト #{id}
           </h1>
           <p className="text-aws-font-color-gray mt-2">
-            チェックリスト項目: {checkItems.length}件
+            チェックリスト項目:{" "}
+            {Array.isArray(checkItems) ? checkItems.length : 0}件
           </p>
         </div>
         <div className="flex space-x-3">
@@ -124,7 +127,7 @@ export function CheckListSetDetailPage() {
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray mb-8">
-        {isError ? (
+        {error ? (
           <div
             className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm"
             role="alert"
@@ -206,11 +209,11 @@ export function CheckListSetDetailPage() {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           checkListSetId={id || ""}
-          checkItems={checkItems}
+          checkItems={checkItems || []}
           onSuccess={() => {
             // 追加成功時にデータを再取得
             if (id) {
-              mutate();
+              refetch();
               addToast("チェックリスト項目を追加しました", "success");
             }
           }}

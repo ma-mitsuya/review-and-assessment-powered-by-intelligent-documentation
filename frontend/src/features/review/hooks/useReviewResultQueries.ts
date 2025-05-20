@@ -55,7 +55,7 @@ export function useReviewResultHierarchy(jobId: string | null) {
     useApiClient().useQuery<GetReviewResultItemsResponse>(url);
 
   return {
-    items: data?.data ?? [],
+    items: (data?.data ?? []) as ReviewResultDetailModel[],
     isLoading,
     error,
     refetch,
@@ -74,7 +74,7 @@ export function useReviewResultDetail(
     useApiClient().useQuery<GetReviewResultItemsResponse>(url);
 
   return {
-    result: data?.data?.[0] ?? null,
+    result: (data?.data?.[0] ?? null) as ReviewResultDetailModel | null,
     isLoading,
     error,
     refetch,
@@ -94,7 +94,7 @@ export function useReviewResultItems(
     useApiClient().useQuery<GetReviewResultItemsResponse>(url);
 
   return {
-    items: data?.data ?? [],
+    items: (data?.data ?? []) as ReviewResultDetailModel[],
     isLoading,
     error,
     refetch,

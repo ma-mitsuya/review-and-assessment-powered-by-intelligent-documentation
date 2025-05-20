@@ -45,8 +45,8 @@ export function useReviewJobs(
     useApiClient().useQuery<GetAllReviewJobsResponse>(url);
 
   return {
-    items: data?.reviewJobs ?? [],
-    total: data?.total ?? 0,
+    items: data?.data ?? [],
+    total: data?.data?.length ?? 0,
     isLoading,
     error,
     refetch,
@@ -62,7 +62,7 @@ export function useReviewJobDetail(jobId: string | null) {
     useApiClient().useQuery<GetAllReviewJobsResponse>(url);
 
   return {
-    job: data?.reviewJobs?.[0] ?? null,
+    job: data?.data?.[0] ?? null,
     isLoading,
     error,
     refetch,

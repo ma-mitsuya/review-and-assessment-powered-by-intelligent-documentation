@@ -9,15 +9,17 @@ import FormTextField from "../../../components/FormTextField";
 import FormTextArea from "../../../components/FormTextArea";
 import FormFileUpload from "../../../components/FormFileUpload";
 import Button from "../../../components/Button";
-import { useChecklistCreation } from "../hooks/useChecklistCreation";
+import { useCreateChecklistSet } from "../hooks/useCheckListSetMutations";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { HiExclamationCircle } from "react-icons/hi";
+import { useToast } from "../../../contexts/ToastContext";
 
 /**
  * チェックリスト作成ページ
  */
 export function CreateChecklistPage() {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: "",
@@ -29,10 +31,11 @@ export function CreateChecklistPage() {
   });
 
   const {
-    createChecklist,
-    isCreating,
+    createChecklistSet,
+    status,
     error: createError,
-  } = useChecklistCreation();
+  } = useCreateChecklistSet();
+  const isCreating = status === "loading";
   const {
     uploadDocument,
     uploadedDocuments,
@@ -69,7 +72,7 @@ export function CreateChecklistPage() {
     setSelectedFiles(newFiles);
 
     // 新しく追加されたファイルのみをアップロード
-    const existingFilenames = uploadedDocuments.map((doc) => doc.filename);
+    const existingFilenames = uploadedDocuments?.map((doc) => doc.filename) || [];
     const filesToUpload = newFiles.filter(
       (file) => !existingFilenames.includes(file.name)
     );
@@ -90,6 +93,7 @@ export function CreateChecklistPage() {
       }
     } catch (error) {
       console.error("ファイルアップロードエラー:", error);
+      addToast("ファイルのアップロードに失敗しました", "error");
     }
   };
 
@@ -103,7 +107,7 @@ export function CreateChecklistPage() {
     setSelectedFiles(newSelectedFiles);
 
     // アップロード済みドキュメントリストからも削除
-    const docToRemove = uploadedDocuments.find(
+    const docToRemove = uploadedDocuments?.find(
       (doc) => doc.filename === fileToRemove.name
     );
     if (docToRemove) {
@@ -131,7 +135,7 @@ export function CreateChecklistPage() {
       newErrors.name = "名前は必須です";
     }
 
-    if (uploadedDocuments.length === 0) {
+    if (!uploadedDocuments || uploadedDocuments.length === 0) {
       newErrors.files = "少なくとも1つのファイルをアップロードしてください";
     }
 
@@ -146,19 +150,23 @@ export function CreateChecklistPage() {
     if (!validate()) return;
 
     try {
-      await createChecklist({
+      await createChecklistSet({
         name: formData.name,
         description: formData.description,
-        documents: uploadedDocuments,
+        documents: uploadedDocuments || [],
       });
 
       // アップロード済みドキュメントリストをクリア
       clearUploadedDocuments();
+      
+      // 成功メッセージを表示
+      addToast("チェックリストセットを作成しました", "success");
 
       // 作成成功後、一覧ページに遷移
       navigate("/checklist", { replace: true });
     } catch (error) {
       console.error("チェックリスト作成エラー:", error);
+      addToast("チェックリストセットの作成に失敗しました", "error");
     }
   };
 
@@ -219,7 +227,7 @@ export function CreateChecklistPage() {
             error={errors.files}
             isUploading={isUploading}
             multiple={false}
-            uploadedDocuments={uploadedDocuments}
+            uploadedDocuments={uploadedDocuments || []}
             onDeleteFile={handleFileRemove}
           />
 
@@ -231,7 +239,10 @@ export function CreateChecklistPage() {
               variant="primary"
               type="submit"
               disabled={
-                isCreating || isUploading || uploadedDocuments.length === 0
+                isCreating || 
+                isUploading || 
+                !uploadedDocuments || 
+                uploadedDocuments.length === 0
               }
             >
               {(isCreating || isUploading) && (

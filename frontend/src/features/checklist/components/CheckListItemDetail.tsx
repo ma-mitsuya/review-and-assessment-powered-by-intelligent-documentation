@@ -1,10 +1,39 @@
 import React, { useState } from "react";
-import { HierarchicalCheckListItem } from "../types";
+import { CheckListItemModel } from "../types";
 import CheckListItemEditModal from "./CheckListItemEditModal";
 import { HiChevronDown, HiChevronRight, HiPencil } from "react-icons/hi";
 
+// 階層構造化したチェックリスト項目の型
+interface HierarchicalCheckListItem extends CheckListItemModel {
+  children: HierarchicalCheckListItem[];
+}
+
 type CheckListItemDetailProps = {
-  items: HierarchicalCheckListItem[];
+  items: CheckListItemModel[]; // フラットなリストを受け取る
+};
+
+// フラットな配列を階層構造に変換するユーティリティ関数
+const buildHierarchy = (
+  items: CheckListItemModel[]
+): HierarchicalCheckListItem[] => {
+  const map: Record<string, HierarchicalCheckListItem> = {};
+  // 初期マッピング
+  items.forEach((item) => {
+    map[item.id] = { ...item, children: [] };
+  });
+
+  const roots: HierarchicalCheckListItem[] = [];
+
+  items.forEach((item) => {
+    const node = map[item.id];
+    if (item.parentId && map[item.parentId]) {
+      map[item.parentId].children.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  return roots;
 };
 
 /**
@@ -13,11 +42,8 @@ type CheckListItemDetailProps = {
 export default function CheckListItemDetail({
   items,
 }: CheckListItemDetailProps) {
-  // ルート項目（親を持たない項目）を抽出
-  const rootItems = items.filter((item) => !item.parentId);
-
-  console.log("全アイテム:", items);
-  console.log("ルートアイテム:", rootItems);
+  // 階層構造に変換
+  const rootItems = buildHierarchy(items);
 
   return (
     <div>
@@ -29,7 +55,7 @@ export default function CheckListItemDetail({
 
       <div className="space-y-4">
         {rootItems.map((item) => (
-          <CheckListItemNode key={item.checkId} item={item} level={0} />
+          <CheckListItemNode key={item.id} item={item} level={0} />
         ))}
       </div>
     </div>
@@ -48,18 +74,11 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
   const [expanded, setExpanded] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // 子項目は階層構造データから直接取得
-  const hasChildren = item.children && item.children.length > 0;
+  const hasChildren = item.children.length > 0;
 
-  // インデントのスタイル
-  const indentStyle = {
-    marginLeft: `${level * 20}px`,
-  };
+  const indentStyle = { marginLeft: `${level * 20}px` };
 
-  // バッジ要素の配列を作成
   const badges = [];
-
-  // 結論項目の場合のバッジ
   if (item.isConclusion) {
     badges.push(
       <span
@@ -94,11 +113,8 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
             <div>
               <div className="font-medium text-aws-squid-ink-light flex items-center">
                 {item.name}
-                {/* {badges} */}
-                {badges.map((badge, index) => (
-                  <React.Fragment key={`badge-${index}`}>
-                    {badge}
-                  </React.Fragment>
+                {badges.map((badge, idx) => (
+                  <React.Fragment key={idx}>{badge}</React.Fragment>
                 ))}
               </div>
               {item.description && (
@@ -121,25 +137,19 @@ function CheckListItemNode({ item, level }: CheckListItemNodeProps) {
         </div>
       </div>
 
-      {/* 編集モーダル */}
       {isEditModalOpen && (
         <CheckListItemEditModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           item={item}
-          checkListSetId={item.checkListSetId}
+          checkListSetId={item.setId}
         />
       )}
 
-      {/* 子項目を表示（展開時のみ） */}
       {expanded && hasChildren && (
         <div className="mt-2 space-y-2">
           {item.children.map((child) => (
-            <CheckListItemNode
-              key={child.checkId}
-              item={child}
-              level={level + 1}
-            />
+            <CheckListItemNode key={child.id} item={child} level={level + 1} />
           ))}
         </div>
       )}

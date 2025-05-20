@@ -1,13 +1,25 @@
 import { Link } from "react-router-dom";
-import { CheckListSetListProps } from "../types";
 import { TableSkeleton } from "../../../components/Skeleton";
 import {
   HiEye,
-  HiPencil,
   HiTrash,
   HiExclamationCircle,
   HiInformationCircle,
 } from "react-icons/hi";
+import { CheckListStatus } from "../types";
+
+type CheckListSetListProps = {
+  checkListSets: {
+    checkListSetId: string;
+    name: string;
+    description: string;
+    processingStatus: CheckListStatus;
+    isEditable: boolean;
+  }[];
+  isLoading: boolean;
+  error: string | null;
+  onDelete: (id: string, name: string) => Promise<void>;
+};
 
 /**
  * チェックリストセット一覧コンポーネント
@@ -17,13 +29,18 @@ export default function CheckListSetList({
   isLoading,
   error,
   onDelete,
-  meta,
 }: CheckListSetListProps) {
   // チェックリストセットの削除処理
-  const handleDelete = async (id: string, name: string, isEditable: boolean) => {
+  const handleDelete = async (
+    id: string,
+    name: string,
+    isEditable: boolean
+  ) => {
     // 編集不可の場合は削除できない
     if (isEditable === false) {
-      alert("このチェックリストセットは審査ジョブに紐づいているため削除できません");
+      alert(
+        "このチェックリストセットは審査ジョブに紐づいているため削除できません"
+      );
       return;
     }
 
@@ -157,7 +174,10 @@ export default function CheckListSetList({
                     {/* 編集不可の場合に警告アイコンを表示 */}
                     {set.isEditable === false && (
                       <div className="ml-2 text-amber-500">
-                        <HiExclamationCircle className="h-5 w-5" title="審査に使用中" />
+                        <HiExclamationCircle
+                          className="h-5 w-5"
+                          title="審査に使用中"
+                        />
                       </div>
                     )}
                   </div>
@@ -188,8 +208,18 @@ export default function CheckListSetList({
                       詳細
                     </Link>
                     <button
-                      className={`text-red hover:text-red flex items-center ${set.isEditable === false ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() => handleDelete(set.checkListSetId, set.name, set.isEditable)}
+                      className={`text-red hover:text-red flex items-center ${
+                        set.isEditable === false
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        handleDelete(
+                          set.checkListSetId,
+                          set.name,
+                          set.isEditable
+                        )
+                      }
                       disabled={set.isEditable === false}
                     >
                       <HiTrash className="h-4 w-4 mr-1" />
@@ -202,32 +232,6 @@ export default function CheckListSetList({
           </tbody>
         </table>
       </div>
-
-      {/* ページネーション */}
-      {meta && meta.total && meta.limit && meta.total > meta.limit && (
-        <div className="flex justify-center mt-8">
-          <nav className="inline-flex rounded-md shadow-sm">
-            {/* ページネーションコントロール */}
-            <button
-              disabled={meta.page === 1}
-              className="px-4 py-2 rounded-l-md border border-light-gray bg-white text-sm font-medium text-aws-squid-ink-light hover:bg-aws-paper-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              前へ
-            </button>
-            <span className="px-4 py-2 border-t border-b border-light-gray bg-white text-sm font-medium text-aws-squid-ink-light">
-              {meta.page || 1} / {Math.ceil(meta.total / meta.limit)}
-            </span>
-            <button
-              disabled={
-                !meta.page || meta.page >= Math.ceil(meta.total / meta.limit)
-              }
-              className="px-4 py-2 rounded-r-md border border-light-gray bg-white text-sm font-medium text-aws-squid-ink-light hover:bg-aws-paper-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              次へ
-            </button>
-          </nav>
-        </div>
-      )}
     </div>
   );
 }

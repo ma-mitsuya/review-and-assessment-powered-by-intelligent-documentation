@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useCheckListItems } from "../hooks/useCheckListItems";
-import { HierarchicalCheckListItem } from "../types";
+import { useCreateCheckListItem } from "../hooks/useCheckListItemMutations";
+import { CheckListItemModel } from "../types";
 import { useToast } from "../../../contexts/ToastContext";
 
 type CheckListItemAddModalProps = {
   isOpen: boolean;
   onClose: () => void;
   checkListSetId: string;
-  checkItems: HierarchicalCheckListItem[];
+  checkItems: CheckListItemModel[];
   onSuccess: () => void;
 };
 
@@ -32,7 +32,11 @@ export default function CheckListItemAddModal({
   const { addToast } = useToast();
 
   // コンポーネントのトップレベルでフックを呼び出す
-  const { createItem } = useCheckListItems(checkListSetId);
+  const {
+    createCheckListItem,
+    status: submitStatus,
+    error: submitError,
+  } = useCreateCheckListItem(checkListSetId);
 
   // 入力値の変更ハンドラ
   const handleChange = (
@@ -75,7 +79,7 @@ export default function CheckListItemAddModal({
     setIsSubmitting(true);
 
     try {
-      await createItem(checkListSetId, formData);
+      await createCheckListItem(formData);
       onSuccess();
       onClose();
     } catch (error) {
@@ -186,7 +190,7 @@ export default function CheckListItemAddModal({
             >
               <option value="">親項目なし（ルート項目）</option>
               {checkItems.map((item) => (
-                <option key={item.check_id} value={item.check_id}>
+                <option key={item.id} value={item.id}>
                   {item.name}
                 </option>
               ))}
