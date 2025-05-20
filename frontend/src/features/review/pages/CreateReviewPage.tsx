@@ -8,7 +8,7 @@ import ChecklistSelector from "../components/ChecklistSelector";
 import ComparisonIndicator from "../components/ComparisonIndicator";
 import { useReviewJobs } from "../hooks/useReviewJobs";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
-import { useCheckListSets } from "../../checklist/hooks/useCheckListSets";
+import { useChecklistSets } from "../../checklist/hooks/useCheckListSetQueries";
 import { CheckListSet } from "../../checklist/types";
 import { HiExclamationCircle } from "react-icons/hi";
 
@@ -25,10 +25,10 @@ export const CreateReviewPage: React.FC = () => {
 
   // チェックリストセット一覧を取得
   const {
-    checkListSets,
+    items: checkListSets,
     isLoading: isLoadingCheckListSets,
-    isError: checkListSetsError,
-  } = useCheckListSets();
+    error: checkListSetsError,
+  } = useChecklistSets();
 
   // 審査ジョブ作成フック
   const { createJob, isSubmitting, error: createError } = useReviewJobs();

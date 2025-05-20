@@ -1,7 +1,7 @@
 import React from 'react';
 import { ReviewJob } from '../types';
 import ReviewJobItem from './ReviewJobItem';
-import { useReviewJobActions } from '../hooks/useReviewJobActions';
+import { useDeleteReviewJob } from '../hooks/useReviewJobMutations';
 import { TableSkeleton } from '../../../components/Skeleton';
 import { HiEye, HiTrash, HiInformationCircle } from 'react-icons/hi';
 
@@ -13,7 +13,7 @@ interface ReviewJobListProps {
 }
 
 export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate, isLoading }) => {
-  const { deleteReviewJob } = useReviewJobActions();
+  const { deleteReviewJob } = useDeleteReviewJob();
 
   const handleDelete = async (jobId: string, e: React.MouseEvent) => {
     e.stopPropagation();
