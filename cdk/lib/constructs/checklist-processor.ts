@@ -9,8 +9,8 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
 import { DockerPrismaFunction } from "./docker-prisma-function";
-import { DatabaseConnectionProps } from "./prisma-function";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { DatabaseConnectionProps } from "./database";
 
 /**
  * ドキュメント処理ワークフローのプロパティ

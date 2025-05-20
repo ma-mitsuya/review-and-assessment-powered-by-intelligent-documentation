@@ -1,6 +1,5 @@
 // Ref: https://github.com/aws-samples/prisma-lambda-cdk/blob/main/lib/construct/prisma-function.ts
 
-// import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";

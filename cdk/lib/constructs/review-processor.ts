@@ -2,16 +2,15 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { Construct } from "constructs";
-import { DatabaseConnectionProps } from "./prisma-function";
 import { DockerPrismaFunction } from "./docker-prisma-function";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { DatabaseConnectionProps } from "./database";
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
   vpc: ec2.IVpc;
