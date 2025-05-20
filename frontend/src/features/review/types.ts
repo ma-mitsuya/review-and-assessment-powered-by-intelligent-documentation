@@ -77,6 +77,12 @@ export interface OverrideReviewResultRequest {
 export type GetAllReviewJobsResponse = ApiResponse<ReviewJobMetaModel[]>;
 
 /**
+ * Response type for getting a review job detail
+ * GET /review-jobs/:jobId
+ */
+export type GetReviewJobDetailResponse = ApiResponse<ReviewJobDetailModel>;
+
+/**
  * Response type for getting a presigned URL for review document upload
  * POST /documents/review/presigned-url
  */
@@ -170,6 +176,38 @@ export interface ReviewJobMetaModel {
     name: string;
   };
   summary: ReviewJobSummary;
+}
+
+/**
+ * Review job detail model (for detail view)
+ */
+export interface ReviewJobDetailModel {
+  id: string;
+  name: string;
+  status: REVIEW_JOB_STATUS;
+  checkList: {
+    id: string;
+    name: string;
+    description?: string;
+    documents: {
+      id: string;
+      filename: string;
+      s3Key: string;
+      fileType: string;
+      uploadDate: Date;
+      status: string;
+    }[];
+  };
+  documentId: string;
+  document: {
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
 }
 
 /**

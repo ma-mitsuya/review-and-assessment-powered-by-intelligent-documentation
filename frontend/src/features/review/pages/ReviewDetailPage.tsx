@@ -10,10 +10,12 @@ import {
   FilterType,
   useReviewResultItems,
 } from "../hooks/useReviewResultQueries";
+import { useReviewJobDetail } from "../hooks/useReviewJobQueries";
 import Button from "../../../components/Button";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
+import { REVIEW_JOB_STATUS } from "../types";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +23,14 @@ export default function ReviewDetailPage() {
 
   const [filter, setFilter] = useState<FilterType>("fail");
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
+
+  // 審査ジョブ詳細を取得
+  const {
+    job,
+    isLoading: isLoadingJob,
+    error: jobError,
+    refetch: refetchJob,
+  } = useReviewJobDetail(id || null);
 
   const {
     items: currentJob,
@@ -32,8 +42,9 @@ export default function ReviewDetailPage() {
   useEffect(() => {
     if (id) {
       revalidate();
+      refetchJob();
     }
-  }, [id, revalidate]);
+  }, [id, revalidate, refetchJob]);
 
   // フィルタリング状態が変更されたときの処理
   const handleFilterChange = (newFilter: FilterType) => {
@@ -47,18 +58,39 @@ export default function ReviewDetailPage() {
   };
 
   // ローディング中の表示
-  if (isLoadingJobs) {
+  if (isLoadingJobs || isLoadingJob) {
     return <DetailSkeleton lines={8} />;
   }
 
   // エラーが発生した場合
-  if (error) {
+  if (error || jobError) {
     return (
       <div className="mt-4">
         <ErrorAlert
           title="読み込みエラー"
           message="審査ジョブの取得に失敗しました。"
-          retry={() => revalidate()}
+          retry={() => {
+            revalidate();
+            refetchJob();
+          }}
+        />
+        <div className="mt-4">
+          <Button onClick={handleBack} variant="secondary">
+            審査一覧に戻る
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ジョブが取得できなかった場合
+  if (!job) {
+    return (
+      <div className="mt-4">
+        <ErrorAlert
+          title="データエラー"
+          message="審査ジョブが見つかりませんでした。"
+          retry={() => refetchJob()}
         />
         <div className="mt-4">
           <Button onClick={handleBack} variant="secondary">
@@ -74,14 +106,29 @@ export default function ReviewDetailPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-aws-squid-ink-light">
-            {currentJob.name}
+            {job.name}
           </h1>
           <p className="text-aws-font-color-gray mt-1">
-            ドキュメント: {currentJob.document.filename}
+            ドキュメント: {job.document.filename}
           </p>
           <p className="text-aws-font-color-gray">
-            チェックリスト: {currentJob.checkListSet.name}
+            チェックリスト: {job.checkList.name}
           </p>
+          <p className="text-aws-font-color-gray">
+            ステータス: <span className={`font-medium ${job.status === REVIEW_JOB_STATUS.COMPLETED ? 'text-green-600' : job.status === REVIEW_JOB_STATUS.FAILED ? 'text-red-600' : 'text-yellow-600'}`}>
+              {job.status === REVIEW_JOB_STATUS.PENDING ? '待機中' : 
+               job.status === REVIEW_JOB_STATUS.PROCESSING ? '処理中' : 
+               job.status === REVIEW_JOB_STATUS.COMPLETED ? '完了' : '失敗'}
+            </span>
+          </p>
+          <p className="text-aws-font-color-gray">
+            作成日時: {new Date(job.createdAt).toLocaleString()}
+          </p>
+          {job.completedAt && (
+            <p className="text-aws-font-color-gray">
+              完了日時: {new Date(job.completedAt).toLocaleString()}
+            </p>
+          )}
         </div>
         <Button onClick={handleBack} variant="secondary">
           審査一覧に戻る

@@ -1,5 +1,10 @@
 import { useApiClient } from "../../../hooks/useApiClient";
-import type { ReviewJobMetaModel, GetAllReviewJobsResponse } from "../types";
+import type { 
+  ReviewJobMetaModel, 
+  GetAllReviewJobsResponse,
+  ReviewJobDetailModel,
+  GetReviewJobDetailResponse
+} from "../types";
 
 /**
  * 審査ジョブ一覧のキャッシュキーを生成する関数
@@ -48,6 +53,26 @@ export function useReviewJobs(
   return {
     items: jobs ?? [],
     total: jobs?.length ?? 0,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+/**
+ * 審査ジョブ詳細を取得するカスタムフック
+ */
+export function useReviewJobDetail(jobId: string | null) {
+  const url = getReviewJobDetailKey(jobId);
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useApiClient().useQuery<GetReviewJobDetailResponse>(url);
+
+  return {
+    job: data as ReviewJobDetailModel | null,
     isLoading,
     error,
     refetch,
