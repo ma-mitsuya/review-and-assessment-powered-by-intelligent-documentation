@@ -94,20 +94,3 @@ export const modifyJobStatus = async (params: {
     status: params.status,
   });
 };
-
-export const getReviewResults = async (params: {
-  reviewJobId: string;
-  parentId?: string;
-  filter?: REVIEW_RESULT;
-  deps?: {
-    repo?: ReviewResultRepository;
-  };
-}): Promise<ReviewResultDetailModel[]> => {
-  const repo = params.deps?.repo || makePrismaReviewResultRepository();
-  const results = await repo.findReviewResultsById({
-    jobId: params.reviewJobId,
-    parentId: params.parentId,
-    filter: params.filter,
-  });
-  return results;
-};

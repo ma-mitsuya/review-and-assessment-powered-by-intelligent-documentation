@@ -4,10 +4,7 @@ import type {
   OverrideReviewResultRequest,
   OverrideReviewResultResponse,
 } from "../types";
-import { 
-  getReviewResultHierarchyKey, 
-  getReviewResultItemsKey 
-} from "./useReviewResultQueries";
+import { getReviewResultItemsKey } from "./useReviewResultQueries";
 
 /**
  * 審査結果を更新するカスタムフック
@@ -27,9 +24,11 @@ export function useUpdateReviewResult(jobId: string) {
       `/review-jobs/${jobId}/results/${resultId}`
     );
     // キャッシュ更新
-    mutate(getReviewResultHierarchyKey(jobId));
-    mutate((key) =>
-      typeof key === "string" && key.startsWith(`/review-jobs/${jobId}/results`)
+    mutate(getReviewResultItemsKey(jobId));
+    mutate(
+      (key) =>
+        typeof key === "string" &&
+        key.startsWith(`/review-jobs/${jobId}/results`)
     );
     return res;
   };

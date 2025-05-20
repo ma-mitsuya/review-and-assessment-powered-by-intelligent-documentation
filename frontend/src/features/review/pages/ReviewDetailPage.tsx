@@ -6,7 +6,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
-import { FilterType } from "../hooks/useReviewResultQueries";
+import {
+  FilterType,
+  useReviewResultItems,
+} from "../hooks/useReviewResultQueries";
 import Button from "../../../components/Button";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
@@ -16,21 +19,16 @@ export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // フィルタリング状態 - デフォルトで不合格のみを表示
   const [filter, setFilter] = useState<FilterType>("fail");
-
-  // 信頼度閾値
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
 
-  // 審査ジョブ情報を取得（ジョブ名などの表示用）
   const {
-    job: currentJob,
+    items: currentJob,
     isLoading: isLoadingJobs,
     refetch: revalidate,
     error,
-  } = useReviewJobDetail(id || null);
+  } = useReviewResultItems(id || null);
 
-  // コンポーネントマウント時に明示的にデータを取得
   useEffect(() => {
     if (id) {
       revalidate();
@@ -61,23 +59,6 @@ export default function ReviewDetailPage() {
           title="読み込みエラー"
           message="審査ジョブの取得に失敗しました。"
           retry={() => revalidate()}
-        />
-        <div className="mt-4">
-          <Button onClick={handleBack} variant="secondary">
-            審査一覧に戻る
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // 審査ジョブが見つからない場合
-  if (!currentJob) {
-    return (
-      <div className="mt-4">
-        <ErrorAlert
-          title="審査ジョブが見つかりません"
-          message="指定された審査ジョブは存在しないか、アクセス権限がありません。"
         />
         <div className="mt-4">
           <Button onClick={handleBack} variant="secondary">

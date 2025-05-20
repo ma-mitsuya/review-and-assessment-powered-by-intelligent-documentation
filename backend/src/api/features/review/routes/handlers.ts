@@ -3,12 +3,14 @@ import {
   createReviewJob,
   getAllReviewJobs,
   getReviewDocumentPresignedUrl,
-  getReviewResults,
   removeReviewJob,
 } from "../usecase/review-job";
 import { deleteS3Object } from "../../../core/s3";
 import { REVIEW_RESULT } from "../domain/model/review";
-import { overrideReviewResult } from "../usecase/review-result";
+import {
+  overrideReviewResult,
+  getReviewResults,
+} from "../usecase/review-result";
 
 export const getAllReviewJobsHandler = async (
   request: FastifyRequest,
