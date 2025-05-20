@@ -169,35 +169,10 @@ export class ChecklistProcessor extends Construct {
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
       }),
-      resultPath: "$",
+      payloadResponseOnly: true,
       outputPath: "$",
+      resultPath: "$",
     }).addRetry({
-      errors: [
-        "Lambda.ServiceException",
-        "Lambda.AWSLambdaException",
-        "Lambda.SdkClientException",
-        // TODO: throttlingの場合に限定
-        "Error",
-      ],
-      interval: cdk.Duration.seconds(2),
-      backoffRate: 2,
-      maxAttempts: 5,
-    });
-
-    // 結果を結合するLambda Invoke Task
-    const combinePageResultsTask = new tasks.LambdaInvoke(
-      this,
-      "CombinePageResults",
-      {
-        lambdaFunction: this.documentLambda,
-        payload: sfn.TaskInput.fromObject({
-          action: "combinePageResults",
-          // 配列データを直接渡す
-          parallelResults: sfn.JsonPath.entirePayload,
-        }),
-        outputPath: "$.Payload",
-      }
-    ).addRetry({
       errors: [
         "Lambda.ServiceException",
         "Lambda.AWSLambdaException",

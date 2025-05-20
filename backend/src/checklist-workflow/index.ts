@@ -3,7 +3,6 @@
  */
 import { processDocument } from "./document-processing";
 import { processWithLLM } from "./document-processing/llm-processing";
-import { combinePageResults } from "./result-combining";
 import { aggregatePageResults } from "./aggregate-results";
 import { storeChecklistItemsToDb } from "./store-to-db";
 
@@ -16,8 +15,6 @@ export const handler = async (event: any): Promise<any> => {
       return await handleProcessDocument(event);
     case "processWithLLM":
       return await handleProcessWithLLM(event);
-    case "combinePageResults":
-      return await handleCombinePageResults(event);
     case "aggregatePageResults":
       return await handleAggregatePageResults(event);
     case "storeToDb":
@@ -46,15 +43,6 @@ async function handleProcessWithLLM(event: any) {
   return await processWithLLM({
     documentId: event.documentId,
     pageNumber: event.pageNumber,
-  });
-}
-
-/**
- * 結果結合ハンドラー
- */
-async function handleCombinePageResults(event: any) {
-  return await combinePageResults({
-    parallelResults: event.parallelResults || [],
   });
 }
 

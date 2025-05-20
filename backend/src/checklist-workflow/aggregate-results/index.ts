@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   getChecklistAggregateKey,
-  getChecklistCombinedKey,
+  getChecklistLlmOcrTextKey,
 } from "../common/storage-paths";
 import { ParsedChecklistItem, AggregatePageResult } from "../common/types";
 
@@ -40,7 +40,8 @@ export async function aggregatePageResults({
     const pageNumber = page.pageNumber;
 
     // S3から結合済み結果を取得
-    const combinedKey = getChecklistCombinedKey(documentId, pageNumber);
+    const combinedKey = getChecklistLlmOcrTextKey(documentId, pageNumber);
+    console.log(`Combined Key for page ${pageNumber}: ${combinedKey}`);
     let pageItems: ParsedChecklistItem[];
 
     try {

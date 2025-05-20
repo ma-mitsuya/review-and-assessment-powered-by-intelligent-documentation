@@ -56,19 +56,6 @@ export function getChecklistPageKey(
 }
 
 /**
- * ページ抽出テキストのS3キーを生成する
- * @param documentId ドキュメントID
- * @param pageNumber ページ番号
- * @returns S3キー
- */
-export function getChecklistExtractedTextKey(
-  documentId: string,
-  pageNumber: number
-): string {
-  return `checklist/extracted_text/${documentId}/page_${pageNumber}.txt`;
-}
-
-/**
  * ページLLM OCRテキストのS3キーを生成する
  * @param documentId ドキュメントID
  * @param pageNumber ページ番号
@@ -78,20 +65,7 @@ export function getChecklistLlmOcrTextKey(
   documentId: string,
   pageNumber: number
 ): string {
-  return `checklist/llm_ocr/${documentId}/page_${pageNumber}.txt`;
-}
-
-/**
- * ページ結合結果のS3キーを生成する
- * @param documentId ドキュメントID
- * @param pageNumber ページ番号
- * @returns S3キー
- */
-export function getChecklistCombinedKey(
-  documentId: string,
-  pageNumber: number
-): string {
-  return `checklist/combined/${documentId}/page_${pageNumber}.json`;
+  return `checklist/llm_ocr/${documentId}/page_${pageNumber}.json`;
 }
 
 /**
