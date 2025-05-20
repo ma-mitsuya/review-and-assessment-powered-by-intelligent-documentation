@@ -1,7 +1,13 @@
 import { useState } from "react";
 import type { CheckListItemModel } from "../types";
-import { HiChevronDown, HiChevronRight, HiPencil } from "react-icons/hi";
+import {
+  HiChevronDown,
+  HiChevronRight,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi";
 import CheckListItemEditModal from "./CheckListItemEditModal";
+import { useDeleteCheckListItem } from "../hooks/useCheckListItemMutations";
 
 type HierarchicalItem = CheckListItemModel & {
   children: HierarchicalItem[];
@@ -40,8 +46,22 @@ type NodeProps = {
 function Node({ node, level }: NodeProps) {
   const [expanded, setExpanded] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const {
+    deleteCheckListItem,
+    status: delStatus,
+    error: delError,
+  } = useDeleteCheckListItem(node.setId);
 
   const indentStyle = { marginLeft: `${level * 20}px` };
+
+  const handleDelete = async () => {
+    if (!confirm(`「${node.name}」を本当に削除しますか？`)) return;
+    try {
+      await deleteCheckListItem(node.id);
+    } catch {
+      alert("削除に失敗しました。");
+    }
+  };
 
   return (
     <div style={indentStyle}>
@@ -70,14 +90,22 @@ function Node({ node, level }: NodeProps) {
             )}
           </div>
         </div>
-
-        <button
-          onClick={() => setIsEditModalOpen(true)}
-          className="text-aws-aqua hover:text-aws-sea-blue-light"
-          aria-label="編集"
-        >
-          <HiPencil className="h-5 w-5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="text-aws-aqua hover:text-aws-sea-blue-light"
+            aria-label="編集"
+          >
+            <HiPencil className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="text-red hover:text-light-red hover:bg-light-red rounded p-1 disabled:opacity-50 transition-colors"
+            aria-label="削除"
+          >
+            <HiTrash className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {isEditModalOpen && (
