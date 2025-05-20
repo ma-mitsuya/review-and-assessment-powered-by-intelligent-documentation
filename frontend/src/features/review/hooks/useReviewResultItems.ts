@@ -2,7 +2,10 @@
  * 審査結果項目を取得するためのカスタムフック
  */
 import useHttp from '../../../hooks/useHttp';
-import { ReviewResultItem, ApiResponse } from '../types';
+import { 
+  ReviewResultDetailModel, 
+  GetReviewResultItemsResponse 
+} from '../types';
 import { FilterType } from '../components/ReviewResultFilter';
 
 /**
@@ -38,7 +41,7 @@ export const getReviewResultItemsKey = (jobId?: string, parentId?: string, filte
  * @returns 審査結果項目、ローディング状態、エラー
  */
 export function useReviewResultItems(jobId?: string, parentId?: string, filter: FilterType = 'all'): {
-  items: ReviewResultItem[];
+  items: ReviewResultDetailModel[];
   isLoading: boolean;
   isError: boolean;
   mutate: () => void;
@@ -46,7 +49,7 @@ export function useReviewResultItems(jobId?: string, parentId?: string, filter: 
   const http = useHttp();
   const key = getReviewResultItemsKey(jobId, parentId, filter);
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<ReviewResultItem[]>>(key);
+  const { data, error, isLoading, mutate } = http.get<GetReviewResultItemsResponse>(key);
   
   if (data) {
     console.log(`[Frontend] Received data for ${key}:`, data.success, data.data?.length || 0);

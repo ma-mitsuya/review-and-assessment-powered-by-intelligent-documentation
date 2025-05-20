@@ -7,7 +7,10 @@ import { mutate } from "swr";
 import useHttp from "../../../hooks/useHttp";
 import { DocumentUploadResult } from "../../../hooks/useDocumentUpload";
 import { getCheckListSetsKey } from "./useCheckListSets";
-import { ApiResponse } from "../types";
+import { 
+  CreateChecklistSetRequest, 
+  CreateChecklistSetResponse 
+} from "../types";
 
 /**
  * チェックリスト作成リクエスト
@@ -22,7 +25,7 @@ export interface CreateChecklistRequest {
  * チェックリスト作成フックの戻り値
  */
 interface UseChecklistCreationReturn {
-  createChecklist: (data: CreateChecklistRequest) => Promise<ApiResponse<any>>;
+  createChecklist: (data: CreateChecklistRequest) => Promise<CreateChecklistSetResponse>;
   isCreating: boolean;
   error: Error | null;
 }
@@ -41,13 +44,13 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
    */
   const createChecklist = async (
     data: CreateChecklistRequest
-  ): Promise<any> => {
+  ): Promise<CreateChecklistSetResponse> => {
     setIsCreating(true);
     setError(null);
 
     try {
       // チェックリストセットを作成
-      const response = await http.post<ApiResponse<any>>("/checklist-sets", {
+      const response = await http.post<CreateChecklistSetResponse>("/checklist-sets", {
         name: data.name,
         description: data.description,
         documents: data.documents.map((doc) => ({
@@ -67,7 +70,7 @@ export function useChecklistCreation(): UseChecklistCreationReturn {
       // キャッシュを無効化
       mutate(getCheckListSetsKey());
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const err =
         error instanceof Error

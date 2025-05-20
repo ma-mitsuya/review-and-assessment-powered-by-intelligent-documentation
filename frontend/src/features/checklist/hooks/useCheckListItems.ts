@@ -2,9 +2,14 @@ import useHttp from '../../../hooks/useHttp';
 import { mutate } from 'swr';
 import { useState } from 'react';
 import { 
-  CheckListItem, 
-  HierarchicalCheckListItem, 
-  ApiResponse 
+  CheckListItemModel,
+  CreateChecklistItemRequest,
+  CreateChecklistItemResponse,
+  UpdateChecklistItemRequest,
+  UpdateChecklistItemResponse,
+  DeleteChecklistItemResponse,
+  GetChecklistSetDetailResponse,
+  GetChecklistItemResponse
 } from '../types';
 
 /**
@@ -17,23 +22,18 @@ export const useCheckListItems = (setId: string | null) => {
   
   // 階層構造データの取得
   const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
-  const { data, error: fetchError, isLoading, mutate: refetch } = http.get<ApiResponse<HierarchicalCheckListItem[]>>(url);
+  const { data, error: fetchError, isLoading, mutate: refetch } = http.get<GetChecklistSetDetailResponse>(url);
   
   // チェックリスト項目の作成
   const createItem = async (
     checkListSetId: string,
-    item: {
-      name: string;
-      description?: string;
-      parentId?: string;
-      documentId?: string;
-    }
-  ): Promise<ApiResponse<CheckListItem>> => {
+    item: CreateChecklistItemRequest
+  ): Promise<CreateChecklistItemResponse> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      const response = await http.post<ApiResponse<CheckListItem>>(`/checklist-sets/${checkListSetId}/items`, item);
+      const response = await http.post<CreateChecklistItemResponse>(`/checklist-sets/${checkListSetId}/items`, item);
       
       // キャッシュを更新
       mutate(`/checklist-sets/${checkListSetId}`);
@@ -53,17 +53,13 @@ export const useCheckListItems = (setId: string | null) => {
   const updateItem = async (
     checkListSetId: string,
     itemId: string,
-    updates: {
-      name?: string;
-      description?: string;
-      documentId?: string;
-    }
-  ): Promise<ApiResponse<CheckListItem>> => {
+    updates: UpdateChecklistItemRequest
+  ): Promise<UpdateChecklistItemResponse> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      const response = await http.put<ApiResponse<CheckListItem>>(`/checklist-sets/${checkListSetId}/items/${itemId}`, updates);
+      const response = await http.put<UpdateChecklistItemResponse>(`/checklist-sets/${checkListSetId}/items/${itemId}`, updates);
       
       // キャッシュを更新
       mutate(`/checklist-sets/${checkListSetId}`);
@@ -84,12 +80,12 @@ export const useCheckListItems = (setId: string | null) => {
   const deleteItem = async (
     checkListSetId: string,
     itemId: string
-  ): Promise<ApiResponse<{ deleted: boolean }>> => {
+  ): Promise<DeleteChecklistItemResponse> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${checkListSetId}/items/${itemId}`);
+      const response = await http.delete<DeleteChecklistItemResponse>(`/checklist-sets/${checkListSetId}/items/${itemId}`);
       
       // キャッシュを更新
       mutate(`/checklist-sets/${checkListSetId}`);
@@ -108,10 +104,10 @@ export const useCheckListItems = (setId: string | null) => {
   // チェックリスト項目の詳細取得
   const getItem = (itemId: string | null) => {
     const itemUrl = setId && itemId ? `/checklist-sets/${setId}/items/${itemId}` : null;
-    const { data: itemData, error: itemError, isLoading: itemLoading } = http.get<ApiResponse<CheckListItem>>(itemUrl);
+    const { data: itemData, error: itemError, isLoading: itemLoading } = http.get<GetChecklistItemResponse>(itemUrl);
     
     return {
-      item: itemData?.data,
+      item: itemData?.data.detail,
       isLoading: itemLoading,
       error: itemError
     };

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import useHttp from '../../../hooks/useHttp';
 import { mutate } from 'swr';
 import { 
-  ApiResponse, 
-  ReviewJob, 
-  CreateReviewJobParams 
+  ReviewJobMetaModel,
+  CreateReviewJobRequest,
+  GetAllReviewJobsResponse,
+  CreateReviewJobResponse,
+  DeleteReviewJobResponse
 } from '../types';
 import { DocumentUploadResult } from '../../../hooks/useDocumentUpload';
 
@@ -52,7 +54,7 @@ export const useReviewJobs = (
   // 審査ジョブ一覧の取得
   const params = { page, limit, sortBy, sortOrder, status };
   const key = getReviewJobsKey(params);
-  const { data, error: fetchError, isLoading, mutate: refetch } = http.get<ApiResponse<{ reviewJobs: ReviewJob[]; total: number }>>(key);
+  const { data, error: fetchError, isLoading, mutate: refetch } = http.get<GetAllReviewJobsResponse>(key);
   
   // 明示的にデータを再取得する関数
   const revalidate = () => refetch();
@@ -62,13 +64,13 @@ export const useReviewJobs = (
     name: string;
     document: DocumentUploadResult;
     checkListSetId: string;
-  }): Promise<ReviewJob> => {
+  }): Promise<ReviewJobMetaModel> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
       // バックエンドが期待する形式に変換
-      const requestBody = {
+      const requestBody: CreateReviewJobRequest = {
         name: params.name,
         documentId: params.document.documentId,
         checkListSetId: params.checkListSetId,
@@ -77,7 +79,7 @@ export const useReviewJobs = (
         fileType: params.document.fileType
       };
       
-      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', requestBody);
+      const response = await http.post<CreateReviewJobResponse>('/review-jobs', requestBody);
       
       // キャッシュを更新
       mutate(getReviewJobsKey());
@@ -98,12 +100,12 @@ export const useReviewJobs = (
     setError(null);
     
     try {
-      const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/review-jobs/${jobId}`);
+      const response = await http.delete<DeleteReviewJobResponse>(`/review-jobs/${jobId}`);
       
       // キャッシュを更新
       mutate(getReviewJobsKey());
       
-      return response.data.data.deleted;
+      return response.data.success;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete review job');
       setError(error);
@@ -116,7 +118,7 @@ export const useReviewJobs = (
   // 審査ジョブの詳細取得
   const getJob = (jobId: string | null) => {
     const jobUrl = jobId ? `/review-jobs/${jobId}` : null;
-    const { data: jobData, error: jobError, isLoading: jobLoading } = http.get<ApiResponse<ReviewJob>>(jobUrl);
+    const { data: jobData, error: jobError, isLoading: jobLoading } = http.get<GetAllReviewJobsResponse>(jobUrl);
     
     return {
       job: jobData?.data,

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import useHttp from '../../../hooks/useHttp';
 import { mutate } from 'swr';
 import { 
-  ApiResponse, 
-  ReviewResultItem, 
-  ReviewResultHierarchy,
-  UpdateReviewResultParams 
+  ReviewResultDetailModel,
+  GetReviewResultItemsResponse,
+  OverrideReviewResultRequest,
+  OverrideReviewResultResponse
 } from '../types';
 import { FilterType } from '../components/ReviewResultFilter';
 
@@ -54,7 +54,7 @@ export const useReviewResults = (jobId: string | null, parentId?: string, filter
     error: hierarchyError, 
     isLoading: hierarchyLoading, 
     mutate: refetchHierarchy 
-  } = http.get<ApiResponse<ReviewResultHierarchy[]>>(hierarchyUrl);
+  } = http.get<GetReviewResultItemsResponse>(hierarchyUrl);
   
   // 項目リストの取得
   const itemsUrl = getReviewResultItemsKey(jobId || undefined, parentId, filter);
@@ -63,19 +63,19 @@ export const useReviewResults = (jobId: string | null, parentId?: string, filter
     error: itemsError, 
     isLoading: itemsLoading, 
     mutate: refetchItems 
-  } = http.get<ApiResponse<ReviewResultItem[]>>(itemsUrl);
+  } = http.get<GetReviewResultItemsResponse>(itemsUrl);
   
   // 審査結果の更新
   const updateResult = async (
     reviewJobId: string,
     resultId: string,
-    params: UpdateReviewResultParams
-  ): Promise<any> => {
+    params: OverrideReviewResultRequest
+  ): Promise<OverrideReviewResultResponse> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      const response = await http.put<ApiResponse<any>>(`/review-jobs/${reviewJobId}/results/${resultId}`, params);
+      const response = await http.put<OverrideReviewResultResponse>(`/review-jobs/${reviewJobId}/results/${resultId}`, params);
       
       // キャッシュを更新
       mutate(getReviewResultHierarchyKey(reviewJobId));
@@ -84,7 +84,7 @@ export const useReviewResults = (jobId: string | null, parentId?: string, filter
       // 親階層のキャッシュも無効化（親項目がある場合）
       mutate((key) => typeof key === 'string' && key.startsWith(`/review-jobs/${reviewJobId}/results/items`));
       
-      return response.data.data;
+      return response.data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update review result');
       setError(error);
@@ -97,10 +97,10 @@ export const useReviewResults = (jobId: string | null, parentId?: string, filter
   // 審査結果の詳細取得
   const getResult = (resultId: string | null) => {
     const resultUrl = jobId && resultId ? `/review-jobs/${jobId}/results/${resultId}` : null;
-    const { data: resultData, error: resultError, isLoading: resultLoading } = http.get<ApiResponse<ReviewResultItem>>(resultUrl);
+    const { data: resultData, error: resultError, isLoading: resultLoading } = http.get<GetReviewResultItemsResponse>(resultUrl);
     
     return {
-      result: resultData?.data,
+      result: resultData?.data[0],
       isLoading: resultLoading,
       error: resultError
     };

@@ -4,7 +4,12 @@
 import { useState } from 'react';
 import { mutate } from 'swr';
 import useHttp from '../../../hooks/useHttp';
-import { CreateReviewJobParams, ReviewJob, ApiResponse } from '../types';
+import { 
+  CreateReviewJobRequest, 
+  ReviewJobMetaModel, 
+  CreateReviewJobResponse,
+  DeleteReviewJobResponse
+} from '../types';
 import { getReviewJobsKey } from './useReviewJobs';
 
 export function useReviewJobActions() {
@@ -12,12 +17,12 @@ export function useReviewJobActions() {
   const [error, setError] = useState<Error | null>(null);
   const http = useHttp();
   
-  const createReviewJob = async (params: CreateReviewJobParams): Promise<ReviewJob> => {
+  const createReviewJob = async (params: CreateReviewJobRequest): Promise<ReviewJobMetaModel> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await http.post<ApiResponse<ReviewJob>>('/review-jobs', params);
+      const response = await http.post<CreateReviewJobResponse>('/review-jobs', params);
       
       // キャッシュを無効化 - 全てのreview-jobsクエリを無効化
       mutate(getReviewJobsKey());
@@ -37,12 +42,12 @@ export function useReviewJobActions() {
     setError(null);
     
     try {
-      const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/review-jobs/${jobId}`);
+      const response = await http.delete<DeleteReviewJobResponse>(`/review-jobs/${jobId}`);
       
       // キャッシュを無効化
       mutate(getReviewJobsKey());
       
-      return response.data.data.deleted;
+      return response.data.success;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete review job');
       setError(error);

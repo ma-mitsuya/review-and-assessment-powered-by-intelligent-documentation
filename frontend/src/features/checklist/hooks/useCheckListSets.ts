@@ -1,10 +1,13 @@
 import useHttp from '../../../hooks/useHttp';
 import { mutate } from 'swr';
 import { 
-  CheckListSet, 
-  CheckListSetDetail,
-  HierarchicalCheckListItem,
-  ApiResponse 
+  CheckListSetModel,
+  CheckListItemModel,
+  GetAllChecklistSetsResponse,
+  GetChecklistSetDetailResponse,
+  CreateChecklistSetRequest,
+  CreateChecklistSetResponse,
+  DeleteChecklistSetResponse
 } from '../types';
 
 // チェックリストセット一覧のキャッシュキーを生成する関数
@@ -30,7 +33,7 @@ export const useCheckListSets = (
   const http = useHttp();
   const url = getCheckListSetsKey(page, limit, sortBy, sortOrder);
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<{ checkListSets: CheckListSet[]; total: number }>>(url);
+  const { data, error, isLoading, mutate } = http.get<GetAllChecklistSetsResponse>(url);
 
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
@@ -52,7 +55,7 @@ export const useCheckListItemHierarchy = (setId: string | null) => {
   const http = useHttp();
   const url = setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<{ detail: HierarchicalCheckListItem[] }>>(url);
+  const { data, error, isLoading, mutate } = http.get<GetChecklistSetDetailResponse>(url);
 
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
@@ -74,7 +77,7 @@ export const useCheckListSet = (id: string | null) => {
   const http = useHttp();
   const url = id ? `/checklist-sets/${id}/items/hierarchy` : null;
   
-  const { data, error, isLoading, mutate } = http.get<ApiResponse<CheckListSetDetail>>(url);
+  const { data, error, isLoading, mutate } = http.get<GetChecklistSetDetailResponse>(url);
 
   // 明示的にデータを再取得する関数
   const revalidate = () => mutate();
@@ -98,14 +101,9 @@ export const useCheckListSetActions = () => {
   const createCheckListSet = async (
     name: string,
     description?: string,
-    documents?: Array<{
-      documentId: string;
-      filename: string;
-      s3Key: string;
-      fileType: string;
-    }>
-  ): Promise<ApiResponse<CheckListSet>> => {
-    const response = await http.post<ApiResponse<CheckListSet>>(`/checklist-sets`, {
+    documents?: Document[]
+  ): Promise<CreateChecklistSetResponse> => {
+    const response = await http.post<CreateChecklistSetResponse>(`/checklist-sets`, {
       name,
       description,
       documents,
@@ -122,8 +120,8 @@ export const useCheckListSetActions = () => {
     id: string,
     name: string,
     description?: string
-  ): Promise<ApiResponse<CheckListSet>> => {
-    const response = await http.put<ApiResponse<CheckListSet>>(`/checklist-sets/${id}`, {
+  ): Promise<CreateChecklistSetResponse> => {
+    const response = await http.put<CreateChecklistSetResponse>(`/checklist-sets/${id}`, {
       name,
       description,
     });
@@ -135,8 +133,8 @@ export const useCheckListSetActions = () => {
     return response.data;
   };
 
-  const deleteCheckListSet = async (id: string): Promise<ApiResponse<{ deleted: boolean }>> => {
-    const response = await http.delete<ApiResponse<{ deleted: boolean }>>(`/checklist-sets/${id}`);
+  const deleteCheckListSet = async (id: string): Promise<DeleteChecklistSetResponse> => {
+    const response = await http.delete<DeleteChecklistSetResponse>(`/checklist-sets/${id}`);
     
     // キャッシュを更新
     mutate(`/checklist-sets`);
