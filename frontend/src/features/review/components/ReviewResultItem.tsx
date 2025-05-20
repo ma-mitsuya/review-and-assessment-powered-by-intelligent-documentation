@@ -2,15 +2,14 @@
  * 個々の審査結果項目を表示するコンポーネント
  */
 import { useState } from 'react';
-import { ReviewResultHierarchy } from '../types';
-import { REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../constants';
+import { ReviewResultDetailModel, REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../types';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
 import Button from '../../../components/Button';
 import { HiChevronDown, HiChevronRight, HiPencil } from 'react-icons/hi';
 import Spinner from '../../../components/Spinner';
 
 interface ReviewResultItemProps {
-  result: ReviewResultHierarchy;
+  result: ReviewResultDetailModel;
   hasChildren: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -137,7 +136,7 @@ export default function ReviewResultItem({
   return (
     <>
       <div 
-        id={`result-item-${result.reviewResultId}`}
+        id={`result-item-${result.id}`}
         className={`bg-white border ${isBelowThreshold ? 'border-yellow border-2' : 'border-light-gray'} rounded-md p-4 hover:bg-aws-paper-light transition-colors ${isBelowThreshold ? 'bg-light-yellow' : ''}`}
 >
         <div className="grid grid-cols-[auto_1fr_auto] gap-4">

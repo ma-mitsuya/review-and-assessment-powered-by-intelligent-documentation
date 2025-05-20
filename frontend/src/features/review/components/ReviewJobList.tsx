@@ -1,19 +1,19 @@
 import React from 'react';
-import { ReviewJob } from '../types';
-import ReviewJobItem from './ReviewJobItem';
+import { ReviewJobMetaModel, REVIEW_JOB_STATUS } from '../types';
 import { useDeleteReviewJob } from '../hooks/useReviewJobMutations';
 import { TableSkeleton } from '../../../components/Skeleton';
 import { HiEye, HiTrash, HiInformationCircle } from 'react-icons/hi';
 
 interface ReviewJobListProps {
-  jobs: ReviewJob[];
-  onJobClick?: (job: ReviewJob) => void;
+  jobs: ReviewJobMetaModel[];
+  onJobClick?: (job: ReviewJobMetaModel) => void;
   revalidate?: () => void;
   isLoading?: boolean;
 }
 
 export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate, isLoading }) => {
-  const { deleteReviewJob } = useDeleteReviewJob();
+  const { deleteReviewJob, status } = useDeleteReviewJob();
+  const isDeleting = status === 'loading';
 
   const handleDelete = async (jobId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,7 +75,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
         <tbody className="bg-white divide-y divide-light-gray">
           {jobs.map((job) => (
             <tr 
-              key={job.reviewJobId} 
+              key={job.id} 
               className="hover:bg-aws-paper-light transition-colors"
             >
               <td className="px-6 py-4 whitespace-nowrap">
@@ -103,13 +103,15 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                       onJobClick && onJobClick(job);
                     }}
                     className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
+                    disabled={isDeleting}
                   >
                     <HiEye className="h-4 w-4 mr-1" />
                     詳細
                   </button>
                   <button
-                    onClick={(e) => handleDelete(job.reviewJobId, e)}
+                    onClick={(e) => handleDelete(job.id, e)}
                     className="text-red hover:text-red flex items-center"
+                    disabled={isDeleting}
                   >
                     <HiTrash className="h-4 w-4 mr-1" />
                     削除
@@ -125,27 +127,27 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
 };
 
 // ステータスに応じたバッジを表示する関数
-const renderStatusBadge = (status: ReviewJob['status']) => {
+const renderStatusBadge = (status: REVIEW_JOB_STATUS) => {
   switch (status) {
-    case 'completed':
+    case REVIEW_JOB_STATUS.COMPLETED:
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
           完了
         </span>
       );
-    case 'processing':
+    case REVIEW_JOB_STATUS.PROCESSING:
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
           処理中
         </span>
       );
-    case 'pending':
+    case REVIEW_JOB_STATUS.PENDING:
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
           待機中
         </span>
       );
-    case 'failed':
+    case REVIEW_JOB_STATUS.FAILED:
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
           失敗
@@ -161,11 +163,11 @@ const renderStatusBadge = (status: ReviewJob['status']) => {
 };
 
 // 日付のフォーマット
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | Date) => {
   if (!dateString) return '日付なし';
   
   try {
-    const date = new Date(dateString);
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     if (isNaN(date.getTime())) {
       return '無効な日付';
     }

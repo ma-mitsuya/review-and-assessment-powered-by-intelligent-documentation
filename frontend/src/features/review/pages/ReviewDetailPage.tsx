@@ -4,9 +4,10 @@
  */
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useReviewJobs } from '../hooks/useReviewJobs';
+import { useReviewJobDetail } from '../hooks/useReviewJobQueries';
 import ReviewResultTree from '../components/ReviewResultTree';
-import ReviewResultFilter, { FilterType } from '../components/ReviewResultFilter';
+import ReviewResultFilter from '../components/ReviewResultFilter';
+import { FilterType } from '../hooks/useReviewResultQueries';
 import Button from '../../../components/Button';
 import { ErrorAlert } from '../../../components/ErrorAlert';
 import Slider from '../../../components/Slider';
@@ -17,19 +18,18 @@ export default function ReviewDetailPage() {
   const navigate = useNavigate();
   
   // フィルタリング状態 - デフォルトで不合格のみを表示
-  const [filter, setFilter] = useState<FilterType>('failed');
+  const [filter, setFilter] = useState<FilterType>('fail');
   
   // 信頼度閾値
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
   
   // 審査ジョブ情報を取得（ジョブ名などの表示用）
   const { 
-    reviewJobs, 
+    job: currentJob, 
     isLoading: isLoadingJobs, 
-    revalidate 
-  } = useReviewJobs();
-  
-  const currentJob = reviewJobs?.find(job => job.review_job_id === id);
+    refetch: revalidate,
+    error
+  } = useReviewJobDetail(id || null);
   
   // コンポーネントマウント時に明示的にデータを取得
   useEffect(() => {
@@ -52,6 +52,24 @@ export default function ReviewDetailPage() {
   // ローディング中の表示
   if (isLoadingJobs) {
     return <DetailSkeleton lines={8} />;
+  }
+  
+  // エラーが発生した場合
+  if (error) {
+    return (
+      <div className="mt-4">
+        <ErrorAlert 
+          title="読み込みエラー" 
+          message="審査ジョブの取得に失敗しました。" 
+          retry={() => revalidate()}
+        />
+        <div className="mt-4">
+          <Button onClick={handleBack} variant="secondary">
+            審査一覧に戻る
+          </Button>
+        </div>
+      </div>
+    );
   }
   
   // 審査ジョブが見つからない場合
@@ -80,7 +98,7 @@ export default function ReviewDetailPage() {
             ドキュメント: {currentJob.document.filename}
           </p>
           <p className="text-aws-font-color-gray">
-            チェックリスト: {currentJob.check_list_set.name}
+            チェックリスト: {currentJob.checkListSet.name}
           </p>
         </div>
         <Button onClick={handleBack} variant="secondary">

@@ -3,8 +3,7 @@
  */
 import SegmentedControl from '../../../components/SegmentedControl';
 import { HiCheck, HiX, HiViewList } from 'react-icons/hi';
-
-export type FilterType = 'all' | 'failed' | 'passed';
+import { FilterType } from '../hooks/useReviewResultQueries';
 
 interface ReviewResultFilterProps {
   filter: FilterType;

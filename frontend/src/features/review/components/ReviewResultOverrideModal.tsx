@@ -2,9 +2,9 @@
  * 審査結果をユーザーが上書きするためのモーダル
  */
 import { useState } from 'react';
-import { ReviewResultHierarchy, UpdateReviewResultParams } from '../types';
-import { useReviewResults } from '../hooks/useReviewResults';
-import { REVIEW_RESULT } from '../constants';
+import { ReviewResultDetailModel, OverrideReviewResultRequest } from '../types';
+import { useUpdateReviewResult } from '../hooks/useReviewResultMutations';
+import { REVIEW_RESULT } from '../types';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import FormTextArea from '../../../components/FormTextArea';
@@ -14,7 +14,7 @@ import { HiCheck } from 'react-icons/hi';
 interface ReviewResultOverrideModalProps {
   isOpen: boolean;
   onClose: () => void;
-  result: ReviewResultHierarchy;
+  result: ReviewResultDetailModel;
 }
 
 export default function ReviewResultOverrideModal({
@@ -22,11 +22,12 @@ export default function ReviewResultOverrideModal({
   onClose,
   result
 }: ReviewResultOverrideModalProps) {
-  const { updateResult, isSubmitting } = useReviewResults(result.reviewJobId);
+  const { updateReviewResult, status, error } = useUpdateReviewResult(result.reviewJobId);
+  const isSubmitting = status === 'loading';
   
   // フォーム状態
-  const [formData, setFormData] = useState<UpdateReviewResultParams>({
-    result: result.result || REVIEW_RESULT.UNKNOWN,
+  const [formData, setFormData] = useState<OverrideReviewResultRequest>({
+    result: result.result || REVIEW_RESULT.FAIL,
     userComment: result.userComment || ''
   });
   
@@ -38,7 +39,7 @@ export default function ReviewResultOverrideModal({
   
   // フォーム入力ハンドラー
   const handleResultChange = (value: string) => {
-    setFormData(prev => ({ ...prev, result: value }));
+    setFormData(prev => ({ ...prev, result: value as REVIEW_RESULT }));
   };
   
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -57,9 +58,8 @@ export default function ReviewResultOverrideModal({
         return;
       }
       
-      await updateResult(
-        jobId,
-        result.reviewResultId,
+      await updateReviewResult(
+        result.id,
         formData
       );
       

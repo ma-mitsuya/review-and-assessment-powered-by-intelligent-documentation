@@ -2,16 +2,15 @@
  * 審査結果の階層構造のノードコンポーネント
  * 子要素を動的に読み込む機能を持つ
  */
-import { useState, useEffect } from 'react';
-import { ReviewResultItem as ReviewResultItemType } from '../types';
+import { useState } from 'react';
+import { ReviewResultDetailModel } from '../types';
 import ReviewResultItem from './ReviewResultItem';
-import { useReviewResultItems } from '../hooks/useReviewResultItems';
+import { useReviewResultItems, FilterType } from '../hooks/useReviewResultQueries';
 import Spinner from '../../../components/Spinner';
-import { FilterType } from './ReviewResultFilter';
 
 interface ReviewResultTreeNodeProps {
   jobId: string;
-  item: ReviewResultItemType;
+  item: ReviewResultDetailModel;
   level: number;
   confidenceThreshold: number;
   maxDepth?: number;
@@ -39,14 +38,14 @@ export default function ReviewResultTreeNode({
   const { 
     items: childItems, 
     isLoading: isLoadingChildren,
-    isError: isErrorChildren
+    error: errorChildren
   } = useReviewResultItems(
-    jobId,
+    jobId || null,
     shouldLoadChildren ? item.checkId : undefined,
     filter
   );
   
-  console.log(`[Frontend] Child items loaded: ${childItems.length}, isLoading: ${isLoadingChildren}, isError: ${isErrorChildren}`);
+  console.log(`[Frontend] Child items loaded: ${childItems.length}, isLoading: ${isLoadingChildren}, error: ${errorChildren ? 'yes' : 'no'}`);
   
   // 展開/折りたたみの切り替え
   const toggleExpand = () => {
@@ -82,14 +81,14 @@ export default function ReviewResultTreeNode({
             <div className="flex justify-center py-4" style={{marginLeft: `${(level + 1) * 20}px`}}>
               <Spinner size="md" />
             </div>
-          ) : isErrorChildren ? (
+          ) : errorChildren ? (
             <div className="text-red-500 py-2" style={{marginLeft: `${(level + 1) * 20}px`}}>
               子項目の読み込みに失敗しました。
             </div>
           ) : childItems.length > 0 ? (
             childItems.map(childItem => (
               <ReviewResultTreeNode 
-                key={childItem.reviewResultId} 
+                key={childItem.id} 
                 jobId={jobId}
                 item={childItem} 
                 level={level + 1}

@@ -6,7 +6,7 @@ import FormTextField from "../../../components/FormTextField";
 import FormFileUpload from "../../../components/FormFileUpload";
 import ChecklistSelector from "../components/ChecklistSelector";
 import ComparisonIndicator from "../components/ComparisonIndicator";
-import { useReviewJobs } from "../hooks/useReviewJobs";
+import { useCreateReviewJob } from "../hooks/useReviewJobMutations";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { useChecklistSets } from "../../checklist/hooks/useCheckListSetQueries";
 import { CheckListSet } from "../../checklist/types";
@@ -31,7 +31,8 @@ export const CreateReviewPage: React.FC = () => {
   } = useChecklistSets();
 
   // 審査ジョブ作成フック
-  const { createJob, isSubmitting, error: createError } = useReviewJobs();
+  const { createReviewJob, status, error: createError } = useCreateReviewJob();
+  const isSubmitting = status === "loading";
 
   // ドキュメントアップロードフック
   const {
@@ -165,11 +166,15 @@ export const CreateReviewPage: React.FC = () => {
     if (!validate() || !selectedChecklist) return;
 
     try {
+      const doc = uploadedDocuments[0];
       // 審査ジョブを作成
-      const result = await createJob({
+      await createReviewJob({
         name: jobName,
-        document: uploadedDocuments?.[0], // 審査では1ファイルのみ
-        checkListSetId: selectedChecklist.check_list_set_id,
+        documentId: doc.documentId,
+        checkListSetId: selectedChecklist.id,
+        filename: doc.filename,
+        s3Key: doc.s3Key,
+        fileType: doc.fileType,
       });
 
       // アップロード済みドキュメントリストをクリア
@@ -256,9 +261,7 @@ export const CreateReviewPage: React.FC = () => {
               ) : (
                 <ChecklistSelector
                   checklists={checkListSets || []}
-                  selectedChecklistId={
-                    selectedChecklist?.check_list_set_id || null
-                  }
+                  selectedChecklistId={selectedChecklist?.id || null}
                   onSelectChecklist={handleChecklistSelect}
                 />
               )}

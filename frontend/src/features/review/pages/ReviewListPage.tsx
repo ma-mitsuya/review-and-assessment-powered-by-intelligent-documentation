@@ -2,13 +2,14 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../../components/Button';
 import { ReviewJobList } from '../components/ReviewJobList';
-import { useReviewJobs } from '../hooks/useReviewJobs';
+import { useReviewJobs } from '../hooks/useReviewJobQueries';
 import { HiPlus, HiDocumentText } from 'react-icons/hi';
+import { ErrorAlert } from '../../../components/ErrorAlert';
 
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { reviewJobs, revalidate, isLoading } = useReviewJobs(1, 10, 'createdAt', 'desc');
+  const { items: reviewJobs, refetch: revalidate, isLoading, error } = useReviewJobs(1, 10, 'createdAt', 'desc');
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
@@ -17,9 +18,8 @@ export const ReviewListPage: React.FC = () => {
   }, [location, revalidate]);
 
   const handleJobClick = (job: any) => {
-    // TBD: ジョブの詳細画面に遷移する実装
-    console.log('Job selected:', job.id || job.reviewJobId);
-    navigate(`/review/${job.id || job.reviewJobId}`);
+    console.log('Job selected:', job.id);
+    navigate(`/review/${job.id}`);
   };
 
   return (
@@ -43,7 +43,15 @@ export const ReviewListPage: React.FC = () => {
         </Button>
       </div>
 
-      <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} revalidate={revalidate} isLoading={isLoading} />
+      {error ? (
+        <ErrorAlert 
+          title="読み込みエラー" 
+          message="審査ジョブの取得に失敗しました。" 
+          retry={revalidate}
+        />
+      ) : (
+        <ReviewJobList jobs={reviewJobs} onJobClick={handleJobClick} revalidate={revalidate} isLoading={isLoading} />
+      )}
     </div>
   );
 };

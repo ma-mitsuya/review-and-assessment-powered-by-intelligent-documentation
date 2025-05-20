@@ -1,10 +1,9 @@
 /**
  * 審査結果の階層構造を表示するツリーコンポーネント
  */
-import { useReviewResultItems } from '../hooks/useReviewResultItems';
+import { useReviewResultItems, FilterType } from '../hooks/useReviewResultQueries';
 import ReviewResultTreeNode from './ReviewResultTreeNode';
 import { TreeSkeleton } from '../../../components/Skeleton';
-import { FilterType } from './ReviewResultFilter';
 
 interface ReviewResultTreeProps {
   jobId: string;
@@ -18,14 +17,14 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
   const { 
     items: rootItems, 
     isLoading: isLoadingRoot,
-    isError: isErrorRoot
-  } = useReviewResultItems(jobId, undefined, filter);
+    error: errorRoot
+  } = useReviewResultItems(jobId || null, undefined, filter);
   
   if (isLoadingRoot) {
     return <TreeSkeleton nodes={3} />;
   }
   
-  if (isErrorRoot) {
+  if (errorRoot) {
     return (
       <div className="text-center py-10 text-red-500">
         審査結果の読み込みに失敗しました。
@@ -47,7 +46,7 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
     <div className="space-y-4">
       {rootItems.map((item) => (
         <ReviewResultTreeNode 
-          key={item.reviewResultId} 
+          key={item.id} 
           jobId={jobId}
           item={item} 
           level={0} 
