@@ -1,8 +1,12 @@
 /**
  * AWS関連のユーティリティ
  */
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // S3クライアントのシングルトンインスタンス
 let s3Client: S3Client | null = null;
@@ -14,7 +18,7 @@ let s3Client: S3Client | null = null;
 export function getS3Client(): S3Client {
   if (!s3Client) {
     s3Client = new S3Client({
-      region: process.env.AWS_REGION || 'ap-northeast-1'
+      region: process.env.AWS_REGION || "ap-northeast-1",
     });
   }
   return s3Client;
@@ -38,9 +42,9 @@ export async function getPresignedUrl(
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
-    ContentType: contentType
+    ContentType: contentType,
   });
-  
+
   return getSignedUrl(client, command, { expiresIn });
 }
 

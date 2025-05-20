@@ -144,78 +144,69 @@ export class RapidStack extends cdk.Stack {
     // S3バケットアクセス権限の付与
     documentBucket.grantReadWrite(api.apiLambda);
 
-    // const frontend = new Frontend(this, "Frontend", {
-    //   accessLogBucket,
-    //   webAclId: props.webAclId,
-    //   enableIpV6: props.enableIpV6,
-    //   // alternateDomainName: props.alternateDomainName,
-    //   // hostedZoneId: props.hostedZoneId,
-    // });
+    const frontend = new Frontend(this, "Frontend", {
+      accessLogBucket,
+      webAclId: props.webAclId,
+      enableIpV6: props.enableIpV6,
+      // alternateDomainName: props.alternateDomainName,
+      // hostedZoneId: props.hostedZoneId,
+    });
 
-    // frontend.buildViteApp({
-    //   backendApiEndpoint: api.api.url,
-    //   userPoolDomainPrefix: "",
-    //   auth,
-    // });
+    frontend.buildViteApp({
+      backendApiEndpoint: api.api.url,
+      userPoolDomainPrefix: "",
+      auth,
+    });
 
-    // documentBucket.addCorsRule({
-    //   allowedMethods: [s3.HttpMethods.POST],
-    //   allowedOrigins: [
-    //     `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
-    //     "http://localhost:5173",
-    //     "*", // TODO: remove
-    //   ],
-    //   allowedHeaders: ["*"],
-    //   maxAge: 3000,
-    // });
+    documentBucket.addCorsRule({
+      allowedMethods: [s3.HttpMethods.PUT],
+      allowedOrigins: [
+        `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
+        "http://localhost:5173",
+        "*", // TODO: remove
+      ],
+      allowedHeaders: ["*"],
+      maxAge: 3000,
+    });
 
-    // // 出力
-    // new cdk.CfnOutput(this, "FrontendURL", {
-    //   value: frontend.getOrigin(),
-    // });
+    // 出力
+    new cdk.CfnOutput(this, "FrontendURL", {
+      value: frontend.getOrigin(),
+    });
     new cdk.CfnOutput(this, "DocumentBucketName", {
       value: documentBucket.bucketName,
-      description: "ドキュメントを保存するS3バケット名",
     });
 
     new cdk.CfnOutput(this, "DocumentProcessingStateMachineArn", {
       value: documentProcessor.stateMachine.stateMachineArn,
-      description: "ドキュメント処理ワークフローのARN",
     });
 
     new cdk.CfnOutput(this, "DocumentProcessorLambdaArn", {
       value: documentProcessor.documentLambda.functionArn,
-      description: "ドキュメント処理Lambda関数のARN",
     });
 
     new cdk.CfnOutput(this, "ReviewProcessingStateMachineArn", {
       value: reviewProcessor.stateMachine.stateMachineArn,
-      description: "審査処理ワークフローのARN",
     });
 
     new cdk.CfnOutput(this, "ReviewProcessorLambdaArn", {
       value: reviewProcessor.reviewLambda.functionArn,
-      description: "審査処理Lambda関数のARN",
     });
 
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.api.url,
-      description: "RAPID API URL",
     });
 
     new cdk.CfnOutput(this, "DatabaseEndpoint", {
       value: database.cluster.clusterEndpoint.hostname,
-      description: "データベースエンドポイント",
     });
 
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
       value: database.secret.secretArn,
-      description: "データベース認証情報のシークレットARN",
     });
 
     new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
       value: prismaMigration.migrationLambda.functionArn,
-      description: "Prisma マイグレーション Lambda 関数の ARN",
     });
   }
 }
