@@ -31,7 +31,7 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
   });
 
   // チェックリストセット削除エンドポイント
-  fastify.delete("/checklist-sets/:id", {
+  fastify.delete("/checklist-sets/:checklistSetId", {
     handler: deleteChecklistSetHandler,
   });
 
