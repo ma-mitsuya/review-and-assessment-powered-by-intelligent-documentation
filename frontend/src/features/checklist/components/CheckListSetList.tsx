@@ -10,7 +10,7 @@ import { CheckListStatus } from "../types";
 
 type CheckListSetListProps = {
   checkListSets: {
-    checkListSetId: string;
+    id: string;
     name: string;
     description: string;
     processingStatus: CheckListStatus;
@@ -163,7 +163,7 @@ export default function CheckListSetList({
           <tbody className="bg-white divide-y divide-light-gray">
             {checkListSets.map((set) => (
               <tr
-                key={set.checkListSetId}
+                key={set.id}
                 className="hover:bg-aws-paper-light transition-colors"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -183,7 +183,7 @@ export default function CheckListSetList({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div 
+                  <div
                     className="text-sm text-aws-font-color-gray max-w-xs truncate"
                     title={set.description} // ホバー時にツールチップで全文表示
                   >
@@ -204,7 +204,7 @@ export default function CheckListSetList({
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex items-center space-x-3">
                     <Link
-                      to={`/checklist/${set.checkListSetId}`}
+                      to={`/checklist/${set.id}`}
                       className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
                     >
                       <HiEye className="h-4 w-4 mr-1" />
@@ -217,11 +217,7 @@ export default function CheckListSetList({
                           : ""
                       }`}
                       onClick={() =>
-                        handleDelete(
-                          set.checkListSetId,
-                          set.name,
-                          set.isEditable
-                        )
+                        handleDelete(set.id, set.name, set.isEditable)
                       }
                       disabled={set.isEditable === false}
                     >

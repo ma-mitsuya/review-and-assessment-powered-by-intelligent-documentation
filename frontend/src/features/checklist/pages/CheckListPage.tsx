@@ -16,10 +16,19 @@ export function CheckListPage() {
   const location = useLocation();
   const { addToast } = useToast();
 
-  const { items: checkListSets, total, isLoading, error, refetch } =
-    useChecklistSets(currentPage, itemsPerPage);
+  const {
+    items: checkListSets,
+    total,
+    isLoading,
+    error,
+    refetch,
+  } = useChecklistSets(currentPage, itemsPerPage);
 
-  const { deleteChecklistSet, status: deleteStatus, error: deleteError } = useDeleteChecklistSet();
+  const {
+    deleteChecklistSet,
+    status: deleteStatus,
+    error: deleteError,
+  } = useDeleteChecklistSet();
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
@@ -64,11 +73,6 @@ export function CheckListPage() {
         isLoading={isLoading}
         error={error}
         onDelete={handleDelete}
-        meta={{
-          page: currentPage,
-          limit: itemsPerPage,
-          total: total,
-        }}
       />
     </div>
   );
