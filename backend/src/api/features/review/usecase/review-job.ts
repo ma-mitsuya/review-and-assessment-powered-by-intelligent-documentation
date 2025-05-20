@@ -21,6 +21,8 @@ import {
   CheckRepository,
   makePrismaCheckRepository,
 } from "../../checklist/domain/repository";
+import { ApplicationError } from "../../../core/errors";
+import { startStateMachineExecution } from "../../../core/sfn";
 
 export const getAllReviewJobs = async (params: {
   deps?: {
@@ -67,7 +69,20 @@ export const createReviewJob = async (params: {
   });
 
   await reviewJobRepo.createReviewJob(reviewJob);
-  return;
+
+  const stateMachineArn = process.env.REVIEW_PROCESSING_STATE_MACHINE_ARN;
+  if (!stateMachineArn) {
+    throw new ApplicationError(
+      "REVIEW_PROCESSING_STATE_MACHINE_ARN is not defined"
+    );
+  }
+
+  // Invoke the state machine
+  await startStateMachineExecution(stateMachineArn, {
+    reviewJobId: reviewJob.id,
+    documentId: reviewJob.documentId,
+    fileName: reviewJob.filename,
+  });
 };
 
 export const removeReviewJob = async (params: {
