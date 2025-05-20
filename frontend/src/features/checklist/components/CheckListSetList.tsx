@@ -183,7 +183,10 @@ export default function CheckListSetList({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-aws-font-color-gray">
+                  <div 
+                    className="text-sm text-aws-font-color-gray max-w-xs truncate"
+                    title={set.description} // ホバー時にツールチップで全文表示
+                  >
                     {set.description}
                   </div>
                 </td>
