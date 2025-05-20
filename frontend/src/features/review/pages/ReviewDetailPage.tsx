@@ -1,15 +1,8 @@
-/**
- * 審査結果詳細ページ
- * 特定の審査ジョブの結果を階層構造で表示する
- */
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
-import {
-  FilterType,
-  useReviewResultItems,
-} from "../hooks/useReviewResultQueries";
+import { FilterType } from "../hooks/useReviewResultQueries";
 import { useReviewJobDetail } from "../hooks/useReviewJobQueries";
 import Button from "../../../components/Button";
 import { ErrorAlert } from "../../../components/ErrorAlert";
@@ -21,7 +14,8 @@ export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [filter, setFilter] = useState<FilterType>("fail");
+  // 全件表示でスタート
+  const [filter, setFilter] = useState<FilterType>("all");
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
 
   // 審査ジョブ詳細を取得
@@ -32,45 +26,30 @@ export default function ReviewDetailPage() {
     refetch: refetchJob,
   } = useReviewJobDetail(id || null);
 
-  const {
-    items: currentJob,
-    isLoading: isLoadingJobs,
-    refetch: revalidate,
-    error,
-  } = useReviewResultItems(id || null);
-
-  useEffect(() => {
-    if (id) {
-      revalidate();
-      refetchJob();
-    }
-  }, [id, revalidate, refetchJob]);
-
-  // フィルタリング状態が変更されたときの処理
+  // フィルタリング状態が変更されたとき
   const handleFilterChange = (newFilter: FilterType) => {
     console.log(`[Frontend] Filter changed from ${filter} to ${newFilter}`);
     setFilter(newFilter);
   };
 
-  // 戻るボタンのハンドラー
+  // 戻るボタン
   const handleBack = () => {
     navigate("/review");
   };
 
-  // ローディング中の表示
-  if (isLoadingJobs || isLoadingJob) {
+  // ローディング中
+  if (isLoadingJob) {
     return <DetailSkeleton lines={8} />;
   }
 
-  // エラーが発生した場合
-  if (error || jobError) {
+  // エラー発生時
+  if (jobError) {
     return (
       <div className="mt-4">
         <ErrorAlert
           title="読み込みエラー"
           message="審査ジョブの取得に失敗しました。"
           retry={() => {
-            revalidate();
             refetchJob();
           }}
         />
@@ -103,6 +82,7 @@ export default function ReviewDetailPage() {
 
   return (
     <div>
+      {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-aws-squid-ink-light">
@@ -115,10 +95,23 @@ export default function ReviewDetailPage() {
             チェックリスト: {job.checkList.name}
           </p>
           <p className="text-aws-font-color-gray">
-            ステータス: <span className={`font-medium ${job.status === REVIEW_JOB_STATUS.COMPLETED ? 'text-green-600' : job.status === REVIEW_JOB_STATUS.FAILED ? 'text-red-600' : 'text-yellow-600'}`}>
-              {job.status === REVIEW_JOB_STATUS.PENDING ? '待機中' : 
-               job.status === REVIEW_JOB_STATUS.PROCESSING ? '処理中' : 
-               job.status === REVIEW_JOB_STATUS.COMPLETED ? '完了' : '失敗'}
+            ステータス:&nbsp;
+            <span
+              className={`font-medium ${
+                job.status === REVIEW_JOB_STATUS.COMPLETED
+                  ? "text-green-600"
+                  : job.status === REVIEW_JOB_STATUS.FAILED
+                  ? "text-red-600"
+                  : "text-yellow-600"
+              }`}
+            >
+              {job.status === REVIEW_JOB_STATUS.PENDING
+                ? "待機中"
+                : job.status === REVIEW_JOB_STATUS.PROCESSING
+                ? "処理中"
+                : job.status === REVIEW_JOB_STATUS.COMPLETED
+                ? "完了"
+                : "失敗"}
             </span>
           </p>
           <p className="text-aws-font-color-gray">
@@ -135,6 +128,7 @@ export default function ReviewDetailPage() {
         </Button>
       </div>
 
+      {/* 審査結果 */}
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-medium text-aws-squid-ink-light">
@@ -152,14 +146,14 @@ export default function ReviewDetailPage() {
           </div>
         </div>
 
-        {/* フィルタリングコントロールを追加 */}
+        {/* フィルタリング */}
         <ReviewResultFilter filter={filter} onChange={handleFilterChange} />
 
-        {/* 審査結果ツリーを表示（フィルタリング条件を渡す） */}
+        {/* ツリー表示 */}
         <ReviewResultTree
           jobId={id!}
           confidenceThreshold={confidenceThreshold}
-          maxDepth={2} // 最初に表示する深さを指定
+          maxDepth={2}
           filter={filter}
         />
       </div>
