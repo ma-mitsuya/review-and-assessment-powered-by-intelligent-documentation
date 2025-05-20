@@ -9,10 +9,9 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 import { Construct } from "constructs";
-import { DatabaseConnectionProps } from "./prisma-function";
 import { Auth } from "./auth";
-import { platform } from "os";
-import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { DatabaseConnectionProps } from "./database";
 
 /**
  * API Constructのプロパティ
@@ -75,6 +74,7 @@ export class Api extends Construct {
         DATABASE_ENGINE: props.databaseConnection.engine,
         DATABASE_USER: props.databaseConnection.username,
         DATABASE_PASSWORD: props.databaseConnection.password,
+        DATABASE_NAME: props.databaseConnection.databaseName,
         // Aurora Serverless v2 cold start takes up to 15 seconds
         // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
         DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
