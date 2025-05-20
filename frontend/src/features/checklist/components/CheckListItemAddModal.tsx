@@ -7,7 +7,7 @@ type CheckListItemAddModalProps = {
   isOpen: boolean;
   onClose: () => void;
   checkListSetId: string;
-  hierarchyItems: HierarchicalCheckListItem[];
+  checkItems: HierarchicalCheckListItem[];
   onSuccess: () => void;
 };
 
@@ -15,7 +15,7 @@ export default function CheckListItemAddModal({
   isOpen,
   onClose,
   checkListSetId,
-  hierarchyItems,
+  checkItems,
   onSuccess,
 }: CheckListItemAddModalProps) {
   const [formData, setFormData] = useState({
@@ -185,7 +185,7 @@ export default function CheckListItemAddModal({
               className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
             >
               <option value="">親項目なし（ルート項目）</option>
-              {hierarchyItems.map((item) => (
+              {checkItems.map((item) => (
                 <option key={item.check_id} value={item.check_id}>
                   {item.name}
                 </option>

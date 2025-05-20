@@ -75,6 +75,7 @@ export const getAllChecklistSetsHandler = async (
   reply.code(200).send({
     success: true,
     data: {
+      total: checkLists.length,
       checkListSets: checkLists.map((checkList) => ({
         checkListSetId: checkList.id,
         name: checkList.name,

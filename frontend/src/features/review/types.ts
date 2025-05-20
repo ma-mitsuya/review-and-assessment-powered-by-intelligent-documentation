@@ -3,6 +3,8 @@
  * These types correspond to the backend API endpoints in backend/src/api/features/review/routes
  */
 
+import { ApiResponse } from '../../types/api';
+
 // Enum types
 /**
  * Review job status enum
@@ -72,70 +74,49 @@ export interface OverrideReviewResultRequest {
  * Response type for getting all review jobs
  * GET /review-jobs
  */
-export interface GetAllReviewJobsResponse {
-  success: boolean;
-  data: ReviewJobMetaModel[];
-}
+export type GetAllReviewJobsResponse = ApiResponse<ReviewJobMetaModel[]>;
 
 /**
  * Response type for getting a presigned URL for review document upload
  * POST /documents/review/presigned-url
  */
-export interface GetReviewPresignedUrlResponse {
-  success: boolean;
-  data: {
-    url: string;
-    key: string;
-    documentId: string;
-  };
-}
+export type GetReviewPresignedUrlResponse = ApiResponse<{
+  url: string;
+  key: string;
+  documentId: string;
+}>;
 
 /**
  * Response type for deleting a review document
  * DELETE /documents/review/:key
  */
-export interface DeleteReviewDocumentResponse {
-  success: boolean;
-  data: {
-    deleted: boolean;
-  };
-}
+export type DeleteReviewDocumentResponse = ApiResponse<{
+  deleted: boolean;
+}>;
 
 /**
  * Response type for creating a review job
  * POST /review-jobs
  */
-export interface CreateReviewJobResponse {
-  success: boolean;
-  data: Record<string, never>;
-}
+export type CreateReviewJobResponse = ApiResponse<Record<string, never>>;
 
 /**
  * Response type for deleting a review job
  * DELETE /review-jobs/:id
  */
-export interface DeleteReviewJobResponse {
-  success: boolean;
-  data: Record<string, never>;
-}
+export type DeleteReviewJobResponse = ApiResponse<Record<string, never>>;
 
 /**
  * Response type for getting review result items
  * GET /review-jobs/:jobId/results/items
  */
-export interface GetReviewResultItemsResponse {
-  success: boolean;
-  data: ReviewResultDetailModel[];
-}
+export type GetReviewResultItemsResponse = ApiResponse<ReviewResultDetailModel[]>;
 
 /**
  * Response type for overriding a review result
  * PUT /review-jobs/:jobId/results/:resultId
  */
-export interface OverrideReviewResultResponse {
-  success: boolean;
-  data: Record<string, never>;
-}
+export type OverrideReviewResultResponse = ApiResponse<Record<string, never>>;
 
 // Model types
 

@@ -1,8 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
-  useCheckListItemHierarchy,
-  useCheckListSetActions,
+  useCheckListSetDetail,
+  useCheckListSet,
   useCheckListSet,
 } from "../hooks/useCheckListSets";
 import CheckListItemDetail from "../components/CheckListItemDetail";
@@ -18,8 +18,7 @@ export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { hierarchyItems, isError, isLoading, mutate } =
-    useCheckListItemHierarchy(id);
+  const { checkItems, isError, isLoading, mutate } = useCheckListSetDetail(id);
   const { data: checkListSet, isLoading: isLoadingSet } = useCheckListSet(
     id || null
   );
@@ -30,7 +29,7 @@ export function CheckListSetDetailPage() {
 
     if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
       try {
-        const { deleteCheckListSet } = useCheckListSetActions();
+        const { deleteCheckListSet } = useCheckListSet();
         await deleteCheckListSet(id);
         addToast(`チェックリスト #${id} を削除しました`, "success");
         navigate("/checklist", { replace: true });
@@ -99,7 +98,7 @@ export function CheckListSetDetailPage() {
             チェックリスト #{id}
           </h1>
           <p className="text-aws-font-color-gray mt-2">
-            チェックリスト項目: {hierarchyItems.length}件
+            チェックリスト項目: {checkItems.length}件
           </p>
         </div>
         <div className="flex space-x-3">
@@ -151,9 +150,9 @@ export function CheckListSetDetailPage() {
               </span>
             </div>
           </div>
-        ) : !hierarchyItems ||
-          !Array.isArray(hierarchyItems) ||
-          hierarchyItems.length === 0 ? (
+        ) : !checkItems ||
+          !Array.isArray(checkItems) ||
+          checkItems.length === 0 ? (
           <div
             className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm"
             role="alert"
@@ -177,7 +176,7 @@ export function CheckListSetDetailPage() {
             </div>
           </div>
         ) : (
-          <CheckListItemDetail items={hierarchyItems} />
+          <CheckListItemDetail items={checkItems} />
         )}
 
         <div className="mt-6 flex justify-end">
@@ -207,7 +206,7 @@ export function CheckListSetDetailPage() {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           checkListSetId={id || ""}
-          hierarchyItems={hierarchyItems}
+          checkItems={checkItems}
           onSuccess={() => {
             // 追加成功時にデータを再取得
             if (id) {
