@@ -1,17 +1,21 @@
 import { prisma } from "../../../core/prisma";
 import { PrismaClient } from "../../../core/db";
+import { NotFoundError } from "../../../core/errors";
 import {
   ReviewJobModel,
   ReviewJobMetaModel,
+  ReviewJobDetailModel,
   REVIEW_JOB_STATUS,
   ReviewResultModel,
   ReviewResultDetailModel,
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
 } from "./model/review";
+import { CheckListStatus } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
   findAllReviewJobs(): Promise<ReviewJobMetaModel[]>;
+  findReviewJobById(params: { reviewJobId: string }): Promise<ReviewJobDetailModel>;
   createReviewJob(params: ReviewJobModel): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
   updateJobStatus(params: {
@@ -86,6 +90,57 @@ export const makePrismaReviewJobRepository = (
         summary,
       };
     });
+  };
+
+  const findReviewJobById = async (params: {
+    reviewJobId: string;
+  }): Promise<ReviewJobDetailModel> => {
+    const { reviewJobId } = params;
+    
+    const job = await client.reviewJob.findUnique({
+      where: { id: reviewJobId },
+      include: {
+        document: true,
+        checkListSet: {
+          include: {
+            documents: true,
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundError(`Review job not found`, reviewJobId);
+    }
+
+    return {
+      id: job.id,
+      name: job.name,
+      status: job.status as REVIEW_JOB_STATUS,
+      checkList: {
+        id: job.checkListSet.id,
+        name: job.checkListSet.name,
+        description: job.checkListSet.description || "",
+        documents: job.checkListSet.documents.map(doc => ({
+          id: doc.id,
+          filename: doc.filename,
+          s3Key: doc.s3Path,
+          fileType: doc.fileType,
+          uploadDate: doc.uploadDate,
+          status: doc.status as CheckListStatus,
+        })),
+      },
+      documentId: job.documentId,
+      document: {
+        id: job.document.id,
+        filename: job.document.filename,
+        s3Path: job.document.s3Path,
+        fileType: job.document.fileType,
+      },
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
+      completedAt: job.completedAt || undefined,
+    };
   };
 
   const createReviewJob = async (params: ReviewJobModel): Promise<void> => {
@@ -166,6 +221,7 @@ export const makePrismaReviewJobRepository = (
 
   return {
     findAllReviewJobs,
+    findReviewJobById,
     createReviewJob,
     deleteReviewJobById,
     updateJobStatus,

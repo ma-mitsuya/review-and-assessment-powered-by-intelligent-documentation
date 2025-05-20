@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
   createReviewJob,
   getAllReviewJobs,
+  getReviewJobById,
   getReviewDocumentPresignedUrl,
   removeReviewJob,
 } from "../usecase/review-job";
@@ -146,5 +147,19 @@ export const overrideReviewResultHandler = async (
   reply.code(200).send({
     success: true,
     data: {},
+  });
+};
+export const getReviewJobByIdHandler = async (
+  request: FastifyRequest<{ Params: { jobId: string } }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { jobId } = request.params;
+  const job = await getReviewJobById({
+    reviewJobId: jobId,
+  });
+  
+  reply.code(200).send({
+    success: true,
+    data: job,
   });
 };

@@ -4,6 +4,7 @@ import {
   deleteReviewDocumentHandler,
   deleteReviewJobHandler,
   getAllReviewJobsHandler,
+  getReviewJobByIdHandler,
   getReviewPresignedUrlHandler,
   getReviewResultItemsHandler,
   overrideReviewResultHandler,
@@ -25,6 +26,9 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   // 審査ジョブ関連
   fastify.get("/review-jobs", {
     handler: getAllReviewJobsHandler,
+  });
+  fastify.get("/review-jobs/:jobId", {
+    handler: getReviewJobByIdHandler,
   });
   fastify.post("/review-jobs", {
     handler: createReviewJobHandler,

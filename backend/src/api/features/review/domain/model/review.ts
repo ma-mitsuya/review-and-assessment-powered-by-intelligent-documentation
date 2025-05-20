@@ -1,6 +1,9 @@
 import { ulid } from "ulid";
 import { CreateReviewJobRequest } from "../../routes/handlers";
-import { CheckListItemModel } from "../../../checklist/domain/model/checklist";
+import {
+  CheckListItemModel,
+  CheckListSetModel,
+} from "../../../checklist/domain/model/checklist";
 
 /**
  * 審査ジョブのステータス
@@ -50,6 +53,9 @@ export interface ReviewJobModel {
   results: ReviewResultModel[];
 }
 
+/**
+ * ジョブ一覧表示用
+ */
 export interface ReviewJobMetaModel {
   id: string;
   name: string;
@@ -71,6 +77,26 @@ export interface ReviewJobMetaModel {
     name: string;
   };
   summary: ReviewJobSummary;
+}
+
+/**
+ * ジョブ結果画面のジョブ情報表示用
+ */
+export interface ReviewJobDetailModel {
+  id: string;
+  name: string;
+  status: REVIEW_JOB_STATUS;
+  checkList: CheckListSetModel;
+  documentId: string;
+  document: {
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
 }
 
 export interface ReviewResultModel {
