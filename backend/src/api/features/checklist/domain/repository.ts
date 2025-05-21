@@ -197,6 +197,7 @@ export const makePrismaCheckRepository = (
         id: item.id,
         name: item.name,
         description: item.description,
+        parentId: item.parentId,
         checkListSetId: item.setId,
       })),
     });
