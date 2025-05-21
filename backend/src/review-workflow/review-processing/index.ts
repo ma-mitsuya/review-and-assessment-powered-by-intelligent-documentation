@@ -45,7 +45,11 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
     const results = await reviewResultRepository.findReviewResultsById({
       jobId: reviewJobId,
     });
-    const checkItems = results.map((result) => result.checkList);
+
+    const checkItems = results.map((result) => ({
+      checkId: result.checkList.id,
+      reviewResultId: result.id,
+    }));
 
     return {
       reviewJobId,
