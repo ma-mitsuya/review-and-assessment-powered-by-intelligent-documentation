@@ -1,3 +1,4 @@
+import { reviewErrorHandler } from "./handle-error";
 import { prepareReview, finalizeReview } from "./review-processing";
 import { processReviewItem } from "./review-processing/review-item-processor";
 
@@ -59,6 +60,5 @@ async function handleFinalizeReview(event: any) {
  * エラーハンドリングハンドラー
  */
 async function handleReviewError(event: any) {
-  console.error("審査エラー発生:", event.error);
-  console.error("エラー詳細:", event.cause);
+  await reviewErrorHandler(event);
 }
