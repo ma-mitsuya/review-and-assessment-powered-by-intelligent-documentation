@@ -26,9 +26,9 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
       <div className="divide-y divide-light-gray">
         {checklists.map((checklist) => (
           <div
-            key={checklist.checkListSetId}
+            key={checklist.id}
             className={`p-4 cursor-pointer transition-colors ${
-              selectedChecklistId === checklist.checkListSetId
+              selectedChecklistId === checklist.id
                 ? 'bg-aws-sea-blue-light bg-opacity-10'
                 : 'hover:bg-aws-paper-light'
             }`}
@@ -37,14 +37,14 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
             <div className="flex items-center">
               <input
                 type="radio"
-                id={`checklist-${checklist.checkListSetId}`}
+                id={`checklist-${checklist.id}`}
                 name="checklist"
-                checked={selectedChecklistId === checklist.checkListSetId}
+                checked={selectedChecklistId === checklist.id}
                 onChange={() => onSelectChecklist(checklist)}
                 className="h-4 w-4 text-aws-sea-blue-light focus:ring-aws-sea-blue-light"
               />
               <label
-                htmlFor={`checklist-${checklist.checkListSetId}`}
+                htmlFor={`checklist-${checklist.id}`}
                 className="ml-3 block text-aws-squid-ink-light dark:text-aws-font-color-white-dark cursor-pointer"
               >
                 <span className="font-medium">{checklist.name}</span>
