@@ -200,10 +200,26 @@ export const makePrismaReviewJobRepository = (
     reviewJobId: string;
   }): Promise<void> => {
     const { reviewJobId } = params;
+    
+    // 先にジョブ情報を取得して、documentIdを確認
+    const job = await client.reviewJob.findUnique({
+      where: { id: reviewJobId },
+      select: { documentId: true }
+    });
+    
+    if (!job) {
+      throw new NotFoundError(`Review job not found`, reviewJobId);
+    }
+    
     await client.$transaction(async (tx) => {
+      // 関連する審査結果を削除
       await tx.reviewResult.deleteMany({ where: { reviewJobId } });
+      
+      // 審査ジョブを削除
       await tx.reviewJob.delete({ where: { id: reviewJobId } });
-      await tx.reviewDocument.delete({ where: { id: reviewJobId } });
+      
+      // 審査ドキュメントを削除（正しいdocumentIdを使用）
+      await tx.reviewDocument.delete({ where: { id: job.documentId } });
     });
   };
 

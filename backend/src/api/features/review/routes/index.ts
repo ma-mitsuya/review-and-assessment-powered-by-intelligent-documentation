@@ -33,7 +33,7 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   fastify.post("/review-jobs", {
     handler: createReviewJobHandler,
   });
-  fastify.delete("/review-jobs/:id", {
+  fastify.delete("/review-jobs/:jobId", {
     handler: deleteReviewJobHandler,
   });
 
