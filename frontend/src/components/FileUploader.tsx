@@ -23,9 +23,8 @@ export function FileUploader({
   files, 
   acceptedFileTypes = {
     'application/pdf': ['.pdf'],
-    // 将来的に他のファイル形式を追加する場合はここに追加
-    // 'image/png': ['.png'],
-    // 'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/jpeg': ['.jpg', '.jpeg'],
   },
   multiple = false,
   isUploading = false,

@@ -34,6 +34,14 @@ export enum REVIEW_RESULT {
   FAIL = "fail",
 }
 
+/**
+ * Review file type enum
+ */
+export enum REVIEW_FILE_TYPE {
+  PDF = "pdf",
+  IMAGE = "image",
+}
+
 // Request types
 
 /**
@@ -46,6 +54,15 @@ export interface GetReviewPresignedUrlRequest {
 }
 
 /**
+ * Request type for getting presigned URLs for multiple image uploads
+ * POST /documents/review/images/presigned-url
+ */
+export interface GetReviewImagesPresignedUrlRequest {
+  filenames: string[];
+  contentTypes: string[];
+}
+
+/**
  * Request type for creating a review job
  * POST /review-jobs
  */
@@ -55,7 +72,11 @@ export interface CreateReviewJobRequest {
   checkListSetId: string;
   filename: string;
   s3Key: string;
-  fileType: string;
+  fileType: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
   userId?: string;
 }
 
@@ -90,6 +111,20 @@ export type GetReviewPresignedUrlResponse = ApiResponse<{
   url: string;
   key: string;
   documentId: string;
+}>;
+
+/**
+ * Response type for getting presigned URLs for multiple image uploads
+ * POST /documents/review/images/presigned-url
+ */
+export type GetReviewImagesPresignedUrlResponse = ApiResponse<{
+  documentId: string;
+  files: Array<{
+    url: string;
+    key: string;
+    filename: string;
+    index: number;
+  }>;
 }>;
 
 /**
@@ -148,7 +183,11 @@ export interface ReviewJobModel {
   userId?: string;
   filename: string;
   s3Key: string;
-  fileType: string;
+  fileType: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
   results: ReviewResultModel[];
 }
 
@@ -169,7 +208,11 @@ export interface ReviewJobMetaModel {
     id: string;
     filename: string;
     s3Path: string;
-    fileType: string;
+    fileType: REVIEW_FILE_TYPE;
+    imageFiles?: Array<{
+      filename: string;
+      s3Path: string;
+    }>;
   };
   checkListSet: {
     id: string;
@@ -203,7 +246,11 @@ export interface ReviewJobDetailModel {
     id: string;
     filename: string;
     s3Path: string;
-    fileType: string;
+    fileType: REVIEW_FILE_TYPE;
+    imageFiles?: Array<{
+      filename: string;
+      s3Path: string;
+    }>;
   };
   createdAt: Date;
   updatedAt: Date;

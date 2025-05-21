@@ -125,7 +125,7 @@ export const createReviewJob = async (params: {
     documentId: reviewJob.documentId,
     fileName: reviewJob.filename,
     fileType: reviewJob.fileType,
-    imageFiles: reviewJob.imageFiles,
+    imageFiles: reviewJob.fileType === REVIEW_FILE_TYPE.IMAGE ? reviewJob.imageFiles : [], // PDF の場合は空配列
   });
 };
 

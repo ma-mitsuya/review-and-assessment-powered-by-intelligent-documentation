@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import useHttp from './useHttp';
+import { GetReviewImagesPresignedUrlResponse } from '../features/review/types';
 
 /**
  * Presigned URL レスポンス
@@ -26,11 +27,14 @@ export interface DocumentUploadResult {
   filename: string;
   s3Key: string;
   fileType: string;
+  index?: number;
 }
 
 interface UseDocumentUploadOptions {
   presignedUrlEndpoint?: string;
+  imagesPresignedUrlEndpoint?: string;
   deleteEndpointPrefix?: string;
+  isImageMode?: boolean;
 }
 
 /**
@@ -44,6 +48,7 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
   const http = useHttp();
 
   const presignedUrlEndpoint = options.presignedUrlEndpoint || '/documents/presigned-url';
+  const imagesPresignedUrlEndpoint = options.imagesPresignedUrlEndpoint || '/documents/review/images/presigned-url';
   const deleteEndpointPrefix = options.deleteEndpointPrefix || '/documents/';
 
   /**
@@ -102,6 +107,70 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
       setIsUploading(false);
     }
   };
+
+  /**
+   * 複数の画像ファイルをアップロードする
+   * @param files アップロードするファイル配列
+   * @returns アップロード結果の配列
+   */
+  const uploadDocuments = async (files: File[]): Promise<DocumentUploadResult[]> => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    setError(null);
+    
+    try {
+      // 画像ファイル用のpresigned URLを一括取得
+      const presignedResponse = await http.post<GetReviewImagesPresignedUrlResponse>(
+        imagesPresignedUrlEndpoint,
+        {
+          filenames: files.map(f => f.name),
+          contentTypes: files.map(f => f.type)
+        }
+      );
+      
+      if (!presignedResponse.data.success) {
+        throw new Error(presignedResponse.data.error || 'Failed to get presigned URLs');
+      }
+      
+      const { documentId, files: presignedFiles } = presignedResponse.data.data;
+      
+      // 各ファイルを並行してアップロード
+      const uploadPromises = presignedFiles.map(async (presigned, index) => {
+        const file = files[index];
+        const uploadResponse = await fetch(presigned.url, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type
+          }
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+        }
+        
+        return {
+          documentId,
+          filename: file.name,
+          s3Key: presigned.key,
+          fileType: file.type,
+          index: presigned.index
+        };
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      setUploadedDocuments(prev => [...prev, ...results]);
+      setUploadProgress(100);
+      
+      return results;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to upload documents');
+      setError(err);
+      throw err;
+    } finally {
+      setIsUploading(false);
+    }
+  };
   
   /**
    * アップロードをキャンセルする
@@ -146,6 +215,7 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
   
   return {
     uploadDocument,
+    uploadDocuments,
     cancelUpload,
     deleteDocument,
     removeDocument,

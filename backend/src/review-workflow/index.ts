@@ -28,6 +28,8 @@ async function handlePrepareReview(event: any) {
     reviewJobId: event.reviewJobId,
     documentId: event.documentId,
     fileName: event.fileName,
+    fileType: event.fileType,
+    imageFiles: event.imageFiles,
   });
 }
 
