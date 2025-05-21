@@ -15,7 +15,9 @@ import { CheckListStatus } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
   findAllReviewJobs(): Promise<ReviewJobMetaModel[]>;
-  findReviewJobById(params: { reviewJobId: string }): Promise<ReviewJobDetailModel>;
+  findReviewJobById(params: {
+    reviewJobId: string;
+  }): Promise<ReviewJobDetailModel>;
   createReviewJob(params: ReviewJobModel): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
   updateJobStatus(params: {
@@ -29,7 +31,7 @@ export const makePrismaReviewJobRepository = (
 ): ReviewJobRepository => {
   const findAllReviewJobs = async (): Promise<ReviewJobMetaModel[]> => {
     const jobs = await client.reviewJob.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { id: "desc" },
       include: {
         document: {
           select: {
@@ -96,7 +98,7 @@ export const makePrismaReviewJobRepository = (
     reviewJobId: string;
   }): Promise<ReviewJobDetailModel> => {
     const { reviewJobId } = params;
-    
+
     const job = await client.reviewJob.findUnique({
       where: { id: reviewJobId },
       include: {
@@ -121,7 +123,7 @@ export const makePrismaReviewJobRepository = (
         id: job.checkListSet.id,
         name: job.checkListSet.name,
         description: job.checkListSet.description || "",
-        documents: job.checkListSet.documents.map(doc => ({
+        documents: job.checkListSet.documents.map((doc) => ({
           id: doc.id,
           filename: doc.filename,
           s3Key: doc.s3Path,
@@ -329,7 +331,7 @@ export const makePrismaReviewResultRepository = (
         checkList: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
     });
 

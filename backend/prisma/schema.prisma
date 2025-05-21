@@ -40,7 +40,9 @@ model CheckList {
   document       CheckListDocument? @relation(fields: [documentId], references: [id])
   reviewResults  ReviewResult[]
 
-  @@map("check_list")
+  // 階層構造を持つデータの検索を高速化
+  @@index([parentId], map: "idx_check_list_parent")
+  @@map("check_lists")
 }
 
 // チェックリスト作成元ドキュメント

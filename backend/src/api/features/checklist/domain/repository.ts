@@ -89,7 +89,7 @@ export const makePrismaCheckRepository = (
         },
         _count: { select: { reviewJobs: true } },
       },
-      orderBy: { id: "desc" }, // 必要に応じてソート条件を調整
+      orderBy: { id: "desc" },
     });
 
     return sets.map((s) => {

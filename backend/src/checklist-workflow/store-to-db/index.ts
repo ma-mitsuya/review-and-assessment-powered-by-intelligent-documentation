@@ -63,43 +63,6 @@ export async function storeChecklistItemsToDb({
       status: "completed",
     });
 
-    // // トランザクションでRDBに格納
-    // let storedItemCount = 0;
-    // await prisma.$transaction(async (tx) => {
-    //   const txRepository = new ChecklistItemRepository(tx as any);
-
-    //   for (const item of checklistItems) {
-    //     // 型変換が不要になった
-    //     const flowData: FlowData | undefined = item.flow_data
-    //       ? {
-    //           condition_type: item.flow_data.condition_type,
-    //           next_if_yes: item.flow_data.next_if_yes,
-    //           next_if_no: item.flow_data.next_if_no,
-    //           next_options: item.flow_data.next_options,
-    //         }
-    //       : undefined;
-
-    //     await txRepository.createChecklistItem({
-    //       id: item.id,
-    //       name: item.name,
-    //       description: item.description,
-    //       parentId: item.parent_id,
-    //       itemType: item.item_type.toLowerCase() as "simple" | "flow",
-    //       isConclusion: item.is_conclusion,
-    //       flowData,
-    //       checkListSetId: checkListSetId,
-    //       documentId: documentId,
-    //     });
-    //     storedItemCount++;
-    //   }
-
-    //   // ドキュメントのステータスを "completed" に更新
-    //   await tx.checkListDocument.update({
-    //     where: { id: documentId },
-    //     data: { status: "completed" },
-    //   });
-    // });
-
     return {
       documentId,
       checkListSetId,
