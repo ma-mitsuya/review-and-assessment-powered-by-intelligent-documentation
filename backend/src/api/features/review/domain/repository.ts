@@ -146,7 +146,7 @@ export const makePrismaReviewJobRepository = (
   const createReviewJob = async (params: ReviewJobModel): Promise<void> => {
     const now = new Date();
 
-    client.$transaction(async (tx) => {
+    await client.$transaction(async (tx) => {
       // 審査ドキュメントを作成
       await tx.reviewDocument.create({
         data: {
