@@ -10,10 +10,12 @@ import {
   makePrismaReviewResultRepository,
 } from "../../api/features/review/domain/repository";
 import {
+  REVIEW_FILE_TYPE,
   REVIEW_JOB_STATUS,
   ReviewResultDomain,
 } from "../../api/features/review/domain/model/review";
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
+import { processImageReviewItem } from "./image-review-processor";
 
 // 使用するモデルIDを定義
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
@@ -78,6 +80,11 @@ interface ProcessReviewItemParams {
   reviewJobId: string;
   documentId: string;
   fileName: string;
+  fileType: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
   checkId: string;
   reviewResultId: string;
 }
@@ -88,6 +95,35 @@ interface ProcessReviewItemParams {
  * @returns 処理結果
  */
 export async function processReviewItem(
+  params: ProcessReviewItemParams
+): Promise<any> {
+  const { fileType } = params;
+
+  // ファイルタイプに基づいて適切なプロセッサーを呼び出す
+  if (fileType === REVIEW_FILE_TYPE.IMAGE) {
+    if (!params.imageFiles || params.imageFiles.length === 0) {
+      throw new Error("Image files are required for image file type");
+    }
+    return processImageReviewItem({
+      reviewJobId: params.reviewJobId,
+      documentId: params.documentId,
+      imageFiles: params.imageFiles,
+      checkId: params.checkId,
+      reviewResultId: params.reviewResultId,
+    });
+  } else if (fileType === REVIEW_FILE_TYPE.PDF) {
+    return processPdfReviewItem(params);
+  } else {
+    throw new Error(`Unsupported file type: ${fileType}`);
+  }
+}
+
+/**
+ * PDF 審査項目を処理する
+ * @param params 処理パラメータ
+ * @returns 処理結果
+ */
+async function processPdfReviewItem(
   params: ProcessReviewItemParams
 ): Promise<any> {
   const { reviewJobId, documentId, fileName, checkId, reviewResultId } = params;
@@ -122,7 +158,7 @@ export async function processReviewItem(
     // ファイル拡張子を取得
     const fileExtension = fileName.split(".").pop()?.toLowerCase();
 
-    // 現状PDFのみサポート
+    // PDFのみサポート
     if (fileExtension !== "pdf") {
       throw new Error(
         `Unsupported file format: ${fileExtension}. Only PDF is supported.`

@@ -33,6 +33,14 @@ export enum REVIEW_RESULT {
   FAIL = "fail",
 }
 
+/**
+ * 審査ファイルタイプ
+ */
+export enum REVIEW_FILE_TYPE {
+  PDF = "pdf",
+  IMAGE = "image",
+}
+
 export interface ReviewJobSummary {
   total: number;
   passed: number;
@@ -49,7 +57,11 @@ export interface ReviewJobModel {
   userId?: string;
   filename: string;
   s3Key: string;
-  fileType: string;
+  fileType: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
   results: ReviewResultModel[];
 }
 
@@ -70,7 +82,11 @@ export interface ReviewJobMetaModel {
     id: string;
     filename: string;
     s3Path: string;
-    fileType: string;
+    fileType: REVIEW_FILE_TYPE;
+    imageFiles?: Array<{
+      filename: string;
+      s3Path: string;
+    }>;
   };
   checkListSet: {
     id: string;
@@ -92,7 +108,11 @@ export interface ReviewJobDetailModel {
     id: string;
     filename: string;
     s3Path: string;
-    fileType: string;
+    fileType: REVIEW_FILE_TYPE;
+    imageFiles?: Array<{
+      filename: string;
+      s3Path: string;
+    }>;
   };
   createdAt: Date;
   updatedAt: Date;

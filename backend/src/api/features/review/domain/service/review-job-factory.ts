@@ -43,6 +43,7 @@ export const createInitialReviewJobModel = async (params: {
     filename: req.filename,
     s3Key: req.s3Key,
     fileType: req.fileType,
+    imageFiles: req.imageFiles,
     results: initialResults,
   };
 };

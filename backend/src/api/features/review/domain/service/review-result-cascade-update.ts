@@ -21,6 +21,7 @@ export const updateCheckResultCascade = async (params: {
   // 1) Fetch all review results for the given review job
   const all = await reviewResultRepo.findReviewResultsById({
     jobId: updated.reviewJobId,
+    includeAllChildren: true,
   });
   if (all.length === 0) {
     throw new NotFoundError(`Review job not found`, updated.reviewJobId);

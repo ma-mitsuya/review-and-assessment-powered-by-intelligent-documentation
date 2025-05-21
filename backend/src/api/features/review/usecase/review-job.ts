@@ -1,4 +1,5 @@
 import {
+  REVIEW_FILE_TYPE,
   REVIEW_JOB_STATUS,
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
@@ -14,7 +15,7 @@ import {
 } from "../domain/repository";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
-import { getReviewDocumentKey } from "../../../../checklist-workflow/common/storage-paths";
+import { getReviewDocumentKey, getReviewImageKey } from "../../../../checklist-workflow/common/storage-paths";
 import { CreateReviewJobRequest } from "../routes/handlers";
 import { createInitialReviewJobModel } from "../domain/service/review-job-factory";
 import {
@@ -50,6 +51,36 @@ export const getReviewDocumentPresignedUrl = async (params: {
   return { url, key, documentId };
 };
 
+export const getReviewImagesPresignedUrl = async (params: {
+  filenames: string[];
+  contentTypes: string[];
+}): Promise<{ documentId: string; files: Array<{ url: string; key: string; filename: string; index: number }> }> => {
+  const { filenames, contentTypes } = params;
+  const bucketName = process.env.DOCUMENT_BUCKET;
+  if (!bucketName) {
+    throw new Error("S3_BUCKET_NAME is not defined");
+  }
+
+  if (filenames.length > 20) {
+    throw new ApplicationError("Maximum 20 image files allowed");
+  }
+
+  const documentId = ulid();
+  const results = await Promise.all(
+    filenames.map(async (filename, index) => {
+      const contentType = contentTypes[index];
+      const key = getReviewImageKey(documentId, filename, index);
+      const url = await getPresignedUrl(bucketName, key, contentType);
+      return { url, key, filename, index };
+    })
+  );
+
+  return {
+    documentId,
+    files: results,
+  };
+};
+
 export const createReviewJob = async (params: {
   requestBody: CreateReviewJobRequest;
   deps?: {
@@ -60,6 +91,17 @@ export const createReviewJob = async (params: {
   const checkRepo = params.deps?.checkRepo || makePrismaCheckRepository();
   const reviewJobRepo =
     params.deps?.reviewJobRepo || makePrismaReviewJobRepository();
+
+  // Validate file types
+  if (params.requestBody.fileType === REVIEW_FILE_TYPE.IMAGE &&
+    (!params.requestBody.imageFiles || params.requestBody.imageFiles.length === 0)) {
+    throw new ApplicationError("Image files are required for image file type");
+  }
+
+  if (params.requestBody.fileType === REVIEW_FILE_TYPE.IMAGE &&
+    params.requestBody.imageFiles!.length > 20) {
+    throw new ApplicationError("Maximum 20 image files allowed");
+  }
 
   const reviewJob = await createInitialReviewJobModel({
     req: params.requestBody,
@@ -77,11 +119,13 @@ export const createReviewJob = async (params: {
     );
   }
 
-  // Invoke the state machine
+  // Invoke the state machine with file type information
   await startStateMachineExecution(stateMachineArn, {
     reviewJobId: reviewJob.id,
     documentId: reviewJob.documentId,
     fileName: reviewJob.filename,
+    fileType: reviewJob.fileType,
+    imageFiles: reviewJob.imageFiles,
   });
 };
 

@@ -17,6 +17,7 @@ export const getReviewResults = async (params: {
   reviewJobId: string;
   parentId?: string;
   filter?: REVIEW_RESULT;
+  includeAllChildren?: boolean;
   deps?: {
     repo?: ReviewResultRepository;
   };
@@ -26,6 +27,7 @@ export const getReviewResults = async (params: {
     jobId: params.reviewJobId,
     parentId: params.parentId,
     filter: params.filter,
+    includeAllChildren: params.includeAllChildren || false,
   });
   return reviewJob;
 };

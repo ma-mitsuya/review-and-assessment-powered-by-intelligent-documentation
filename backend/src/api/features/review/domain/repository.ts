@@ -10,6 +10,7 @@ import {
   ReviewResultDetailModel,
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
+  REVIEW_FILE_TYPE,
 } from "./model/review";
 import { CheckListStatus } from "../../checklist/domain/model/checklist";
 
@@ -83,7 +84,7 @@ export const makePrismaReviewJobRepository = (
           id: job.document.id,
           filename: job.document.filename,
           s3Path: job.document.s3Path,
-          fileType: job.document.fileType,
+          fileType: job.document.fileType as REVIEW_FILE_TYPE,
         },
         checkListSet: {
           id: job.checkListSet.id,
@@ -137,7 +138,7 @@ export const makePrismaReviewJobRepository = (
         id: job.document.id,
         filename: job.document.filename,
         s3Path: job.document.s3Path,
-        fileType: job.document.fileType,
+        fileType: job.document.fileType as REVIEW_FILE_TYPE,
       },
       createdAt: job.createdAt,
       updatedAt: job.updatedAt,
@@ -254,6 +255,7 @@ export interface ReviewResultRepository {
     jobId: string;
     parentId?: string;
     filter?: REVIEW_RESULT;
+    includeAllChildren?: boolean;
   }): Promise<ReviewResultDetailModel[]>;
   updateResult(params: { newResult: ReviewResultModel }): Promise<void>;
   bulkUpdateResults(params: { results: ReviewResultModel[] }): Promise<void>;
@@ -317,22 +319,27 @@ export const makePrismaReviewResultRepository = (
     jobId: string;
     parentId?: string;
     filter?: REVIEW_RESULT;
+    includeAllChildren: boolean;
   }): Promise<ReviewResultDetailModel[]> => {
-    const { jobId, parentId, filter } = params;
+    const { jobId, parentId, filter, includeAllChildren } = params;
 
     console.log(
       `[Repository] findReviewResultsById - jobId: ${jobId}, parentId: ${
         parentId || "null"
-      }, filter: ${filter || "all"}`
+      }, filter: ${filter || "all"}, includeAllChildren: ${includeAllChildren}`
     );
 
     // クエリの基本条件を構築
     const whereCondition: any = {
       reviewJobId: jobId,
-      checkList: {
-        parentId: parentId || null,
-      },
     };
+    
+    // includeAllChildrenがfalseの場合のみ、parentIdの条件を適用
+    if (!includeAllChildren) {
+      whereCondition.checkList = {
+        parentId: parentId || null,
+      };
+    }
 
     // フィルター条件を追加
     if (filter) {

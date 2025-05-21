@@ -4,10 +4,11 @@ import {
   getAllReviewJobs,
   getReviewJobById,
   getReviewDocumentPresignedUrl,
+  getReviewImagesPresignedUrl,
   removeReviewJob,
 } from "../usecase/review-job";
 import { deleteS3Object } from "../../../core/s3";
-import { REVIEW_RESULT } from "../domain/model/review";
+import { REVIEW_FILE_TYPE, REVIEW_RESULT } from "../domain/model/review";
 import {
   overrideReviewResult,
   getReviewResults,
@@ -46,6 +47,31 @@ export const getReviewPresignedUrlHandler = async (
   });
 };
 
+export const getReviewImagesPresignedUrlHandler = async (
+  request: FastifyRequest<{ Body: { filenames: string[], contentTypes: string[] } }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { filenames, contentTypes } = request.body;
+
+  if (filenames.length > 20) {
+    reply.code(400).send({
+      success: false,
+      error: "Maximum 20 image files allowed",
+    });
+    return;
+  }
+
+  const result = await getReviewImagesPresignedUrl({
+    filenames,
+    contentTypes,
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: result,
+  });
+};
+
 export const deleteReviewDocumentHandler = async (
   request: FastifyRequest<{ Params: { key: string } }>,
   reply: FastifyReply
@@ -71,7 +97,11 @@ export interface CreateReviewJobRequest {
   checkListSetId: string;
   filename: string;
   s3Key: string;
-  fileType: string;
+  fileType: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
   userId?: string;
 }
 
@@ -105,7 +135,7 @@ export const deleteReviewJobHandler = async (
 export const getReviewResultItemsHandler = async (
   request: FastifyRequest<{
     Params: { jobId: string };
-    Querystring: { parentId?: string; filter?: string };
+    Querystring: { parentId?: string; filter?: string; includeAllChildren?: string };
   }>,
   reply: FastifyReply
 ): Promise<void> => {
@@ -115,6 +145,7 @@ export const getReviewResultItemsHandler = async (
     filter: request.query.filter
       ? (request.query.filter as REVIEW_RESULT)
       : undefined,
+    includeAllChildren: request.query.includeAllChildren === 'true',
   });
   reply.code(200).send({
     success: true,

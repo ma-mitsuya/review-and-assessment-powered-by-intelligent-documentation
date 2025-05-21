@@ -3,6 +3,7 @@ import {
   makePrismaReviewResultRepository,
 } from "../../api/features/review/domain/repository";
 import {
+  REVIEW_FILE_TYPE,
   REVIEW_JOB_STATUS,
   REVIEW_RESULT_STATUS,
 } from "../../api/features/review/domain/model/review";
@@ -15,6 +16,11 @@ interface PrepareReviewParams {
   reviewJobId: string;
   documentId: string;
   fileName: string;
+  fileType?: REVIEW_FILE_TYPE;
+  imageFiles?: Array<{
+    filename: string;
+    s3Key: string;
+  }>;
 }
 
 /**
@@ -30,7 +36,7 @@ interface FinalizeReviewParams {
  * チェックリスト項目を取得し、処理項目を準備する
  */
 export async function prepareReview(params: PrepareReviewParams): Promise<any> {
-  const { reviewJobId, documentId, fileName } = params;
+  const { reviewJobId, documentId, fileName, fileType, imageFiles } = params;
   const reviewJobRepository = makePrismaReviewJobRepository();
   const reviewResultRepository = makePrismaReviewResultRepository();
 
@@ -44,6 +50,7 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
     // job取得
     const results = await reviewResultRepository.findReviewResultsById({
       jobId: reviewJobId,
+      includeAllChildren: true, // すべての項目を取得
     });
 
     const checkItems = results.map((result) => ({
@@ -55,6 +62,8 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
       reviewJobId,
       documentId,
       fileName,
+      fileType,
+      imageFiles,
       checkItems,
     };
   } catch (error) {
@@ -82,6 +91,7 @@ export async function finalizeReview(
     // 1. 審査結果の取得 - 空の親ID（ルート）から始める
     const results = await reviewResultRepository.findReviewResultsById({
       jobId: reviewJobId,
+      includeAllChildren: true, // すべての項目を取得
     });
 
     if (results.length === 0) {

@@ -38,6 +38,8 @@ async function handleProcessReviewItem(event: any) {
     reviewJobId: event.reviewJobId,
     documentId: event.documentId,
     fileName: event.fileName,
+    fileType: event.fileType,
+    imageFiles: event.imageFiles,
     checkId: event.checkId,
     reviewResultId: event.reviewResultId,
   });

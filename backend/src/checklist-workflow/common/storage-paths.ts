@@ -29,6 +29,24 @@ export function getReviewDocumentKey(
 }
 
 /**
+ * 審査画像ファイルのS3キーを生成する
+ * @param documentId 審査ドキュメントID
+ * @param filename ファイル名
+ * @param index ファイルインデックス (複数画像の場合)
+ * @returns S3キー
+ */
+export function getReviewImageKey(
+  documentId: string,
+  filename: string,
+  index?: number
+): string {
+  if (index !== undefined) {
+    return `review/images/${documentId}/${index}_${filename}`;
+  }
+  return `review/images/${documentId}/${filename}`;
+}
+
+/**
  * 処理済みドキュメントのS3キーを生成する
  * @param documentId ドキュメントID
  * @param filename ファイル名
