@@ -29,10 +29,18 @@ export const createInitialReviewJobModel = async (params: {
     throw new NotFoundError(`ChecklistSet not found`, req.checkListSetId);
   }
 
+  console.log(
+    `[createInitialReviewJobModel] checkListSet has ${checkListSet.length} items`
+  );
+
   const jobId = ulid();
   const initialResults = checkListSet.map((checkList) => {
     return createInitialReviewResult(jobId, checkList.id);
   });
+
+  console.log(
+    `[createInitialReviewJobModel] initialResults has ${initialResults.length} items`
+  );
 
   return {
     id: jobId,

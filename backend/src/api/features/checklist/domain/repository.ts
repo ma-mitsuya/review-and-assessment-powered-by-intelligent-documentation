@@ -167,6 +167,8 @@ export const makePrismaCheckRepository = (
       return rootNode ? rootNode.children : [];
     }
 
+    console.log(`[Repository] Found ${roots.length} items`);
+
     // rootItemId が null ならトップレベルを返却
     return roots;
   };
