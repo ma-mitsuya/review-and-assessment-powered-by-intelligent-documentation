@@ -95,7 +95,7 @@ export type DeleteChecklistDocumentResponse = ApiResponse<{
  * GET /checklist-sets/:setId/items/hierarchy
  */
 export type GetChecklistSetDetailResponse = ApiResponse<{
-  detail: CheckListItemModel[];
+  detail: CheckListItemDetailModel[];
 }>;
 
 /**
@@ -147,6 +147,13 @@ export interface CheckListItemModel {
   setId: string;
   name: string;
   description?: string;
+}
+
+/**
+ * Checklist item detail model with hasChildren flag
+ */
+export interface CheckListItemDetailModel extends CheckListItemModel {
+  hasChildren: boolean;
 }
 
 /**

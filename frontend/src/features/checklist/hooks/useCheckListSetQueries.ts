@@ -2,7 +2,7 @@ import { useApiClient } from "../../../hooks/useApiClient";
 import type {
   GetAllChecklistSetsResponse,
   GetChecklistSetDetailResponse,
-  CheckListItemModel,
+  CheckListItemDetailModel,
 } from "../types";
 
 export const getChecklistSetsKey = (
@@ -58,7 +58,7 @@ export function useChecklistSetDetail(setId: string | null) {
     error,
     refetch,
   } as {
-    items: CheckListItemModel[];
+    items: CheckListItemDetailModel[];
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;

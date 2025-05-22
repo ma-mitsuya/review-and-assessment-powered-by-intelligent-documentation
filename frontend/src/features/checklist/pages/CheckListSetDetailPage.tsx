@@ -2,8 +2,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useChecklistSetDetail } from "../hooks/useCheckListSetQueries";
 import { useDeleteChecklistSet } from "../hooks/useCheckListSetMutations";
-import CheckListItemDetail from "../components/CheckListItemDetail";
 import CheckListItemAddModal from "../components/CheckListItemAddModal";
+import CheckListItemTree from "../components/CheckListItemTree";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
 
@@ -153,9 +153,7 @@ export function CheckListSetDetailPage() {
               </span>
             </div>
           </div>
-        ) : !checkItems ||
-          !Array.isArray(checkItems) ||
-          checkItems.length === 0 ? (
+        ) : !id ? (
           <div
             className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm"
             role="alert"
@@ -179,7 +177,7 @@ export function CheckListSetDetailPage() {
             </div>
           </div>
         ) : (
-          <CheckListItemDetail items={checkItems} />
+          <CheckListItemTree setId={id} />
         )}
 
         <div className="mt-6 flex justify-end">
