@@ -130,13 +130,19 @@ export const deleteChecklistDocumentHandler = async (
 };
 
 export async function getChecklistSetDetailHandler(
-  request: FastifyRequest<{ Params: { setId: string } }>,
+  request: FastifyRequest<{
+    Params: { setId: string };
+    Querystring: { parentId?: string; includeAllChildren?: string };
+  }>,
   reply: FastifyReply
 ): Promise<void> {
   const { setId } = request.params;
+  const { parentId, includeAllChildren } = request.query;
+  
   const detail = await getChecklistSetDetail({
     checkListSetId: setId,
-    rootItemId: null,
+    parentId: parentId,
+    includeAllChildren: includeAllChildren === 'true',
   });
 
   reply.code(200).send({

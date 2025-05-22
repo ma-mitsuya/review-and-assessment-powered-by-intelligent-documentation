@@ -6,6 +6,7 @@ import {
 import {
   CheckListSetDomain,
   CheckListItemModel,
+  CheckListItemDetailModel,
   CheckListSetMetaModel,
 } from "../domain/model/checklist";
 import { ulid } from "ulid";
@@ -93,17 +94,19 @@ export const getCheckListDocumentPresignedUrl = async (params: {
 
 export const getChecklistSetDetail = async (params: {
   checkListSetId: string;
-  rootItemId: string | null;
+  parentId?: string;
+  includeAllChildren?: boolean;
   deps?: {
     repo?: CheckRepository;
   };
-}): Promise<CheckListItemModel[]> => {
+}): Promise<CheckListItemDetailModel[]> => {
   const repo = params.deps?.repo || makePrismaCheckRepository();
 
-  const { checkListSetId, rootItemId } = params;
-  const checkListSet = await repo.findCheckListSetById(
+  const { checkListSetId, parentId, includeAllChildren } = params;
+  const checkListItems = await repo.findCheckListSetById(
     checkListSetId,
-    rootItemId
+    parentId,
+    includeAllChildren
   );
-  return checkListSet;
+  return checkListItems;
 };

@@ -7,6 +7,7 @@ import { NotFoundError } from "../../../core/errors";
 import { prisma } from "../../../core/prisma";
 import {
   CheckListItemModel,
+  CheckListItemDetailModel,
   CheckListSetMetaModel,
   CheckListSetModel,
   CheckListStatus,
@@ -18,8 +19,9 @@ export interface CheckRepository {
   findAllCheckListSets(): Promise<CheckListSetMetaModel[]>;
   findCheckListSetById(
     setId: string,
-    rootItemId: string | null
-  ): Promise<CheckListItemModel[]>;
+    parentId?: string,
+    includeAllChildren?: boolean
+  ): Promise<CheckListItemDetailModel[]>;
   storeCheckListItem(params: { item: CheckListItemModel }): Promise<void>;
   bulkStoreCheckListItems(params: {
     items: CheckListItemModel[];
@@ -118,59 +120,91 @@ export const makePrismaCheckRepository = (
 
   const findCheckListSetById = async (
     setId: string,
-    rootItemId: string | null
-  ): Promise<CheckListItemModel[]> => {
-    // TODO: logicの　domain service 　への移動を検討
-    // 1) 当該セットの全アイテムを取得
-    const rawItems = await client.checkList.findMany({
-      where: { checkListSetId: setId },
+    parentId?: string,
+    includeAllChildren?: boolean
+  ): Promise<CheckListItemDetailModel[]> => {
+    console.log(
+      `[Repository] findCheckListSetById - setId: ${setId}, parentId: ${
+        parentId || "null"
+      }, includeAllChildren: ${includeAllChildren}`
+    );
+
+    // クエリの基本条件を構築
+    const whereCondition: any = {
+      checkListSetId: setId,
+    };
+    
+    // includeAllChildrenがfalseの場合のみ、parentIdの条件を適用
+    if (!includeAllChildren) {
+      whereCondition.parentId = parentId || null;
+    }
+
+    console.log(`[Repository] Query condition:`, JSON.stringify(whereCondition, null, 2));
+
+    // チェックリスト項目を取得
+    const items = await client.checkList.findMany({
+      where: whereCondition,
       select: {
         id: true,
         name: true,
         description: true,
         parentId: true,
+        checkListSetId: true,
       },
-      orderBy: { id: "asc" }, // ソートは任意
+      orderBy: { id: "asc" },
     });
 
-    // 2) Map に変換して children を初期化
-    const map: Record<
-      string,
-      CheckListItemModel & { children: CheckListItemModel[] }
-    > = {};
-    for (const item of rawItems) {
-      map[item.id] = {
-        id: item.id,
-        setId: setId,
-        name: item.name,
-        description: item.description ?? "",
-        children: [],
-      };
+    console.log(`[Repository] Found ${items.length} items`);
+
+    if (items.length === 0) {
+      return [];
     }
 
-    // 3) 親子関係を組み立て
-    const roots: (CheckListItemModel & { children: CheckListItemModel[] })[] =
-      [];
-    for (const item of rawItems) {
-      const node = map[item.id];
-      if (item.parentId && map[item.parentId]) {
-        map[item.parentId].children.push(node);
-      } else {
-        // parentId が null または 親が見つからないものは一旦 roots
-        roots.push(node);
-      }
-    }
+    // 子要素の有無を一括確認
+    const itemIds = items.map((item) => item.id);
 
-    // 4) 指定された rootItemId 以下のツリーを返す
-    if (rootItemId) {
-      const rootNode = map[rootItemId];
-      return rootNode ? rootNode.children : [];
-    }
+    console.log(`[Repository] Checking for children of itemIds:`, itemIds);
 
-    console.log(`[Repository] Found ${roots.length} items`);
+    // すべてのアイテムIDに対する子の存在を一度に確認する
+    const childItems = await client.checkList.findMany({
+      where: {
+        checkListSetId: setId,
+        parentId: {
+          in: itemIds,
+        },
+      },
+      select: {
+        parentId: true,
+      },
+    });
 
-    // rootItemId が null ならトップレベルを返却
-    return roots;
+    console.log(`[Repository] Found ${childItems.length} child items`);
+
+    // 子を持つ親IDのセットを作成
+    const parentsWithChildren = new Set(
+      childItems.map((child) => child.parentId)
+    );
+
+    console.log(`[Repository] Parents with children:`, Array.from(parentsWithChildren));
+
+    // 結果を新しいモデル形式に変換して返す
+    const mappedItems = items.map((item) => ({
+      id: item.id,
+      setId: item.checkListSetId,
+      name: item.name,
+      description: item.description ?? "",
+      parentId: item.parentId ?? undefined,
+      hasChildren: parentsWithChildren.has(item.id),
+    }));
+
+    console.log(`[Repository] Final items with hasChildren:`, 
+      mappedItems.map(i => ({ 
+        id: i.id, 
+        hasChildren: i.hasChildren 
+      }))
+    );
+
+    return mappedItems;
   };
 
   const storeCheckListItem = async (params: {

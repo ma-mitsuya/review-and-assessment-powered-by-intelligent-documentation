@@ -41,6 +41,10 @@ export interface CheckListItemModel {
   description?: string;
 }
 
+export interface CheckListItemDetailModel extends CheckListItemModel {
+  hasChildren: boolean;
+}
+
 export const CheckListSetDomain = {
   fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetModel => {
     const { name, description, documents } = req;
