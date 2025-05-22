@@ -8,15 +8,15 @@ import { ParsedChecklistItem } from "../../../../../checklist-workflow/common/ty
 
 export type CheckListStatus = "pending" | "processing" | "completed";
 
-export interface CheckListSetModel {
+export interface CheckListSetEntity {
   id: string;
   name: string;
   description: string;
-  documents: ChecklistDocumentModel[];
+  documents: ChecklistDocumentEntity[];
 }
 
 // 一覧取得用
-export interface CheckListSetMetaModel {
+export interface CheckListSetSummary {
   id: string;
   name: string;
   description: string;
@@ -24,7 +24,7 @@ export interface CheckListSetMetaModel {
   isEditable: boolean;
 }
 
-export interface ChecklistDocumentModel {
+export interface ChecklistDocumentEntity {
   id: string;
   filename: string;
   s3Key: string;
@@ -33,7 +33,7 @@ export interface ChecklistDocumentModel {
   status: CheckListStatus;
 }
 
-export interface CheckListItemModel {
+export interface CheckListItemEntity {
   id: string;
   parentId?: string;
   setId: string;
@@ -41,12 +41,12 @@ export interface CheckListItemModel {
   description?: string;
 }
 
-export interface CheckListItemDetailModel extends CheckListItemModel {
+export interface CheckListItemDetail extends CheckListItemEntity {
   hasChildren: boolean;
 }
 
 export const CheckListSetDomain = {
-  fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetModel => {
+  fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetEntity => {
     const { name, description, documents } = req;
     return {
       id: ulid(),
@@ -65,7 +65,7 @@ export const CheckListSetDomain = {
 };
 
 export const CheckListItemDomain = {
-  fromCreateRequest: (req: CreateChecklistItemRequest): CheckListItemModel => {
+  fromCreateRequest: (req: CreateChecklistItemRequest): CheckListItemEntity => {
     const { Body } = req;
     const { name, description } = Body;
 
@@ -77,7 +77,7 @@ export const CheckListItemDomain = {
     };
   },
 
-  fromUpdateRequest: (req: UpdateChecklistItemRequest): CheckListItemModel => {
+  fromUpdateRequest: (req: UpdateChecklistItemRequest): CheckListItemEntity => {
     const { Params, Body } = req;
     const { name, description } = Body;
 
@@ -92,7 +92,7 @@ export const CheckListItemDomain = {
   fromParsedChecklistItem: (params: {
     setId: string;
     item: ParsedChecklistItem;
-  }): CheckListItemModel => {
+  }): CheckListItemEntity => {
     const { id, name, description, parent_id } = params.item;
     return {
       id,

@@ -6,36 +6,36 @@ import {
 import { NotFoundError } from "../../../core/errors";
 import { prisma } from "../../../core/prisma";
 import {
-  CheckListItemModel,
-  CheckListItemDetailModel,
-  CheckListSetMetaModel,
-  CheckListSetModel,
+  CheckListItemEntity,
+  CheckListItemDetail,
+  CheckListSetSummary,
+  CheckListSetEntity,
   CheckListStatus,
 } from "./model/checklist";
 
 export interface CheckRepository {
   storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
-  findAllCheckListSets(): Promise<CheckListSetMetaModel[]>;
+  findAllCheckListSets(): Promise<CheckListSetSummary[]>;
   findCheckListSetById(
     setId: string,
     parentId?: string,
     includeAllChildren?: boolean
-  ): Promise<CheckListItemDetailModel[]>;
-  storeCheckListItem(params: { item: CheckListItemModel }): Promise<void>;
+  ): Promise<CheckListItemDetail[]>;
+  storeCheckListItem(params: { item: CheckListItemEntity }): Promise<void>;
   bulkStoreCheckListItems(params: {
-    items: CheckListItemModel[];
+    items: CheckListItemEntity[];
   }): Promise<void>;
   updateDocumentStatus(params: {
     documentId: string;
     status: CheckListStatus;
   }): Promise<void>;
-  findCheckListItemById(itemId: string): Promise<CheckListItemModel>;
+  findCheckListItemById(itemId: string): Promise<CheckListItemEntity>;
   validateParentItem(params: {
     parentItemId: string;
     setId: string;
   }): Promise<Boolean>;
-  updateCheckListItem(params: { newItem: CheckListItemModel }): Promise<void>;
+  updateCheckListItem(params: { newItem: CheckListItemEntity }): Promise<void>;
   deleteCheckListItemById(params: { itemId: string }): Promise<void>;
   checkSetEditable(params: { setId: string }): Promise<boolean>;
 }
@@ -44,7 +44,7 @@ export const makePrismaCheckRepository = (
   client: PrismaClient = prisma
 ): CheckRepository => {
   const storeCheckListSet = async (params: {
-    checkListSet: CheckListSetModel;
+    checkListSet: CheckListSetEntity;
   }): Promise<void> => {
     const { checkListSet } = params;
     const { id, name, description, documents } = checkListSet;
@@ -79,7 +79,7 @@ export const makePrismaCheckRepository = (
     });
   };
 
-  const findAllCheckListSets = async (): Promise<CheckListSetMetaModel[]> => {
+  const findAllCheckListSets = async (): Promise<CheckListSetSummary[]> => {
     const sets = await client.checkListSet.findMany({
       select: {
         id: true,
@@ -122,7 +122,7 @@ export const makePrismaCheckRepository = (
     setId: string,
     parentId?: string,
     includeAllChildren?: boolean
-  ): Promise<CheckListItemDetailModel[]> => {
+  ): Promise<CheckListItemDetail[]> => {
     console.log(
       `[Repository] findCheckListSetById - setId: ${setId}, parentId: ${
         parentId || "null"
@@ -208,7 +208,7 @@ export const makePrismaCheckRepository = (
   };
 
   const storeCheckListItem = async (params: {
-    item: CheckListItemModel;
+    item: CheckListItemEntity;
   }): Promise<void> => {
     const { item } = params;
     const { id, name, description, setId } = item;
@@ -224,7 +224,7 @@ export const makePrismaCheckRepository = (
   };
 
   const bulkStoreCheckListItems = async (params: {
-    items: CheckListItemModel[];
+    items: CheckListItemEntity[];
   }): Promise<void> => {
     const { items } = params;
 
@@ -252,7 +252,7 @@ export const makePrismaCheckRepository = (
 
   const findCheckListItemById = async (
     itemId: string
-  ): Promise<CheckListItemModel> => {
+  ): Promise<CheckListItemEntity> => {
     const item = await client.checkList.findUnique({
       where: { id: itemId },
       select: {
@@ -296,7 +296,7 @@ export const makePrismaCheckRepository = (
   };
 
   const updateCheckListItem = async (params: {
-    newItem: CheckListItemModel;
+    newItem: CheckListItemEntity;
   }): Promise<void> => {
     const { newItem } = params;
     const { id, name, description } = newItem;

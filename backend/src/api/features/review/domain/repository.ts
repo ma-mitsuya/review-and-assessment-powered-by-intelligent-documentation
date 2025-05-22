@@ -2,24 +2,25 @@ import { prisma } from "../../../core/prisma";
 import { PrismaClient } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
 import {
-  ReviewJobModel,
-  ReviewJobMetaModel,
-  ReviewJobDetailModel,
+  ReviewJobEntity,
+  ReviewJobSummary,
+  ReviewJobDetail,
   REVIEW_JOB_STATUS,
-  ReviewResultModel,
-  ReviewResultDetailModel,
+  ReviewResultEntity,
+  ReviewResultDetail,
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
   REVIEW_FILE_TYPE,
+  ReviewJobStats,
 } from "./model/review";
 import { CheckListStatus } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
-  findAllReviewJobs(): Promise<ReviewJobMetaModel[]>;
+  findAllReviewJobs(): Promise<ReviewJobSummary[]>;
   findReviewJobById(params: {
     reviewJobId: string;
-  }): Promise<ReviewJobDetailModel>;
-  createReviewJob(params: ReviewJobModel): Promise<void>;
+  }): Promise<ReviewJobDetail>;
+  createReviewJob(params: ReviewJobEntity): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
   updateJobStatus(params: {
     reviewJobId: string;
@@ -30,7 +31,7 @@ export interface ReviewJobRepository {
 export const makePrismaReviewJobRepository = (
   client: PrismaClient = prisma
 ): ReviewJobRepository => {
-  const findAllReviewJobs = async (): Promise<ReviewJobMetaModel[]> => {
+  const findAllReviewJobs = async (): Promise<ReviewJobSummary[]> => {
     const jobs = await client.reviewJob.findMany({
       orderBy: { id: "desc" },
       include: {
@@ -62,7 +63,7 @@ export const makePrismaReviewJobRepository = (
     return jobs.map((job) => {
       // サマリー情報を計算
       const reviewResults = job.reviewResults || [];
-      const summary = {
+      const stats = {
         total: reviewResults.length,
         passed: reviewResults.filter((r) => r.result === "pass").length,
         failed: reviewResults.filter((r) => r.result === "fail").length,
@@ -90,14 +91,14 @@ export const makePrismaReviewJobRepository = (
           id: job.checkListSet.id,
           name: job.checkListSet.name,
         },
-        summary,
+        stats,
       };
     });
   };
 
   const findReviewJobById = async (params: {
     reviewJobId: string;
-  }): Promise<ReviewJobDetailModel> => {
+  }): Promise<ReviewJobDetail> => {
     const { reviewJobId } = params;
 
     const job = await client.reviewJob.findUnique({
@@ -146,7 +147,7 @@ export const makePrismaReviewJobRepository = (
     };
   };
 
-  const createReviewJob = async (params: ReviewJobModel): Promise<void> => {
+  const createReviewJob = async (params: ReviewJobEntity): Promise<void> => {
     const now = new Date();
 
     await client.$transaction(async (tx) => {
@@ -250,15 +251,15 @@ export const makePrismaReviewJobRepository = (
 export interface ReviewResultRepository {
   findDetailedReviewResultById(params: {
     resultId: string;
-  }): Promise<ReviewResultDetailModel>;
+  }): Promise<ReviewResultDetail>;
   findReviewResultsById(params: {
     jobId: string;
     parentId?: string;
     filter?: REVIEW_RESULT;
     includeAllChildren?: boolean;
-  }): Promise<ReviewResultDetailModel[]>;
-  updateResult(params: { newResult: ReviewResultModel }): Promise<void>;
-  bulkUpdateResults(params: { results: ReviewResultModel[] }): Promise<void>;
+  }): Promise<ReviewResultDetail[]>;
+  updateResult(params: { newResult: ReviewResultEntity }): Promise<void>;
+  bulkUpdateResults(params: { results: ReviewResultEntity[] }): Promise<void>;
 }
 
 export const makePrismaReviewResultRepository = (
@@ -266,7 +267,7 @@ export const makePrismaReviewResultRepository = (
 ): ReviewResultRepository => {
   const findDetailedReviewResultById = async (params: {
     resultId: string;
-  }): Promise<ReviewResultDetailModel> => {
+  }): Promise<ReviewResultDetail> => {
     const { resultId } = params;
 
     // 1) 対象の ReviewResult と紐づく CheckList を取得
@@ -320,7 +321,7 @@ export const makePrismaReviewResultRepository = (
     parentId?: string;
     filter?: REVIEW_RESULT;
     includeAllChildren: boolean;
-  }): Promise<ReviewResultDetailModel[]> => {
+  }): Promise<ReviewResultDetail[]> => {
     const { jobId, parentId, filter, includeAllChildren } = params;
 
     console.log(
@@ -445,7 +446,7 @@ export const makePrismaReviewResultRepository = (
   };
 
   const updateResult = async (params: {
-    newResult: ReviewResultModel;
+    newResult: ReviewResultEntity;
   }): Promise<void> => {
     const { newResult } = params;
     await client.reviewResult.update({
@@ -463,7 +464,7 @@ export const makePrismaReviewResultRepository = (
   };
 
   const bulkUpdateResults = async (params: {
-    results: ReviewResultModel[];
+    results: ReviewResultEntity[];
   }): Promise<void> => {
     const { results } = params;
 

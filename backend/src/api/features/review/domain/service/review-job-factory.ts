@@ -5,8 +5,8 @@ import { CreateReviewJobRequest } from "../../routes/handlers";
 import {
   REVIEW_RESULT_STATUS,
   REVIEW_JOB_STATUS,
-  ReviewJobModel,
-  ReviewResultModel,
+  ReviewJobEntity,
+  ReviewResultEntity,
   REVIEW_RESULT,
 } from "../model/review";
 import { ReviewJobRepository } from "../repository";
@@ -16,7 +16,7 @@ export const createInitialReviewJobModel = async (params: {
   deps: {
     checkRepo: CheckRepository;
   };
-}): Promise<ReviewJobModel> => {
+}): Promise<ReviewJobEntity> => {
   const { req, deps } = params;
   const { checkRepo } = deps;
 
@@ -60,7 +60,7 @@ export const createInitialReviewJobModel = async (params: {
 const createInitialReviewResult = (
   reviewJobId: string,
   checkId: string
-): ReviewResultModel => {
+): ReviewResultEntity => {
   return {
     id: ulid(),
     reviewJobId,

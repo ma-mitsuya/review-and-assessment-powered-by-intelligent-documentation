@@ -1,7 +1,7 @@
 import { NotFoundError, ValidationError } from "../../../core/errors";
 import {
   CheckListItemDomain,
-  CheckListItemModel,
+  CheckListItemEntity,
 } from "../domain/model/checklist";
 import {
   CheckRepository,
@@ -52,7 +52,7 @@ export const getCheckListItem = async (params: {
   deps?: {
     repo?: CheckRepository;
   };
-}): Promise<CheckListItemModel> => {
+}): Promise<CheckListItemEntity> => {
   const repo = params.deps?.repo || makePrismaCheckRepository();
 
   const { itemId } = params;

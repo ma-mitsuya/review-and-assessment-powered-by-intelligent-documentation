@@ -1,8 +1,8 @@
 import {
   REVIEW_JOB_STATUS,
   REVIEW_RESULT,
-  ReviewJobMetaModel,
-  ReviewResultDetailModel,
+  ReviewJobSummary,
+  ReviewResultDetail,
   ReviewResultDomain,
 } from "../domain/model/review";
 import {
@@ -21,7 +21,7 @@ export const getReviewResults = async (params: {
   deps?: {
     repo?: ReviewResultRepository;
   };
-}): Promise<ReviewResultDetailModel[]> => {
+}): Promise<ReviewResultDetail[]> => {
   const repo = params.deps?.repo || makePrismaReviewResultRepository();
   const reviewJob = await repo.findReviewResultsById({
     jobId: params.reviewJobId,

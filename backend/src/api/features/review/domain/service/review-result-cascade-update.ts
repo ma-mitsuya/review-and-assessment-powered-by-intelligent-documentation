@@ -1,14 +1,14 @@
 import { NotFoundError } from "../../../../core/errors";
 import {
   REVIEW_RESULT_STATUS,
-  ReviewResultModel,
+  ReviewResultEntity,
   REVIEW_RESULT,
-  ReviewResultDetailModel,
+  ReviewResultDetail,
 } from "../model/review";
 import { ReviewResultRepository } from "../repository";
 
 export const updateCheckResultCascade = async (params: {
-  updated: ReviewResultDetailModel;
+  updated: ReviewResultDetail;
   deps: {
     reviewResultRepo: ReviewResultRepository;
   };
@@ -28,7 +28,7 @@ export const updateCheckResultCascade = async (params: {
   }
 
   // 2) Create a map to store the review results and their children
-  const modelMap = new Map<string, ReviewResultDetailModel>();
+  const modelMap = new Map<string, ReviewResultDetail>();
   const childrenMap = new Map<string, string[]>();
   all.forEach((r) => {
     modelMap.set(r.checkId, { ...r });
@@ -46,7 +46,7 @@ export const updateCheckResultCascade = async (params: {
 
   // 4) 再帰的に親を辿り、必要なら更新モデルを toUpdate に収集
   // 4) Traverse the parent nodes recursively and collect the models to be updated
-  const toUpdate: ReviewResultModel[] = [];
+  const toUpdate: ReviewResultEntity[] = [];
 
   const recurse = (checkId: string) => {
     const node = modelMap.get(checkId);
@@ -92,7 +92,7 @@ export const updateCheckResultCascade = async (params: {
 
 /** 子アイテムの confidenceScore 平均を計算 */
 const calculateAverageConfidence = (
-  children: ReviewResultDetailModel[]
+  children: ReviewResultDetail[]
 ): number => {
   if (children.length === 0) return 0;
   const sum = children.reduce((acc, c) => acc + (c.confidenceScore ?? 0), 0);
@@ -101,7 +101,7 @@ const calculateAverageConfidence = (
 
 /** 子アイテムの結果から、親の説明文を生成 */
 const generateParentExplanation = (
-  children: ReviewResultDetailModel[],
+  children: ReviewResultDetail[],
   allPass: boolean
 ): string => {
   if (allPass) {

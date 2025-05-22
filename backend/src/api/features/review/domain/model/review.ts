@@ -1,8 +1,8 @@
 import { ulid } from "ulid";
 import { CreateReviewJobRequest } from "../../routes/handlers";
 import {
-  CheckListItemModel,
-  CheckListSetModel,
+  CheckListItemEntity,
+  CheckListSetEntity,
 } from "../../../checklist/domain/model/checklist";
 
 /**
@@ -41,14 +41,14 @@ export enum REVIEW_FILE_TYPE {
   IMAGE = "image",
 }
 
-export interface ReviewJobSummary {
+export interface ReviewJobStats {
   total: number;
   passed: number;
   failed: number;
   processing: number;
 }
 
-export interface ReviewJobModel {
+export interface ReviewJobEntity {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
@@ -62,13 +62,13 @@ export interface ReviewJobModel {
     filename: string;
     s3Key: string;
   }>;
-  results: ReviewResultModel[];
+  results: ReviewResultEntity[];
 }
 
 /**
  * ジョブ一覧表示用
  */
-export interface ReviewJobMetaModel {
+export interface ReviewJobSummary {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
@@ -92,17 +92,17 @@ export interface ReviewJobMetaModel {
     id: string;
     name: string;
   };
-  summary: ReviewJobSummary;
+  stats: ReviewJobStats;
 }
 
 /**
  * ジョブ結果画面のジョブ情報表示用
  */
-export interface ReviewJobDetailModel {
+export interface ReviewJobDetail {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
-  checkList: CheckListSetModel;
+  checkList: CheckListSetEntity;
   documentId: string;
   document: {
     id: string;
@@ -119,7 +119,7 @@ export interface ReviewJobDetailModel {
   completedAt?: Date;
 }
 
-export interface ReviewResultModel {
+export interface ReviewResultEntity {
   id: string;
   reviewJobId: string;
   checkId: string;
@@ -134,18 +134,18 @@ export interface ReviewResultModel {
   updatedAt: Date;
 }
 
-export interface ReviewResultDetailModel extends ReviewResultModel {
-  checkList: CheckListItemModel;
+export interface ReviewResultDetail extends ReviewResultEntity {
+  checkList: CheckListItemEntity;
   hasChildren: boolean;
 }
 
 export const ReviewResultDomain = (() => {
   return {
     fromOverrideRequest: (params: {
-      current: ReviewResultDetailModel;
+      current: ReviewResultDetail;
       result: REVIEW_RESULT;
       userComment: string;
-    }): ReviewResultDetailModel => {
+    }): ReviewResultDetail => {
       const { current, result, userComment } = params;
       return {
         ...current,
@@ -157,12 +157,12 @@ export const ReviewResultDomain = (() => {
     },
 
     fromLlmReviewData: (params: {
-      current: ReviewResultDetailModel;
+      current: ReviewResultDetail;
       result: REVIEW_RESULT;
       confidenceScore: number;
       explanation: string;
       extractedText: string;
-    }): ReviewResultModel => {
+    }): ReviewResultEntity => {
       const { result, confidenceScore, explanation, extractedText } = params;
       return {
         ...params.current,
