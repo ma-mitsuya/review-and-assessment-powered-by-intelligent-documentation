@@ -3,7 +3,7 @@
  * 子要素を動的に読み込む機能を持つ
  */
 import { useState } from 'react';
-import { CheckListItemDetailModel } from '../types';
+import { CheckListItemDetail } from '../types';
 import { useCheckListItems } from '../hooks/useCheckListItemQueries';
 import { HiChevronDown, HiChevronRight, HiPencil, HiTrash } from "react-icons/hi";
 import CheckListItemEditModal from './CheckListItemEditModal';
@@ -12,7 +12,7 @@ import Spinner from '../../../components/Spinner';
 
 interface CheckListItemTreeNodeProps {
   setId: string;
-  item: CheckListItemDetailModel;
+  item: CheckListItemDetail;
   level: number;
   maxDepth?: number;
   autoExpand?: boolean;

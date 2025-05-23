@@ -95,13 +95,13 @@ export interface OverrideReviewResultRequest {
  * Response type for getting all review jobs
  * GET /review-jobs
  */
-export type GetAllReviewJobsResponse = ApiResponse<ReviewJobMetaModel[]>;
+export type GetAllReviewJobsResponse = ApiResponse<ReviewJobSummary[]>;
 
 /**
  * Response type for getting a review job detail
  * GET /review-jobs/:jobId
  */
-export type GetReviewJobDetailResponse = ApiResponse<ReviewJobDetailModel>;
+export type GetReviewJobDetailResponse = ApiResponse<ReviewJobDetail>;
 
 /**
  * Response type for getting a presigned URL for review document upload
@@ -151,7 +151,7 @@ export type DeleteReviewJobResponse = ApiResponse<Record<string, never>>;
  * Response type for getting review result items
  * GET /review-jobs/:jobId/results/items
  */
-export type GetReviewResultItemsResponse = ApiResponse<ReviewResultDetailModel[]>;
+export type GetReviewResultItemsResponse = ApiResponse<ReviewResultDetail[]>;
 
 /**
  * Response type for overriding a review result
@@ -162,9 +162,9 @@ export type OverrideReviewResultResponse = ApiResponse<Record<string, never>>;
 // Model types
 
 /**
- * Review job summary model
+ * Review job stats model
  */
-export interface ReviewJobSummary {
+export interface ReviewJobStats {
   total: number;
   passed: number;
   failed: number;
@@ -172,9 +172,9 @@ export interface ReviewJobSummary {
 }
 
 /**
- * Review job model
+ * Review job entity model
  */
-export interface ReviewJobModel {
+export interface ReviewJobEntity {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
@@ -188,13 +188,13 @@ export interface ReviewJobModel {
     filename: string;
     s3Key: string;
   }>;
-  results: ReviewResultModel[];
+  results: ReviewResultEntity[];
 }
 
 /**
- * Review job meta model (for list view)
+ * Review job summary model (for list view)
  */
-export interface ReviewJobMetaModel {
+export interface ReviewJobSummary {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
@@ -218,13 +218,13 @@ export interface ReviewJobMetaModel {
     id: string;
     name: string;
   };
-  summary: ReviewJobSummary;
+  stats: ReviewJobStats;
 }
 
 /**
  * Review job detail model (for detail view)
  */
-export interface ReviewJobDetailModel {
+export interface ReviewJobDetail {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
@@ -258,9 +258,9 @@ export interface ReviewJobDetailModel {
 }
 
 /**
- * Review result model
+ * Review result entity model
  */
-export interface ReviewResultModel {
+export interface ReviewResultEntity {
   id: string;
   reviewJobId: string;
   checkId: string;
@@ -278,15 +278,15 @@ export interface ReviewResultModel {
 /**
  * Review result detail model (includes checklist item)
  */
-export interface ReviewResultDetailModel extends ReviewResultModel {
-  checkList: CheckListItemModel;
+export interface ReviewResultDetail extends ReviewResultEntity {
+  checkList: CheckListItemEntity;
   hasChildren: boolean;
 }
 
 /**
- * Checklist item model (imported from checklist feature)
+ * Checklist item entity model (imported from checklist feature)
  */
-export interface CheckListItemModel {
+export interface CheckListItemEntity {
   id: string;
   parentId?: string;
   setId: string;

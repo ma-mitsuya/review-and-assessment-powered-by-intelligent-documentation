@@ -1,8 +1,8 @@
 import { useApiClient } from "../../../hooks/useApiClient";
 import type { 
-  ReviewJobMetaModel, 
+  ReviewJobSummary, 
   GetAllReviewJobsResponse,
-  ReviewJobDetailModel,
+  ReviewJobDetail,
   GetReviewJobDetailResponse
 } from "../types";
 
@@ -72,7 +72,7 @@ export function useReviewJobDetail(jobId: string | null) {
   } = useApiClient().useQuery<GetReviewJobDetailResponse>(url);
 
   return {
-    job: data as ReviewJobDetailModel | null,
+    job: data as ReviewJobDetail | null,
     isLoading,
     error,
     refetch,

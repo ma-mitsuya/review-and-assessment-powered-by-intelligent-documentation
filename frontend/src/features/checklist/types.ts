@@ -95,7 +95,7 @@ export type DeleteChecklistDocumentResponse = ApiResponse<{
  * GET /checklist-sets/:setId/items/hierarchy
  */
 export type GetChecklistSetDetailResponse = ApiResponse<{
-  detail: CheckListItemDetailModel[];
+  detail: CheckListItemDetail[];
 }>;
 
 /**
@@ -103,7 +103,7 @@ export type GetChecklistSetDetailResponse = ApiResponse<{
  * GET /checklist-sets/:setId/items/:itemId
  */
 export type GetChecklistItemResponse = ApiResponse<{
-  detail: CheckListItemModel;
+  detail: CheckListItemEntity;
 }>;
 
 /**
@@ -139,9 +139,9 @@ export type DeleteChecklistItemResponse = ApiResponse<Record<string, never>>;
 // Model types
 
 /**
- * Checklist item model
+ * Checklist item entity model
  */
-export interface CheckListItemModel {
+export interface CheckListItemEntity {
   id: string;
   parentId?: string;
   setId: string;
@@ -152,14 +152,14 @@ export interface CheckListItemModel {
 /**
  * Checklist item detail model with hasChildren flag
  */
-export interface CheckListItemDetailModel extends CheckListItemModel {
+export interface CheckListItemDetail extends CheckListItemEntity {
   hasChildren: boolean;
 }
 
 /**
- * Checklist document model
+ * Checklist document entity model
  */
-export interface ChecklistDocumentModel {
+export interface ChecklistDocumentEntity {
   id: string;
   filename: string;
   s3Key: string;
@@ -169,19 +169,19 @@ export interface ChecklistDocumentModel {
 }
 
 /**
- * Checklist set model
+ * Checklist set entity model
  */
-export interface CheckListSetModel {
+export interface CheckListSetEntity {
   id: string;
   name: string;
   description: string;
-  documents: ChecklistDocumentModel[];
+  documents: ChecklistDocumentEntity[];
 }
 
 /**
- * Checklist set meta model (for list view)
+ * Checklist set summary model (for list view)
  */
-export interface CheckListSetMetaModel {
+export interface CheckListSetSummary {
   id: string;
   name: string;
   description: string;

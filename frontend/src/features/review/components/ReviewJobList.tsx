@@ -1,12 +1,12 @@
 import React from 'react';
-import { ReviewJobMetaModel, REVIEW_JOB_STATUS } from '../types';
+import { ReviewJobSummary, REVIEW_JOB_STATUS } from '../types';
 import { useDeleteReviewJob } from '../hooks/useReviewJobMutations';
 import { TableSkeleton } from '../../../components/Skeleton';
 import { HiEye, HiTrash, HiInformationCircle } from 'react-icons/hi';
 
 interface ReviewJobListProps {
-  jobs: ReviewJobMetaModel[];
-  onJobClick?: (job: ReviewJobMetaModel) => void;
+  jobs: ReviewJobSummary[];
+  onJobClick?: (job: ReviewJobSummary) => void;
   revalidate?: () => void;
   isLoading?: boolean;
 }

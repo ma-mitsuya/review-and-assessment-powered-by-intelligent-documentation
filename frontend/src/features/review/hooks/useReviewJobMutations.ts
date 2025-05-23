@@ -4,7 +4,7 @@ import type {
   CreateReviewJobRequest,
   CreateReviewJobResponse,
   DeleteReviewJobResponse,
-  ReviewJobMetaModel,
+  ReviewJobSummary,
   REVIEW_FILE_TYPE,
 } from "../types";
 import { getReviewJobsKey } from "./useReviewJobQueries";

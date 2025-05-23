@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useCreateCheckListItem } from "../hooks/useCheckListItemMutations";
-import { CheckListItemModel } from "../types";
+import { CheckListItemEntity } from "../types";
 import { useToast } from "../../../contexts/ToastContext";
 
 type CheckListItemAddModalProps = {
   isOpen: boolean;
   onClose: () => void;
   checkListSetId: string;
-  checkItems: CheckListItemModel[];
+  checkItems: CheckListItemEntity[];
   onSuccess: () => void;
 };
 

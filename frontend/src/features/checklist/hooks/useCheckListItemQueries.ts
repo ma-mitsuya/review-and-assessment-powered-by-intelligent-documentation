@@ -1,7 +1,7 @@
 import { useApiClient } from "../../../hooks/useApiClient";
 import type {
-  CheckListItemModel,
-  CheckListItemDetailModel,
+  CheckListItemEntity,
+  CheckListItemDetail,
   GetChecklistSetDetailResponse,
   GetChecklistItemResponse,
 } from "../types";
@@ -40,7 +40,7 @@ export function useCheckListItems(
     useApiClient().useQuery<GetChecklistSetDetailResponse>(url);
 
   return {
-    items: data?.detail ?? ([] as CheckListItemDetailModel[]),
+    items: data?.detail ?? ([] as CheckListItemDetail[]),
     isLoading,
     error,
     refetch,
@@ -56,7 +56,7 @@ export function useCheckListItem(setId: string | null, itemId: string | null) {
     useApiClient().useQuery<GetChecklistItemResponse>(url);
 
   return {
-    item: data?.detail ?? (null as CheckListItemModel | null),
+    item: data?.detail ?? (null as CheckListItemEntity | null),
     isLoading,
     error,
   };

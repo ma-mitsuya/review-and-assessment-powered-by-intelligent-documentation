@@ -1,14 +1,14 @@
 import { useState } from "react";
 import Modal from "../../../components/Modal";
 import Button from "../../../components/Button";
-import { CheckListItemModel } from "../types";
+import { CheckListItemEntity } from "../types";
 import { useUpdateCheckListItem } from "../hooks/useCheckListItemMutations";
 import { useToast } from "../../../contexts/ToastContext";
 
 type CheckListItemEditModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  item: CheckListItemModel;
+  item: CheckListItemEntity;
   checkListSetId: string;
 };
 
