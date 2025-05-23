@@ -10,6 +10,7 @@ type CheckListItemEditModalProps = {
   onClose: () => void;
   item: CheckListItemEntity;
   checkListSetId: string;
+  onSuccess: () => void;
 };
 
 /**
@@ -20,6 +21,7 @@ export default function CheckListItemEditModal({
   onClose,
   item,
   checkListSetId,
+  onSuccess,
 }: CheckListItemEditModalProps) {
   const [formData, setFormData] = useState({
     name: item.name,
@@ -62,6 +64,7 @@ export default function CheckListItemEditModal({
         description: formData.description,
       });
       addToast("チェックリスト項目を更新しました", "success");
+      onSuccess();
       onClose();
     } catch (err) {
       console.error("項目の更新に失敗しました", err);

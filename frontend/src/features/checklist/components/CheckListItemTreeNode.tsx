@@ -202,6 +202,17 @@ export default function CheckListItemTreeNode({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           item={item}
+          onSuccess={() => {
+            if (level === 0) {
+              // ルートレベルの場合、全体をrefetch
+              refetchRoot();
+            } else {
+              // 親の子項目をrefetch
+              refetchParent();
+            }
+            refetchChildren(); // 子項目を再取得
+            setIsEditModalOpen(false);
+          }}
           checkListSetId={item.setId}
         />
       )}

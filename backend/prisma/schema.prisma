@@ -1,12 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
-  // TODO: optimize targets
-  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
-  // DO NOT CHANGE
   output        = "client"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -14,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// チェックリストセット
 model CheckListSet {
   id          String              @id @map("check_list_set_id") @db.VarChar(26)
   name        String              @db.VarChar(255)
@@ -26,48 +20,47 @@ model CheckListSet {
   @@map("check_list_sets")
 }
 
-// チェックリスト項目
 model CheckList {
   id             String             @id @map("check_id") @db.VarChar(26)
   name           String             @db.VarChar(255)
   description    String?            @db.Text
   parentId       String?            @map("parent_id") @db.VarChar(26)
   checkListSetId String             @map("check_list_set_id") @db.VarChar(26)
+  documentId     String?            @map("document_id") @db.VarChar(26)
   checkListSet   CheckListSet       @relation(fields: [checkListSetId], references: [id])
+  document       CheckListDocument? @relation(fields: [documentId], references: [id])
   parent         CheckList?         @relation("CheckListToCheckList", fields: [parentId], references: [id])
   children       CheckList[]        @relation("CheckListToCheckList")
-  documentId     String?            @map("document_id") @db.VarChar(26)
-  document       CheckListDocument? @relation(fields: [documentId], references: [id])
   reviewResults  ReviewResult[]
 
-  // 階層構造を持つデータの検索を高速化
   @@index([parentId], map: "idx_check_list_parent")
+  @@index([checkListSetId], map: "check_lists_check_list_set_id_fkey")
+  @@index([documentId], map: "check_lists_document_id_fkey")
   @@map("check_lists")
 }
 
-// チェックリスト作成元ドキュメント
 model CheckListDocument {
   id             String       @id @map("document_id") @db.VarChar(26)
   filename       String       @db.VarChar(255)
   s3Path         String       @map("s3_path") @db.VarChar(512)
   fileType       String       @map("file_type") @db.VarChar(50)
-  uploadDate     DateTime     @map("upload_date") @db.Timestamp()
+  uploadDate     DateTime     @map("upload_date") @db.Timestamp(0)
   checkListSetId String       @map("check_list_set_id") @db.VarChar(26)
   userId         String?      @map("user_id") @db.VarChar(50)
   status         String       @default("pending") @db.VarChar(20)
-  checkListSet   CheckListSet @relation(fields: [checkListSetId], references: [id])
   checkLists     CheckList[]
+  checkListSet   CheckListSet @relation(fields: [checkListSetId], references: [id])
 
+  @@index([checkListSetId], map: "checklist_documents_check_list_set_id_fkey")
   @@map("checklist_documents")
 }
 
-// 審査対象ドキュメント
 model ReviewDocument {
   id         String      @id @map("review_document_id") @db.VarChar(26)
   filename   String      @db.VarChar(255)
   s3Path     String      @map("s3_path") @db.VarChar(512)
   fileType   String      @map("file_type") @db.VarChar(50)
-  uploadDate DateTime    @map("upload_date") @db.Timestamp()
+  uploadDate DateTime    @map("upload_date") @db.Timestamp(0)
   userId     String?     @map("user_id") @db.VarChar(50)
   status     String      @default("pending") @db.VarChar(20)
   reviewJobs ReviewJob[]
@@ -75,26 +68,26 @@ model ReviewDocument {
   @@map("review_documents")
 }
 
-// 審査ジョブ
 model ReviewJob {
   id             String         @id @map("review_job_id") @db.VarChar(26)
   name           String         @db.VarChar(255)
   status         String         @default("pending") @db.VarChar(20)
   documentId     String         @map("document_id") @db.VarChar(26)
   checkListSetId String         @map("check_list_set_id") @db.VarChar(26)
-  createdAt      DateTime       @map("created_at") @db.Timestamp()
-  updatedAt      DateTime       @map("updated_at") @db.Timestamp()
-  completedAt    DateTime?      @map("completed_at") @db.Timestamp()
+  createdAt      DateTime       @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime       @map("updated_at") @db.Timestamp(0)
+  completedAt    DateTime?      @map("completed_at") @db.Timestamp(0)
   userId         String?        @map("user_id") @db.VarChar(50)
-  metaData       Json?          @map("meta_data") @db.Json
-  document       ReviewDocument @relation(fields: [documentId], references: [id])
+  metaData       Json?          @map("meta_data")
   checkListSet   CheckListSet   @relation(fields: [checkListSetId], references: [id])
+  document       ReviewDocument @relation(fields: [documentId], references: [id])
   reviewResults  ReviewResult[]
 
+  @@index([checkListSetId], map: "review_jobs_check_list_set_id_fkey")
+  @@index([documentId], map: "review_jobs_document_id_fkey")
   @@map("review_jobs")
 }
 
-// 審査結果
 model ReviewResult {
   id              String    @id @map("review_result_id") @db.VarChar(26)
   reviewJobId     String    @map("review_job_id") @db.VarChar(26)
@@ -106,10 +99,12 @@ model ReviewResult {
   extractedText   String?   @map("extracted_text") @db.Text
   userOverride    Boolean   @default(false) @map("user_override")
   userComment     String?   @map("user_comment") @db.Text
-  createdAt       DateTime  @map("created_at") @db.Timestamp()
-  updatedAt       DateTime  @map("updated_at") @db.Timestamp()
-  reviewJob       ReviewJob @relation(fields: [reviewJobId], references: [id])
+  createdAt       DateTime  @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime  @map("updated_at") @db.Timestamp(0)
   checkList       CheckList @relation(fields: [checkId], references: [id])
+  reviewJob       ReviewJob @relation(fields: [reviewJobId], references: [id])
 
+  @@index([checkId], map: "review_results_check_id_fkey")
+  @@index([reviewJobId], map: "review_results_review_job_id_fkey")
   @@map("review_results")
 }
