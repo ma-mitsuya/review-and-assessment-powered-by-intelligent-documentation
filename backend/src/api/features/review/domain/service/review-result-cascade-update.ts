@@ -65,6 +65,7 @@ export const updateCheckResultCascade = async (params: {
       node.result = allPass ? REVIEW_RESULT.PASS : REVIEW_RESULT.FAIL;
       node.confidenceScore = calculateAverageConfidence(childModels);
       node.explanation = generateParentExplanation(childModels, allPass);
+      node.extractedText = "";
 
       toUpdate.push(node);
 
@@ -91,9 +92,7 @@ export const updateCheckResultCascade = async (params: {
 };
 
 /** 子アイテムの confidenceScore 平均を計算 */
-const calculateAverageConfidence = (
-  children: ReviewResultDetail[]
-): number => {
+const calculateAverageConfidence = (children: ReviewResultDetail[]): number => {
   if (children.length === 0) return 0;
   const sum = children.reduce((acc, c) => acc + (c.confidenceScore ?? 0), 0);
   return sum / children.length;
