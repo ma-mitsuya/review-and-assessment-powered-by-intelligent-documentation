@@ -10,7 +10,11 @@ import { useCreateReviewJob } from "../hooks/useReviewJobMutations";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { useChecklistSets } from "../../checklist/hooks/useCheckListSetQueries";
 import { CheckListSet } from "../../checklist/types";
-import { HiExclamationCircle, HiDocumentText, HiPhotograph } from "react-icons/hi";
+import {
+  HiExclamationCircle,
+  HiDocumentText,
+  HiPhotograph,
+} from "react-icons/hi";
 import SegmentedControl from "../../../components/SegmentedControl";
 import { REVIEW_FILE_TYPE } from "../types";
 
@@ -20,7 +24,9 @@ export const CreateReviewPage: React.FC = () => {
   const [selectedChecklist, setSelectedChecklist] =
     useState<CheckListSet | null>(null);
   const [jobName, setJobName] = useState("");
-  const [fileType, setFileType] = useState<REVIEW_FILE_TYPE>(REVIEW_FILE_TYPE.PDF);
+  const [fileType, setFileType] = useState<REVIEW_FILE_TYPE>(
+    REVIEW_FILE_TYPE.PDF
+  );
   const [errors, setErrors] = useState({
     name: "",
     files: "",
@@ -86,17 +92,17 @@ export const CreateReviewPage: React.FC = () => {
   const handleFilesChange = async (newFiles: File[]) => {
     // ファイルタイプに基づいて検証
     if (fileType === REVIEW_FILE_TYPE.PDF && newFiles.length > 1) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        files: "PDF モードでは1つのファイルのみアップロードできます"
+        files: "PDF モードでは1つのファイルのみアップロードできます",
       }));
       return;
     }
-    
+
     if (fileType === REVIEW_FILE_TYPE.IMAGE && newFiles.length > 20) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        files: "画像モードでは最大20枚までアップロードできます"
+        files: "画像モードでは最大20枚までアップロードできます",
       }));
       return;
     }
@@ -129,7 +135,7 @@ export const CreateReviewPage: React.FC = () => {
       } else {
         // 画像ファイルの場合は複数アップロード
         const uploadResults = await uploadDocuments(filesToUpload);
-        
+
         // ファイル名をジョブ名の初期値として設定（ファイルが1つの場合）
         if (newFiles.length === 1 && !jobName) {
           const fileName = newFiles[0].name;
@@ -230,10 +236,10 @@ export const CreateReviewPage: React.FC = () => {
           filename: firstDoc.filename,
           s3Key: firstDoc.s3Key,
           fileType: REVIEW_FILE_TYPE.IMAGE,
-          imageFiles: uploadedDocuments.map(doc => ({
+          imageFiles: uploadedDocuments.map((doc) => ({
             filename: doc.filename,
-            s3Key: doc.s3Key
-          }))
+            s3Key: doc.s3Key,
+          })),
         });
       }
 
@@ -297,13 +303,13 @@ export const CreateReviewPage: React.FC = () => {
                 {
                   value: REVIEW_FILE_TYPE.PDF,
                   label: "PDF ファイル (1ファイル)",
-                  icon: <HiDocumentText />
+                  icon: <HiDocumentText />,
                 },
                 {
                   value: REVIEW_FILE_TYPE.IMAGE,
                   label: "画像ファイル (最大20枚)",
-                  icon: <HiPhotograph />
-                }
+                  icon: <HiPhotograph />,
+                },
               ]}
               value={fileType}
               onChange={handleFileTypeChange}

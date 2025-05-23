@@ -5,20 +5,18 @@ import type {
   GetChecklistItemsResponse,
   CheckListItemDetail,
   CheckListSetDetailModel,
+  CheckListStatus,
 } from "../types";
 
 export const getChecklistSetsKey = (
-  page = 1,
-  limit = 10,
   sortBy?: string,
-  sortOrder?: "asc" | "desc"
+  sortOrder?: "asc" | "desc",
+  status?: CheckListStatus
 ) => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-  });
+  const params = new URLSearchParams();
   if (sortBy) params.append("sortBy", sortBy);
   if (sortOrder) params.append("sortOrder", sortOrder);
+  if (status) params.append("status", status);
   return `/checklist-sets?${params.toString()}`;
 };
 
@@ -29,12 +27,11 @@ export const getChecklistItemsKey = (setId: string | null) =>
   setId ? `/checklist-sets/${setId}/items` : null;
 
 export function useChecklistSets(
-  page = 1,
-  limit = 10,
   sortBy?: string,
-  sortOrder?: "asc" | "desc"
+  sortOrder?: "asc" | "desc",
+  status?: CheckListStatus
 ) {
-  const url = getChecklistSetsKey(page, limit, sortBy, sortOrder);
+  const url = getChecklistSetsKey(sortBy, sortOrder, status);
   const { data, isLoading, error, refetch } =
     useApiClient().useQuery<GetAllChecklistSetsResponse>(url);
 
