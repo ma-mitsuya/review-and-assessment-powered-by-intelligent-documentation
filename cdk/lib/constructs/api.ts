@@ -20,7 +20,7 @@ export interface ApiProps {
   vpc: ec2.IVpc;
   databaseConnection: DatabaseConnectionProps;
   environment?: { [key: string]: string };
-  auth: Auth; // Authインスタンスを追加
+  auth: Auth;
 }
 
 /**
@@ -52,6 +52,9 @@ export class Api extends Construct {
       )
     );
 
+    // SecretsManagerへのアクセス権限を追加
+    props.databaseConnection.secret.grantRead(handlerRole);
+
     // Lambda 関数の作成
     this.apiLambda = new lambda.DockerImageFunction(this, "ApiFunction", {
       role: handlerRole,
@@ -65,23 +68,13 @@ export class Api extends Construct {
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      securityGroups: [this.securityGroup], // セキュリティグループを設定
-      // environment: props?.environment,
+      securityGroups: [this.securityGroup],
       environment: {
         ...props.environment,
-        DATABASE_HOST: props.databaseConnection.host,
-        DATABASE_PORT: props.databaseConnection.port,
-        DATABASE_ENGINE: props.databaseConnection.engine,
-        DATABASE_USER: props.databaseConnection.username,
-        DATABASE_PASSWORD: props.databaseConnection.password,
-        DATABASE_NAME: props.databaseConnection.databaseName,
-        // Aurora Serverless v2 cold start takes up to 15 seconds
-        // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
+        DATABASE_SECRET_ARN: props.databaseConnection.secret.secretArn,
         DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
-        // Cognito関連の環境変数を追加
         COGNITO_USER_POOL_ID: props.auth.userPool.userPoolId,
         COGNITO_CLIENT_ID: props.auth.client.userPoolClientId,
-        // AWS_REGIONは予約済み環境変数なので設定しない
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
@@ -128,7 +121,6 @@ export class Api extends Construct {
         tracingEnabled: true,
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
-        // アクセスログの設定を追加
         accessLogDestination: new apigateway.LogGroupLogDestination(
           accessLogGroup
         ),
@@ -143,7 +135,6 @@ export class Api extends Construct {
           status: true,
           user: true,
         }),
-        // 実行ログの設定
         methodOptions: {
           "/*/*": {
             loggingLevel: apigateway.MethodLoggingLevel.INFO,
@@ -162,7 +153,6 @@ export class Api extends Construct {
         ],
       },
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,
-      // CloudWatch ロールを設定
       cloudWatchRole: true,
     });
 
@@ -174,8 +164,6 @@ export class Api extends Construct {
     // プロキシリソースの設定
     const proxyResource = this.api.root.addResource("{proxy+}");
     proxyResource.addMethod("ANY", lambdaIntegration);
-
-    // API Key関連のコードを削除
 
     // API URL の出力
     new cdk.CfnOutput(this, "ApiUrl", {

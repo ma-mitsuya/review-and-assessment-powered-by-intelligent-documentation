@@ -35,12 +35,6 @@ docker-compose down -v
 docker-compose up -d
 ```
 
-2. 手動で権限を付与する：
-
-```bash
-docker exec -it rapid-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'rapid_user'@'%'; FLUSH PRIVILEGES;"
-```
-
 ### 2. バックエンドの依存関係インストール
 
 ```bash
@@ -57,7 +51,22 @@ npm run prisma:migrate   # データベースのマイグレーション
 npm run db:seed         # 初期データの投入
 ```
 
-### 4. バックエンドサーバーの起動
+### 4. 環境変数のセットアップ
+
+```sh
+export RAPID_LOCAL_DEV=true
+```
+
+以下はオプショナルの設定です。設定した場合、チェックリスト作成や審査ジョブの作成も動作します。
+
+```sh
+export DOCUMENT_BUCKET=rapidstack-xxxx-nlxgu42ywz9g
+export AWS_REGION=ap-northeast-1
+export DOCUMENT_PROCESSING_STATE_MACHINE_ARN=arn:aws:states:ap-northeast-1:1234567890:stateMachine:DocumentProcessorDocumentProcessingWorkflowXXXX
+export REVIEW_PROCESSING_STATE_MACHINE_ARN=arn:aws:states:ap-northeast-1:1234567890:stateMachine:ReviewProcessorReviewProcessingWorkflowXXXX
+```
+
+### 5. バックエンドサーバーの起動
 
 ```bash
 cd backend

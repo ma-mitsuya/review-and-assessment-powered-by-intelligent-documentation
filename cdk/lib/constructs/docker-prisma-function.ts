@@ -23,19 +23,15 @@ export class DockerPrismaFunction extends lambda.DockerImageFunction {
       )
     );
 
+    // SecretsManagerへのアクセス権限を追加
+    props.database.secret.grantRead(handlerRole);
+
     super(scope, id, {
       ...props,
       role: handlerRole,
       environment: {
         ...props.environment,
-        DATABASE_HOST: props.database.host,
-        DATABASE_PORT: props.database.port,
-        DATABASE_ENGINE: props.database.engine,
-        DATABASE_USER: props.database.username,
-        DATABASE_PASSWORD: props.database.password,
-        DATABASE_NAME: props.database.databaseName,
-        // Aurora Serverless v2 cold start takes up to 15 seconds
-        // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
+        DATABASE_SECRET_ARN: props.database.secret.secretArn,
         DATABASE_OPTION: "?pool_timeout=20&connect_timeout=20",
       },
     });

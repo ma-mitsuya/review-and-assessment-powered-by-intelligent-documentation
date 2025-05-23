@@ -28,6 +28,7 @@ export interface DatabaseConnectionProps {
   username: string;
   password: string;
   databaseName: string;
+  secret: secretsmanager.ISecret;
 }
 
 /**
@@ -102,6 +103,7 @@ export class Database extends Construct {
         .unsafeUnwrap()
         .toString(),
       databaseName: databaseName,
+      secret: this.secret,
     };
 
     // マネジメントコンソールからのアクセスを許可するためのタグを追加

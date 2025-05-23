@@ -7,11 +7,15 @@ import { registerReviewRoutes } from "./features/review/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
 import { isLocalDevelopment } from "./core/utils/stage-aware-auth";
+import { initializePrisma } from "./core/prisma";
 
 /**
  * アプリケーションを起動する
  */
 async function startApp() {
+  // Prismaの初期化を追加
+  await initializePrisma();
+  
   const app = createApp();
 
   // ローカル開発モードの場合、ログに表示
