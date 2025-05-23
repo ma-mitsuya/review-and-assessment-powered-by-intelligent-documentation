@@ -205,10 +205,11 @@ export default function ReviewResultItem({
           
           {/* 信頼度スコアと上書きボタン - 3列目 */}
           <div className="flex flex-col items-end space-y-2 self-start">
-            {renderConfidenceScore()}
+            {/* 子項目でない場合のみ信頼度スコアを表示 */}
+            {!hasChildren && renderConfidenceScore()}
             
-            {/* 結果が確定している場合のみ上書きボタンを表示 */}
-            {result.status === REVIEW_RESULT_STATUS.COMPLETED && (
+            {/* 子項目でない場合かつ結果が確定している場合のみ上書きボタンを表示 */}
+            {!hasChildren && result.status === REVIEW_RESULT_STATUS.COMPLETED && (
               <Button
                 onClick={() => setIsModalOpen(true)}
                 variant="secondary"
