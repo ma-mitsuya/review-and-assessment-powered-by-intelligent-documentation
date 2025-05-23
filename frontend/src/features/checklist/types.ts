@@ -92,10 +92,16 @@ export type DeleteChecklistDocumentResponse = ApiResponse<{
 
 /**
  * Response type for getting checklist set detail
- * GET /checklist-sets/:setId/items/hierarchy
+ * GET /checklist-sets/:setId
  */
-export type GetChecklistSetDetailResponse = ApiResponse<{
-  detail: CheckListItemDetail[];
+export type GetChecklistSetResponse = ApiResponse<CheckListSetDetailModel>;
+
+/**
+ * Response type for getting checklist items
+ * GET /checklist-sets/:setId/items
+ */
+export type GetChecklistItemsResponse = ApiResponse<{
+  items: CheckListItemDetail[];
 }>;
 
 /**
@@ -172,6 +178,16 @@ export interface ChecklistDocumentEntity {
  * Checklist set entity model
  */
 export interface CheckListSetEntity {
+  id: string;
+  name: string;
+  description: string;
+  documents: ChecklistDocumentEntity[];
+}
+
+/**
+ * Checklist set detail model
+ */
+export interface CheckListSetDetailModel {
   id: string;
   name: string;
   description: string;

@@ -2,18 +2,18 @@ import { useApiClient } from "../../../hooks/useApiClient";
 import type {
   CheckListItemEntity,
   CheckListItemDetail,
-  GetChecklistSetDetailResponse,
+  GetChecklistItemsResponse,
   GetChecklistItemResponse,
 } from "../types";
 
 // 階層構造取得キー
-export const getCheckListItemsKey = (
+export const getChecklistItemsKey = (
   setId: string | null,
   parentId?: string,
   includeAllChildren?: boolean
 ) => {
   if (!setId) return null;
-  const base = `/checklist-sets/${setId}/items/hierarchy`;
+  const base = `/checklist-sets/${setId}/items`;
   const params = new URLSearchParams();
   if (parentId) params.append("parentId", parentId);
   if (includeAllChildren) params.append("includeAllChildren", "true");
@@ -22,7 +22,7 @@ export const getCheckListItemsKey = (
 };
 
 // 個別アイテム取得キー
-export const getCheckListItemKey = (
+export const getChecklistItemKey = (
   setId: string | null,
   itemId: string | null
 ) => (setId && itemId ? `/checklist-sets/${setId}/items/${itemId}` : null);
@@ -30,17 +30,17 @@ export const getCheckListItemKey = (
 /**
  * チェックリスト項目（階層構造）の取得
  */
-export function useCheckListItems(
+export function useChecklistItems(
   setId: string | null,
   parentId?: string,
   includeAllChildren?: boolean
 ) {
-  const url = getCheckListItemsKey(setId, parentId, includeAllChildren);
+  const url = getChecklistItemsKey(setId, parentId, includeAllChildren);
   const { data, isLoading, error, refetch } =
-    useApiClient().useQuery<GetChecklistSetDetailResponse>(url);
+    useApiClient().useQuery<GetChecklistItemsResponse>(url);
 
   return {
-    items: data?.detail ?? ([] as CheckListItemDetail[]),
+    items: data?.items ?? ([] as CheckListItemDetail[]),
     isLoading,
     error,
     refetch,
@@ -50,8 +50,8 @@ export function useCheckListItems(
 /**
  * チェックリスト項目（単一）の取得
  */
-export function useCheckListItem(setId: string | null, itemId: string | null) {
-  const url = getCheckListItemKey(setId, itemId);
+export function useChecklistItem(setId: string | null, itemId: string | null) {
+  const url = getChecklistItemKey(setId, itemId);
   const { data, isLoading, error } =
     useApiClient().useQuery<GetChecklistItemResponse>(url);
 

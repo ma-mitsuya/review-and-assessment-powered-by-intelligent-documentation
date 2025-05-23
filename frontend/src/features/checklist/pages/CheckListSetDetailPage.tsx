@@ -15,7 +15,7 @@ export function CheckListSetDetailPage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const {
-    items: checkItems,
+    checklistSet,
     isLoading,
     error,
     refetch,
@@ -97,32 +97,42 @@ export function CheckListSetDetailPage() {
             チェックリスト一覧に戻る
           </Link>
           <h1 className="text-3xl font-bold text-aws-squid-ink-light">
-            チェックリスト #{id}
+            {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
           </h1>
-          <p className="text-aws-font-color-gray mt-2">
-            チェックリスト項目:{" "}
-            {Array.isArray(checkItems) ? checkItems.length : 0}件
-          </p>
+          {checklistSet && checklistSet.description && (
+            <p className="text-aws-font-color-gray mt-1">{checklistSet.description}</p>
+          )}
+          
+          {/* ドキュメント情報を表示 */}
+          {checklistSet && checklistSet.documents && checklistSet.documents.length > 0 && (
+            <div className="mt-2">
+              <p className="text-aws-font-color-gray">
+                ドキュメント: {checklistSet.documents[0].filename}
+              </p>
+            </div>
+          )}
         </div>
         <div className="flex space-x-3">
-          <button
-            onClick={handleDelete}
-            className="bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          {checklistSet && checklistSet.isEditable && (
+            <button
+              onClick={handleDelete}
+              className="bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
             >
-              <path
-                fillRule="evenodd"
-                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            削除
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              削除
+            </button>
+          )}
         </div>
       </div>
 
@@ -180,26 +190,28 @@ export function CheckListSetDetailPage() {
           <CheckListItemTree setId={id} />
         )}
 
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+        {checklistSet && checklistSet.isEditable && (
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            チェック項目を追加
-          </button>
-        </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              チェック項目を追加
+            </button>
+          </div>
+        )}
       </div>
 
       {isAddModalOpen && (
@@ -207,7 +219,7 @@ export function CheckListSetDetailPage() {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           checkListSetId={id || ""}
-          checkItems={checkItems || []}
+          checkItems={[]} // CheckListItemTreeコンポーネントが独自に項目を取得するため空配列を渡す
           onSuccess={() => {
             // 追加成功時にデータを再取得
             if (id) {

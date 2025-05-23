@@ -4,7 +4,8 @@ import {
   removeChecklistSet,
   getAllChecklistSets,
   getCheckListDocumentPresignedUrl,
-  getChecklistSetDetail,
+  getChecklistItems,
+  getChecklistSetById,
 } from "../usecase/checklist-set";
 import { deleteS3Object } from "../../../core/s3";
 import {
@@ -129,7 +130,7 @@ export const deleteChecklistDocumentHandler = async (
   });
 };
 
-export async function getChecklistSetDetailHandler(
+export async function getChecklistItemsHandler(
   request: FastifyRequest<{
     Params: { setId: string };
     Querystring: { parentId?: string; includeAllChildren?: string };
@@ -139,7 +140,7 @@ export async function getChecklistSetDetailHandler(
   const { setId } = request.params;
   const { parentId, includeAllChildren } = request.query;
   
-  const detail = await getChecklistSetDetail({
+  const items = await getChecklistItems({
     checkListSetId: setId,
     parentId: parentId,
     includeAllChildren: includeAllChildren === 'true',
@@ -148,10 +149,26 @@ export async function getChecklistSetDetailHandler(
   reply.code(200).send({
     success: true,
     data: {
-      detail,
+      items,
     },
   });
 }
+
+export const getChecklistSetByIdHandler = async (
+  request: FastifyRequest<{ Params: { setId: string } }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { setId } = request.params;
+  
+  const detail = await getChecklistSetById({
+    checkListSetId: setId,
+  });
+
+  reply.code(200).send({
+    success: true,
+    data: detail,
+  });
+};
 
 export const getChecklistItemHandler = async (
   request: FastifyRequest<{ Params: { setId: string; itemId: string } }>,

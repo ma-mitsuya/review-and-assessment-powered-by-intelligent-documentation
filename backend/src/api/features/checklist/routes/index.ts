@@ -10,7 +10,8 @@ import {
   deleteChecklistSetHandler,
   getChecklistItemHandler,
   getChecklistPresignedUrlHandler,
-  getChecklistSetDetailHandler,
+  getChecklistItemsHandler,
+  getChecklistSetByIdHandler,
   updateChecklistItemHandler,
   getAllChecklistSetsHandler,
 } from "./handlers";
@@ -23,6 +24,11 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
   // チェックリストセット一覧取得エンドポイント
   fastify.get("/checklist-sets", {
     handler: getAllChecklistSetsHandler,
+  });
+
+  // チェックリストセット詳細取得エンドポイント
+  fastify.get("/checklist-sets/:setId", {
+    handler: getChecklistSetByIdHandler,
   });
 
   // チェックリストセット作成エンドポイント
@@ -42,9 +48,9 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
   // チェックリストドキュメント削除エンドポイント
   fastify.delete("/documents/checklist/:key", deleteChecklistDocumentHandler);
 
-  // チェックリスト詳細（階層構造）取得エンドポイント
-  fastify.get("/checklist-sets/:setId/items/hierarchy", {
-    handler: getChecklistSetDetailHandler,
+  // チェックリスト項目一覧取得エンドポイント
+  fastify.get("/checklist-sets/:setId/items", {
+    handler: getChecklistItemsHandler,
   });
 
   // チェックリスト項目詳細取得エンドポイント

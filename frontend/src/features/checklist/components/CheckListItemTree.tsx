@@ -1,7 +1,7 @@
 /**
  * チェックリスト項目の階層構造を表示するツリーコンポーネント
  */
-import { useCheckListItems } from '../hooks/useCheckListItemQueries';
+import { useChecklistItems } from '../hooks/useCheckListItemQueries';
 import CheckListItemTreeNode from './CheckListItemTreeNode';
 import { TreeSkeleton } from '../../../components/Skeleton';
 
@@ -16,7 +16,7 @@ export default function CheckListItemTree({ setId, maxDepth = 2 }: CheckListItem
     items: rootItems, 
     isLoading: isLoadingRoot,
     error: errorRoot
-  } = useCheckListItems(setId || null);
+  } = useChecklistItems(setId || null);
   
   if (isLoadingRoot) {
     return <TreeSkeleton nodes={3} />;

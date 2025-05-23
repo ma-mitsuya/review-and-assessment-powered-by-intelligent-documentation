@@ -1,8 +1,10 @@
 import { useApiClient } from "../../../hooks/useApiClient";
 import type {
   GetAllChecklistSetsResponse,
-  GetChecklistSetDetailResponse,
+  GetChecklistSetResponse,
+  GetChecklistItemsResponse,
   CheckListItemDetail,
+  CheckListSetDetailModel,
 } from "../types";
 
 export const getChecklistSetsKey = (
@@ -20,8 +22,11 @@ export const getChecklistSetsKey = (
   return `/checklist-sets?${params.toString()}`;
 };
 
-export const getChecklistSetDetailKey = (setId: string | null) =>
-  setId ? `/checklist-sets/${setId}/items/hierarchy` : null;
+export const getChecklistSetKey = (setId: string | null) =>
+  setId ? `/checklist-sets/${setId}` : null;
+
+export const getChecklistItemsKey = (setId: string | null) =>
+  setId ? `/checklist-sets/${setId}/items` : null;
 
 export function useChecklistSets(
   page = 1,
@@ -47,20 +52,18 @@ export function useChecklistSets(
   };
 }
 
+/**
+ * チェックリストセットの詳細情報を取得するカスタムフック
+ */
 export function useChecklistSetDetail(setId: string | null) {
-  const url = getChecklistSetDetailKey(setId);
+  const url = getChecklistSetKey(setId);
   const { data, isLoading, error, refetch } =
-    useApiClient().useQuery<GetChecklistSetDetailResponse>(url);
+    useApiClient().useQuery<GetChecklistSetResponse>(url);
 
   return {
-    items: data?.detail ?? [],
+    checklistSet: data || null,
     isLoading,
     error,
     refetch,
-  } as {
-    items: CheckListItemDetail[];
-    isLoading: boolean;
-    error: Error | null;
-    refetch: () => void;
   };
 }

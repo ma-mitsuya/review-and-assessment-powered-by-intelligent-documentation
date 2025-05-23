@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { CheckListItemDetail } from '../types';
-import { useCheckListItems } from '../hooks/useCheckListItemQueries';
+import { useChecklistItems } from '../hooks/useCheckListItemQueries';
 import { HiChevronDown, HiChevronRight, HiPencil, HiTrash } from "react-icons/hi";
 import CheckListItemEditModal from './CheckListItemEditModal';
 import { useDeleteCheckListItem } from '../hooks/useCheckListItemMutations';
@@ -43,7 +43,7 @@ export default function CheckListItemTreeNode({
     items: childItems, 
     isLoading: isLoadingChildren,
     error: errorChildren
-  } = useCheckListItems(
+  } = useChecklistItems(
     setId || null,
     shouldLoadChildren ? item.id : undefined
   );

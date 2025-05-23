@@ -24,6 +24,15 @@ export interface CheckListSetSummary {
   isEditable: boolean;
 }
 
+// 詳細取得用
+export interface CheckListSetDetailModel {
+  id: string;
+  name: string;
+  description: string;
+  documents: ChecklistDocumentEntity[];
+  isEditable: boolean;
+}
+
 export interface ChecklistDocumentEntity {
   id: string;
   filename: string;

@@ -11,17 +11,19 @@ import {
   CheckListSetSummary,
   CheckListSetEntity,
   CheckListStatus,
+  CheckListSetDetailModel,
 } from "./model/checklist";
 
 export interface CheckRepository {
   storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
   findAllCheckListSets(): Promise<CheckListSetSummary[]>;
-  findCheckListSetById(
+  findCheckListItems(
     setId: string,
     parentId?: string,
     includeAllChildren?: boolean
   ): Promise<CheckListItemDetail[]>;
+  findCheckListSetDetailById(setId: string): Promise<CheckListSetDetailModel>;
   storeCheckListItem(params: { item: CheckListItemEntity }): Promise<void>;
   bulkStoreCheckListItems(params: {
     items: CheckListItemEntity[];
@@ -118,13 +120,13 @@ export const makePrismaCheckRepository = (
     });
   };
 
-  const findCheckListSetById = async (
+  const findCheckListItems = async (
     setId: string,
     parentId?: string,
     includeAllChildren?: boolean
   ): Promise<CheckListItemDetail[]> => {
     console.log(
-      `[Repository] findCheckListSetById - setId: ${setId}, parentId: ${
+      `[Repository] findCheckListItems - setId: ${setId}, parentId: ${
         parentId || "null"
       }, includeAllChildren: ${includeAllChildren}`
     );
@@ -205,6 +207,39 @@ export const makePrismaCheckRepository = (
     );
 
     return mappedItems;
+  };
+
+  const findCheckListSetDetailById = async (
+    setId: string
+  ): Promise<CheckListSetDetailModel> => {
+    const checkListSet = await client.checkListSet.findUnique({
+      where: { id: setId },
+      include: {
+        documents: true,
+      },
+    });
+
+    if (!checkListSet) {
+      throw new NotFoundError("CheckListSet not found", setId);
+    }
+
+    // チェックリストセットが編集可能かどうかを確認
+    const isEditable = await checkSetEditable({ setId });
+
+    return {
+      id: checkListSet.id,
+      name: checkListSet.name,
+      description: checkListSet.description ?? "",
+      documents: checkListSet.documents.map(doc => ({
+        id: doc.id,
+        filename: doc.filename,
+        s3Key: doc.s3Path,
+        fileType: doc.fileType,
+        uploadDate: doc.uploadDate,
+        status: doc.status as CheckListStatus,
+      })),
+      isEditable,
+    };
   };
 
   const storeCheckListItem = async (params: {
@@ -300,6 +335,7 @@ export const makePrismaCheckRepository = (
   }): Promise<void> => {
     const { newItem } = params;
     const { id, name, description } = newItem;
+
     await client.checkList.update({
       where: { id },
       data: {
@@ -313,6 +349,18 @@ export const makePrismaCheckRepository = (
     itemId: string;
   }): Promise<void> => {
     const { itemId } = params;
+
+    // 子アイテムを再帰的に削除
+    const childItems = await client.checkList.findMany({
+      where: { parentId: itemId },
+      select: { id: true },
+    });
+
+    for (const child of childItems) {
+      await deleteCheckListItemById({ itemId: child.id });
+    }
+
+    // 自身を削除
     await client.checkList.delete({
       where: { id: itemId },
     });
@@ -322,21 +370,18 @@ export const makePrismaCheckRepository = (
     setId: string;
   }): Promise<boolean> => {
     const { setId } = params;
-    const set = await client.checkListSet.findUnique({
-      where: { id: setId },
-      select: { reviewJobs: { select: { id: true } } },
+    const count = await client.reviewJob.count({
+      where: { checkListSetId: setId },
     });
-    if (!set) {
-      throw new NotFoundError("Set not found", setId);
-    }
-    return set.reviewJobs.length === 0;
+    return count === 0;
   };
 
   return {
     storeCheckListSet,
     deleteCheckListSetById,
     findAllCheckListSets,
-    findCheckListSetById,
+    findCheckListItems,
+    findCheckListSetDetailById,
     storeCheckListItem,
     bulkStoreCheckListItems,
     updateDocumentStatus,

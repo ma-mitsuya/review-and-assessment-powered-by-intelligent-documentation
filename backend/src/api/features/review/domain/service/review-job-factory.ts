@@ -20,7 +20,7 @@ export const createInitialReviewJobModel = async (params: {
   const { req, deps } = params;
   const { checkRepo } = deps;
 
-  const checkListSet = await checkRepo.findCheckListSetById(
+  const checkListSet = await checkRepo.findCheckListItems(
     req.checkListSetId,
     undefined,
     false

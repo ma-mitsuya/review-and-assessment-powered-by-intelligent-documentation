@@ -8,6 +8,7 @@ import {
   CheckListItemEntity,
   CheckListItemDetail,
   CheckListSetSummary,
+  CheckListSetDetailModel,
 } from "../domain/model/checklist";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
@@ -92,7 +93,7 @@ export const getCheckListDocumentPresignedUrl = async (params: {
   return { url, key, documentId };
 };
 
-export const getChecklistSetDetail = async (params: {
+export const getChecklistItems = async (params: {
   checkListSetId: string;
   parentId?: string;
   includeAllChildren?: boolean;
@@ -103,10 +104,22 @@ export const getChecklistSetDetail = async (params: {
   const repo = params.deps?.repo || makePrismaCheckRepository();
 
   const { checkListSetId, parentId, includeAllChildren } = params;
-  const checkListItems = await repo.findCheckListSetById(
+  const checkListItems = await repo.findCheckListItems(
     checkListSetId,
     parentId,
     includeAllChildren
   );
   return checkListItems;
+};
+
+export const getChecklistSetById = async (params: {
+  checkListSetId: string;
+  deps?: {
+    repo?: CheckRepository;
+  };
+}): Promise<CheckListSetDetailModel> => {
+  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const { checkListSetId } = params;
+  const checkListSet = await repo.findCheckListSetDetailById(checkListSetId);
+  return checkListSet;
 };
