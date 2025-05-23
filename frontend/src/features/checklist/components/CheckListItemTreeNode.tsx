@@ -9,6 +9,7 @@ import { HiChevronDown, HiChevronRight, HiPencil, HiTrash } from "react-icons/hi
 import CheckListItemEditModal from './CheckListItemEditModal';
 import { useDeleteCheckListItem } from '../hooks/useCheckListItemMutations';
 import Spinner from '../../../components/Spinner';
+import { useChecklistSetDetail } from '../hooks/useCheckListSetQueries';
 
 interface CheckListItemTreeNodeProps {
   setId: string;
@@ -32,6 +33,10 @@ export default function CheckListItemTreeNode({
     status: delStatus,
     error: delError,
   } = useDeleteCheckListItem(item.setId);
+  
+  // チェックリストセットの詳細情報を取得
+  const { checklistSet } = useChecklistSetDetail(setId || null);
+  const isEditable = checklistSet?.isEditable ?? true;
   
   console.log(`[Frontend] CheckListItemTreeNode - setId: ${setId}, itemId: ${item.id}, level: ${level}, hasChildren: ${item.hasChildren}`);
   
@@ -62,6 +67,7 @@ export default function CheckListItemTreeNode({
   };
 
   const handleDelete = async () => {
+    if (!isEditable) return;
     if (!confirm(`「${item.name}」を本当に削除しますか？`)) return;
     try {
       await deleteCheckListItem(item.id);
@@ -100,16 +106,18 @@ export default function CheckListItemTreeNode({
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="text-aws-aqua hover:text-aws-sea-blue-light"
+              onClick={() => isEditable && setIsEditModalOpen(true)}
+              className={`${isEditable ? "text-aws-aqua hover:text-aws-sea-blue-light" : "text-gray-300 cursor-not-allowed"}`}
               aria-label="編集"
+              disabled={!isEditable}
             >
               <HiPencil className="h-5 w-5" />
             </button>
             <button
               onClick={handleDelete}
-              className="text-red hover:text-light-red hover:bg-light-red rounded p-1 disabled:opacity-50 transition-colors"
+              className={`${isEditable ? "text-red hover:text-light-red hover:bg-light-red" : "text-gray-300 cursor-not-allowed"} rounded p-1 transition-colors`}
               aria-label="削除"
+              disabled={!isEditable}
             >
               <HiTrash className="h-5 w-5" />
             </button>

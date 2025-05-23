@@ -6,6 +6,7 @@ import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
+import { HiLockClosed } from "react-icons/hi";
 
 /**
  * チェックリストセット詳細ページ
@@ -96,8 +97,13 @@ export function CheckListSetDetailPage() {
             </svg>
             チェックリスト一覧に戻る
           </Link>
-          <h1 className="text-3xl font-bold text-aws-squid-ink-light">
+          <h1 className="text-3xl font-bold text-aws-squid-ink-light flex items-center">
             {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
+            {checklistSet && !checklistSet.isEditable && (
+              <div className="ml-2 text-gray-500" title="このチェックリストは編集できません">
+                <HiLockClosed className="h-5 w-5" />
+              </div>
+            )}
           </h1>
           {checklistSet && checklistSet.description && (
             <p className="text-aws-font-color-gray mt-1">{checklistSet.description}</p>
@@ -190,11 +196,12 @@ export function CheckListSetDetailPage() {
           <CheckListItemTree setId={id} />
         )}
 
-        {checklistSet && checklistSet.isEditable && (
+        {checklistSet && (
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
+              className={`bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm ${!checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={!checklistSet.isEditable}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -5,6 +5,7 @@ import {
   HiTrash,
   HiExclamationCircle,
   HiInformationCircle,
+  HiLockClosed,
 } from "react-icons/hi";
 import { CheckListStatus } from "../types";
 
@@ -171,12 +172,12 @@ export default function CheckListSetList({
                     <div className="text-sm font-medium text-aws-squid-ink-light">
                       {set.name}
                     </div>
-                    {/* 編集不可の場合に警告アイコンを表示 */}
+                    {/* 編集不可の場合に鍵アイコンを表示 */}
                     {set.isEditable === false && (
-                      <div className="ml-2 text-amber-500">
-                        <HiExclamationCircle
+                      <div className="ml-2 text-gray-500">
+                        <HiLockClosed
                           className="h-5 w-5"
-                          title="審査に使用中"
+                          title="編集不可"
                         />
                       </div>
                     )}
