@@ -25,3 +25,8 @@
 
 - 実装の際は必ず frontend/src/components に下にあるコンポーネントの利用を試みよ
   - e.g. ボタンを利用する場合など。なお不足の場合は継承したボタンを各 features/components 下に作成せよ
+  - 特に<button>タグの乱用が見受けられます。必ず component を利用せよ
+
+## アイコン
+
+- SVG は利用禁止、必ず react-icons 利用せよ
