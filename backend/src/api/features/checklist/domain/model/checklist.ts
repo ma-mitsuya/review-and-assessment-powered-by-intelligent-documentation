@@ -76,13 +76,14 @@ export const CheckListSetDomain = {
 export const CheckListItemDomain = {
   fromCreateRequest: (req: CreateChecklistItemRequest): CheckListItemEntity => {
     const { Body } = req;
-    const { name, description } = Body;
+    const { name, description, parentId } = Body;
 
     return {
       id: ulid(),
       setId: req.Params.setId,
       name,
       description: description || "",
+      parentId: parentId || undefined,
     };
   },
 

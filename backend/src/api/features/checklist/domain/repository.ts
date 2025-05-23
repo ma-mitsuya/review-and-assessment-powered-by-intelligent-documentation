@@ -298,7 +298,7 @@ export const makePrismaCheckRepository = (
     item: CheckListItemEntity;
   }): Promise<void> => {
     const { item } = params;
-    const { id, name, description, setId } = item;
+    const { id, name, description, setId, parentId } = item;
 
     await client.checkList.create({
       data: {
@@ -306,6 +306,7 @@ export const makePrismaCheckRepository = (
         name,
         description,
         checkListSetId: setId,
+        parentId: parentId,
       },
     });
   };
