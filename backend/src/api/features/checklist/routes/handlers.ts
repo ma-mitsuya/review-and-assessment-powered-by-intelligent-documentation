@@ -14,6 +14,7 @@ import {
   modifyCheckListItem,
   removeCheckListItem,
 } from "../usecase/checklist-item";
+import { CheckListStatus } from "../domain/model/checklist";
 
 interface Document {
   documentId: string;
@@ -69,10 +70,13 @@ export const deleteChecklistSetHandler = async (
  * チェックリストセット一覧取得ハンドラー
  */
 export const getAllChecklistSetsHandler = async (
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: { status?: CheckListStatus } }>,
   reply: FastifyReply
 ): Promise<void> => {
-  const checkLists = await getAllChecklistSets({});
+  const { status } = request.query;
+
+  const checkLists = await getAllChecklistSets({ status });
+
   reply.code(200).send({
     success: true,
     data: {
@@ -139,11 +143,11 @@ export async function getChecklistItemsHandler(
 ): Promise<void> {
   const { setId } = request.params;
   const { parentId, includeAllChildren } = request.query;
-  
+
   const items = await getChecklistItems({
     checkListSetId: setId,
     parentId: parentId,
-    includeAllChildren: includeAllChildren === 'true',
+    includeAllChildren: includeAllChildren === "true",
   });
 
   reply.code(200).send({
@@ -159,7 +163,7 @@ export const getChecklistSetByIdHandler = async (
   reply: FastifyReply
 ): Promise<void> => {
   const { setId } = request.params;
-  
+
   const detail = await getChecklistSetById({
     checkListSetId: setId,
   });

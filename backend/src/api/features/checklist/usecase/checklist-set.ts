@@ -9,6 +9,7 @@ import {
   CheckListItemDetail,
   CheckListSetSummary,
   CheckListSetDetailModel,
+  CheckListStatus,
 } from "../domain/model/checklist";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
@@ -67,13 +68,14 @@ export const removeChecklistSet = async (params: {
 };
 
 export const getAllChecklistSets = async (params: {
+  status?: CheckListStatus;
   deps?: {
     repo?: CheckRepository;
   };
 }): Promise<CheckListSetSummary[]> => {
   const repo = params.deps?.repo || makePrismaCheckRepository();
 
-  const checkListSets = await repo.findAllCheckListSets();
+  const checkListSets = await repo.findAllCheckListSets(params.status);
   return checkListSets;
 };
 

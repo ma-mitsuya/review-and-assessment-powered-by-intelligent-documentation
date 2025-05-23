@@ -17,7 +17,9 @@ import {
 export interface CheckRepository {
   storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
-  findAllCheckListSets(): Promise<CheckListSetSummary[]>;
+  findAllCheckListSets(
+    status?: CheckListStatus
+  ): Promise<CheckListSetSummary[]>;
   findCheckListItems(
     setId: string,
     parentId?: string,
@@ -81,8 +83,49 @@ export const makePrismaCheckRepository = (
     });
   };
 
-  const findAllCheckListSets = async (): Promise<CheckListSetSummary[]> => {
+  const findAllCheckListSets = async (
+    status?: CheckListStatus
+  ): Promise<CheckListSetSummary[]> => {
+    // ステータスフィルタリングのためのサブクエリを準備
+    let whereCondition = {};
+
+    console.log(
+      `[Repository] findAllCheckListSets - requested status: ${status || "all"}`
+    );
+
+    // ステータスに基づいてフィルタリング条件を設定
+    if (status) {
+      switch (status) {
+        case "completed":
+          whereCondition = {
+            documents: {
+              some: {}, // ドキュメントが1つ以上存在するセットを取得
+              every: { status: "completed" },
+            },
+          };
+          console.log("[Repository] Using completed filter condition");
+          break;
+        case "processing":
+          whereCondition = {
+            documents: {
+              some: { status: "processing" },
+            },
+          };
+          console.log("[Repository] Using processing filter condition");
+          break;
+        case "pending":
+          whereCondition = {
+            documents: {
+              none: { status: "processing" },
+            },
+          };
+          console.log("[Repository] Using pending filter condition");
+          break;
+      }
+    }
+
     const sets = await client.checkListSet.findMany({
+      where: whereCondition,
       select: {
         id: true,
         name: true,
@@ -96,7 +139,7 @@ export const makePrismaCheckRepository = (
       orderBy: { id: "desc" },
     });
 
-    return sets.map((s) => {
+    const mappedSets = sets.map((s) => {
       const statuses = s.documents.map((d) => d.status as CheckListStatus);
 
       let processingStatus: CheckListStatus;
@@ -118,6 +161,8 @@ export const makePrismaCheckRepository = (
         isEditable: s._count.reviewJobs === 0,
       };
     });
+
+    return mappedSets;
   };
 
   const findCheckListItems = async (
@@ -135,13 +180,16 @@ export const makePrismaCheckRepository = (
     const whereCondition: any = {
       checkListSetId: setId,
     };
-    
+
     // includeAllChildrenがfalseの場合のみ、parentIdの条件を適用
     if (!includeAllChildren) {
       whereCondition.parentId = parentId || null;
     }
 
-    console.log(`[Repository] Query condition:`, JSON.stringify(whereCondition, null, 2));
+    console.log(
+      `[Repository] Query condition:`,
+      JSON.stringify(whereCondition, null, 2)
+    );
 
     // チェックリスト項目を取得
     const items = await client.checkList.findMany({
@@ -187,7 +235,10 @@ export const makePrismaCheckRepository = (
       childItems.map((child) => child.parentId)
     );
 
-    console.log(`[Repository] Parents with children:`, Array.from(parentsWithChildren));
+    console.log(
+      `[Repository] Parents with children:`,
+      Array.from(parentsWithChildren)
+    );
 
     // 結果を新しいモデル形式に変換して返す
     const mappedItems = items.map((item) => ({
@@ -199,10 +250,11 @@ export const makePrismaCheckRepository = (
       hasChildren: parentsWithChildren.has(item.id),
     }));
 
-    console.log(`[Repository] Final items with hasChildren:`, 
-      mappedItems.map(i => ({ 
-        id: i.id, 
-        hasChildren: i.hasChildren 
+    console.log(
+      `[Repository] Final items with hasChildren:`,
+      mappedItems.map((i) => ({
+        id: i.id,
+        hasChildren: i.hasChildren,
       }))
     );
 
@@ -230,7 +282,7 @@ export const makePrismaCheckRepository = (
       id: checkListSet.id,
       name: checkListSet.name,
       description: checkListSet.description ?? "",
-      documents: checkListSet.documents.map(doc => ({
+      documents: checkListSet.documents.map((doc) => ({
         id: doc.id,
         filename: doc.filename,
         s3Key: doc.s3Path,

@@ -26,12 +26,12 @@ export const CreateReviewPage: React.FC = () => {
     files: "",
   });
 
-  // チェックリストセット一覧を取得
+  // チェックリストセット一覧を取得（completedステータスのみ）
   const {
     items: checkListSets,
     isLoading: isLoadingCheckListSets,
     error: checkListSetsError,
-  } = useChecklistSets();
+  } = useChecklistSets(undefined, undefined, "completed");
 
   // 審査ジョブ作成フック
   const { createReviewJob, status, error: createError } = useCreateReviewJob();
