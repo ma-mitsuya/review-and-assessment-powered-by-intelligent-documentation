@@ -6,7 +6,9 @@ import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
-import { HiLockClosed } from "react-icons/hi";
+import { HiLockClosed, HiPlus, HiTrash } from "react-icons/hi";
+import Button from "../../../components/Button";
+import Breadcrumb from "../../../components/Breadcrumb";
 
 /**
  * チェックリストセット詳細ページ
@@ -79,24 +81,7 @@ export function CheckListSetDetailPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Link
-            to="/checklist"
-            className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center mb-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            チェックリスト一覧に戻る
-          </Link>
+          <Breadcrumb to="/checklist" label="チェックリスト一覧に戻る" />
           <h1 className="text-3xl font-bold text-aws-squid-ink-light flex items-center">
             {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
             {checklistSet && !checklistSet.isEditable && (
@@ -120,24 +105,13 @@ export function CheckListSetDetailPage() {
         </div>
         <div className="flex space-x-3">
           {checklistSet && checklistSet.isEditable && (
-            <button
+            <Button
+              variant="danger"
               onClick={handleDelete}
-              className="bg-red hover:bg-red-dark text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm"
+              icon={<HiTrash className="h-5 w-5" />}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
               削除
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -198,25 +172,15 @@ export function CheckListSetDetailPage() {
 
         {checklistSet && (
           <div className="mt-6 flex justify-end">
-            <button
+            <Button
+              variant="primary"
+              icon={<HiPlus className="h-5 w-5" />}
               onClick={() => setIsAddModalOpen(true)}
-              className={`bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm ${!checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""}`}
               disabled={!checklistSet.isEditable}
+              className={!checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              チェック項目を追加
-            </button>
+              ルート項目を追加
+            </Button>
           </div>
         )}
       </div>
@@ -226,7 +190,7 @@ export function CheckListSetDetailPage() {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           checkListSetId={id || ""}
-          checkItems={[]} // CheckListItemTreeコンポーネントが独自に項目を取得するため空配列を渡す
+          parentId="" // 明示的に空文字を指定してルート項目として追加
           onSuccess={() => {
             // 追加成功時にデータを再取得
             if (id) {

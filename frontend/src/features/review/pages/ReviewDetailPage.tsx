@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
@@ -9,6 +9,7 @@ import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
 import { REVIEW_JOB_STATUS } from "../types";
+import Breadcrumb from "../../../components/Breadcrumb";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,9 +55,7 @@ export default function ReviewDetailPage() {
           }}
         />
         <div className="mt-4">
-          <Button onClick={handleBack} variant="secondary">
-            審査一覧に戻る
-          </Button>
+          <Breadcrumb to="/review" label="審査一覧に戻る" />
         </div>
       </div>
     );
@@ -72,9 +71,7 @@ export default function ReviewDetailPage() {
           retry={() => refetchJob()}
         />
         <div className="mt-4">
-          <Button onClick={handleBack} variant="secondary">
-            審査一覧に戻る
-          </Button>
+          <Breadcrumb to="/review" label="審査一覧に戻る" />
         </div>
       </div>
     );
@@ -85,6 +82,7 @@ export default function ReviewDetailPage() {
       {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
         <div>
+          <Breadcrumb to="/review" label="審査一覧に戻る" />
           <h1 className="text-2xl font-bold text-aws-squid-ink-light">
             {job.name}
           </h1>
@@ -123,9 +121,6 @@ export default function ReviewDetailPage() {
             </p>
           )}
         </div>
-        <Button onClick={handleBack} variant="secondary">
-          審査一覧に戻る
-        </Button>
       </div>
 
       {/* 審査結果 */}
