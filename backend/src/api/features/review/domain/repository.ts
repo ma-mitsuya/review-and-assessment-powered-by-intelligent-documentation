@@ -422,6 +422,7 @@ export const makePrismaReviewResultRepository = (
       confidenceScore: result.confidenceScore || undefined,
       explanation: result.explanation || undefined,
       extractedText: result.extractedText || undefined,
+      userComment: result.userComment || undefined,
       userOverride: result.userOverride,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
@@ -458,6 +459,7 @@ export const makePrismaReviewResultRepository = (
         explanation: newResult.explanation,
         extractedText: newResult.extractedText,
         userOverride: newResult.userOverride,
+        userComment: newResult.userComment,
         updatedAt: newResult.updatedAt,
       },
     });
@@ -479,6 +481,7 @@ export const makePrismaReviewResultRepository = (
             explanation: result.explanation,
             extractedText: result.extractedText,
             userOverride: result.userOverride,
+            userComment: result.userComment,
             updatedAt: result.updatedAt,
           },
         });
