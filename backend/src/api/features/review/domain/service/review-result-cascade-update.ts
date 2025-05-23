@@ -18,6 +18,11 @@ export const updateCheckResultCascade = async (params: {
     deps: { reviewResultRepo },
   } = params;
 
+  // まず更新対象のノード自体を更新
+  await reviewResultRepo.updateResult({
+    newResult: updated,
+  });
+
   // 1) Fetch all review results for the given review job
   const all = await reviewResultRepo.findReviewResultsById({
     jobId: updated.reviewJobId,
