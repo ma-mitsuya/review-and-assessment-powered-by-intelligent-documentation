@@ -2,14 +2,22 @@
  * チェックリスト項目の階層構造のノードコンポーネント
  * 子要素を動的に読み込む機能を持つ
  */
-import { useState } from 'react';
-import { CheckListItemDetail } from '../types';
-import { useChecklistItems } from '../hooks/useCheckListItemQueries';
-import { HiChevronDown, HiChevronRight, HiPencil, HiTrash } from "react-icons/hi";
-import CheckListItemEditModal from './CheckListItemEditModal';
-import { useDeleteCheckListItem } from '../hooks/useCheckListItemMutations';
-import Spinner from '../../../components/Spinner';
-import { useChecklistSetDetail } from '../hooks/useCheckListSetQueries';
+import { useState } from "react";
+import { CheckListItemDetail } from "../types";
+import { useChecklistItems } from "../hooks/useCheckListItemQueries";
+import {
+  HiChevronDown,
+  HiChevronRight,
+  HiPencil,
+  HiTrash,
+  HiPlus,
+} from "react-icons/hi";
+import CheckListItemEditModal from "./CheckListItemEditModal";
+import CheckListItemAddModal from "./CheckListItemAddModal";
+import { useDeleteCheckListItem } from "../hooks/useCheckListItemMutations";
+import Spinner from "../../../components/Spinner";
+import { useChecklistSetDetail } from "../hooks/useCheckListSetQueries";
+import Button from "../../../components/Button";
 
 interface CheckListItemTreeNodeProps {
   setId: string;
@@ -19,48 +27,77 @@ interface CheckListItemTreeNodeProps {
   autoExpand?: boolean;
 }
 
-export default function CheckListItemTreeNode({ 
-  setId, 
-  item, 
-  level, 
+export default function CheckListItemTreeNode({
+  setId,
+  item,
+  level,
   maxDepth = 2,
-  autoExpand = false
+  autoExpand = false,
 }: CheckListItemTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < maxDepth || autoExpand);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // 新規追加: 子項目追加モーダルの状態
+  const [isAddChildModalOpen, setIsAddChildModalOpen] = useState(false);
+
   const {
     deleteCheckListItem,
     status: delStatus,
     error: delError,
   } = useDeleteCheckListItem(item.setId);
-  
+
   // チェックリストセットの詳細情報を取得
   const { checklistSet } = useChecklistSetDetail(setId || null);
   const isEditable = checklistSet?.isEditable ?? true;
-  
-  console.log(`[Frontend] CheckListItemTreeNode - setId: ${setId}, itemId: ${item.id}, level: ${level}, hasChildren: ${item.hasChildren}`);
-  
+
+  console.log(
+    `[Frontend] CheckListItemTreeNode - setId: ${setId}, itemId: ${item.id}, level: ${level}, hasChildren: ${item.hasChildren}`
+  );
+
   // 子項目を取得（レベルが最大深度未満の場合は自動的に、それ以外は展開時に）
-  const shouldLoadChildren = item.hasChildren && (level < maxDepth || isExpanded);
-  console.log(`[Frontend] shouldLoadChildren: ${shouldLoadChildren}, parentId: ${shouldLoadChildren ? item.id : 'undefined'}`);
-  
-  const { 
-    items: childItems, 
+  const shouldLoadChildren =
+    item.hasChildren && (level < maxDepth || isExpanded);
+  console.log(
+    `[Frontend] shouldLoadChildren: ${shouldLoadChildren}, parentId: ${
+      shouldLoadChildren ? item.id : "undefined"
+    }`
+  );
+
+  // 子項目を取得
+  const {
+    items: childItems,
     isLoading: isLoadingChildren,
-    error: errorChildren
+    error: errorChildren,
+    refetch: refetchChildren,
   } = useChecklistItems(
     setId || null,
     shouldLoadChildren ? item.id : undefined
   );
-  
-  console.log(`[Frontend] Child items loaded: ${childItems.length}, isLoading: ${isLoadingChildren}, error: ${errorChildren ? 'yes' : 'no'}`);
-  
+
+  // ルートレベルのアイテムを取得するためのフック
+  const { refetch: refetchRoot } = useChecklistItems(setId || null);
+
+  // 親レベルのアイテムを取得するためのフック（親IDがある場合のみ）
+  const { refetch: refetchParent } = useChecklistItems(
+    setId || null,
+    item.parentId
+  );
+
+  console.log(
+    `[Frontend] Child items loaded: ${
+      childItems.length
+    }, isLoading: ${isLoadingChildren}, error: ${errorChildren ? "yes" : "no"}`
+  );
+
   // 展開/折りたたみの切り替え
   const toggleExpand = () => {
-    console.log(`[Frontend] Toggling expand for ${item.id} from ${isExpanded} to ${!isExpanded}`);
+    console.log(
+      `[Frontend] Toggling expand for ${
+        item.id
+      } from ${isExpanded} to ${!isExpanded}`
+    );
     setIsExpanded(!isExpanded);
   };
-  
+
   // インデントのスタイル
   const indentStyle = {
     marginLeft: `${level * 20}px`,
@@ -71,11 +108,19 @@ export default function CheckListItemTreeNode({
     if (!confirm(`「${item.name}」を本当に削除しますか？`)) return;
     try {
       await deleteCheckListItem(item.id);
+      // 親コンポーネントのrefetchを実行するため、階層構造を考慮
+      if (level === 0) {
+        // ルートレベルの場合、全体をrefetch
+        refetchRoot();
+      } else {
+        // 親の子項目をrefetch
+        refetchParent();
+      }
     } catch {
       alert("削除に失敗しました。");
     }
   };
-  
+
   return (
     <div>
       <div style={indentStyle}>
@@ -105,26 +150,53 @@ export default function CheckListItemTreeNode({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button
+            {/* 子項目追加ボタン - Button コンポーネントを使用 */}
+            <Button
+              variant="text"
+              size="sm"
+              icon={<HiPlus className="h-5 w-5" />}
+              onClick={() => isEditable && setIsAddChildModalOpen(true)}
+              disabled={!isEditable}
+              title="子項目を追加"
+              aria-label="子項目を追加"
+              className={!isEditable ? "text-gray-300 cursor-not-allowed" : ""}
+            />
+
+            {/* 既存の編集ボタン - Button コンポーネントを使用 */}
+            <Button
+              variant="text"
+              size="sm"
+              icon={<HiPencil className="h-5 w-5" />}
               onClick={() => isEditable && setIsEditModalOpen(true)}
-              className={`${isEditable ? "text-aws-aqua hover:text-aws-sea-blue-light" : "text-gray-300 cursor-not-allowed"}`}
+              disabled={!isEditable}
+              title="編集"
               aria-label="編集"
-              disabled={!isEditable}
-            >
-              <HiPencil className="h-5 w-5" />
-            </button>
-            <button
+              className={
+                !isEditable
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-aws-aqua hover:text-aws-sea-blue-light"
+              }
+            />
+
+            {/* 既存の削除ボタン - Button コンポーネントを使用 */}
+            <Button
+              variant="text"
+              size="sm"
+              icon={<HiTrash className="h-5 w-5" />}
               onClick={handleDelete}
-              className={`${isEditable ? "text-red hover:text-light-red hover:bg-light-red" : "text-gray-300 cursor-not-allowed"} rounded p-1 transition-colors`}
-              aria-label="削除"
               disabled={!isEditable}
-            >
-              <HiTrash className="h-5 w-5" />
-            </button>
+              title="削除"
+              aria-label="削除"
+              className={
+                !isEditable
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-red hover:text-light-red hover:bg-light-red rounded p-1"
+              }
+            />
           </div>
         </div>
       </div>
-      
+
       {isEditModalOpen && (
         <CheckListItemEditModal
           isOpen={isEditModalOpen}
@@ -133,32 +205,61 @@ export default function CheckListItemTreeNode({
           checkListSetId={item.setId}
         />
       )}
-      
+
+      {/* 子項目追加モーダル */}
+      {isAddChildModalOpen && (
+        <CheckListItemAddModal
+          isOpen={isAddChildModalOpen}
+          onClose={() => setIsAddChildModalOpen(false)}
+          checkListSetId={setId}
+          parentId={item.id}
+          onSuccess={() => {
+            setIsExpanded(true); // 追加後に自動的に展開
+            console.log(
+              `[Frontend] Child item added, refetching parent and children for item ${item.id}`
+            );
+
+            console.log(`level: ${level}`);
+            if (level === 0) {
+              // ルートレベルの場合、全体をrefetch
+              refetchRoot();
+            } else {
+              // 親の子項目をrefetch
+              refetchParent();
+            }
+            refetchChildren(); // 子項目を再取得
+            setIsAddChildModalOpen(false);
+          }}
+        />
+      )}
+
       {/* 子項目を表示（展開時のみ） */}
       {isExpanded && item.hasChildren && (
         <div className="mt-2 space-y-2">
           {isLoadingChildren ? (
-            <div className="flex justify-center py-4" style={{marginLeft: `${(level + 1) * 20}px`}}>
+            <div
+              className="flex justify-center py-4"
+              style={{ marginLeft: `${(level + 1) * 20}px` }}
+            >
               <Spinner size="md" />
             </div>
           ) : errorChildren ? (
-            <div className="text-red-500 py-2" style={{marginLeft: `${(level + 1) * 20}px`}}>
+            <div
+              className="text-red-500 py-2"
+              style={{ marginLeft: `${(level + 1) * 20}px` }}
+            >
               子項目の読み込みに失敗しました。
             </div>
-          ) : childItems.length > 0 ? (
-            childItems.map(childItem => (
-              <CheckListItemTreeNode 
-                key={childItem.id} 
+          ) : (
+            childItems.map((childItem) => (
+              <CheckListItemTreeNode
+                key={childItem.id}
                 setId={setId}
-                item={childItem} 
+                item={childItem}
                 level={level + 1}
                 maxDepth={maxDepth}
               />
             ))
-          ) : (
-            <div className="text-gray-500 py-2" style={{marginLeft: `${(level + 1) * 20}px`}}>
-              子項目はありません
-            </div>
           )}
         </div>
       )}

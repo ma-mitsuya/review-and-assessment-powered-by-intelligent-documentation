@@ -9,6 +9,7 @@ import { DetailSkeleton } from "../../../components/Skeleton";
 import { HiLockClosed, HiPlus, HiTrash } from "react-icons/hi";
 import Button from "../../../components/Button";
 import Breadcrumb from "../../../components/Breadcrumb";
+import { useChecklistItems } from "../hooks/useCheckListItemQueries";
 
 /**
  * チェックリストセット詳細ページ
@@ -17,18 +18,14 @@ export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const {
-    checklistSet,
-    isLoading,
-    error,
-    refetch,
-  } = useChecklistSetDetail(id || null);
+  const { checklistSet, isLoading, error } = useChecklistSetDetail(id || null);
   const {
     deleteChecklistSet,
     status: deleteStatus,
     error: deleteError,
   } = useDeleteChecklistSet();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { refetch: refetchRoot } = useChecklistItems(id || null);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -85,23 +82,30 @@ export function CheckListSetDetailPage() {
           <h1 className="text-3xl font-bold text-aws-squid-ink-light flex items-center">
             {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
             {checklistSet && !checklistSet.isEditable && (
-              <div className="ml-2 text-gray-500" title="このチェックリストは編集できません">
+              <div
+                className="ml-2 text-gray-500"
+                title="このチェックリストは編集できません"
+              >
                 <HiLockClosed className="h-5 w-5" />
               </div>
             )}
           </h1>
           {checklistSet && checklistSet.description && (
-            <p className="text-aws-font-color-gray mt-1">{checklistSet.description}</p>
+            <p className="text-aws-font-color-gray mt-1">
+              {checklistSet.description}
+            </p>
           )}
-          
+
           {/* ドキュメント情報を表示 */}
-          {checklistSet && checklistSet.documents && checklistSet.documents.length > 0 && (
-            <div className="mt-2">
-              <p className="text-aws-font-color-gray">
-                ドキュメント: {checklistSet.documents[0].filename}
-              </p>
-            </div>
-          )}
+          {checklistSet &&
+            checklistSet.documents &&
+            checklistSet.documents.length > 0 && (
+              <div className="mt-2">
+                <p className="text-aws-font-color-gray">
+                  ドキュメント: {checklistSet.documents[0].filename}
+                </p>
+              </div>
+            )}
         </div>
         <div className="flex space-x-3">
           {checklistSet && checklistSet.isEditable && (
@@ -177,7 +181,9 @@ export function CheckListSetDetailPage() {
               icon={<HiPlus className="h-5 w-5" />}
               onClick={() => setIsAddModalOpen(true)}
               disabled={!checklistSet.isEditable}
-              className={!checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""}
+              className={
+                !checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""
+              }
             >
               ルート項目を追加
             </Button>
@@ -192,9 +198,8 @@ export function CheckListSetDetailPage() {
           checkListSetId={id || ""}
           parentId="" // 明示的に空文字を指定してルート項目として追加
           onSuccess={() => {
-            // 追加成功時にデータを再取得
             if (id) {
-              refetch();
+              refetchRoot();
               addToast("チェックリスト項目を追加しました", "success");
             }
           }}

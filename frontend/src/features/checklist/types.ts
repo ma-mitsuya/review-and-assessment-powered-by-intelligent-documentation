@@ -192,6 +192,7 @@ export interface CheckListSetDetailModel {
   name: string;
   description: string;
   documents: ChecklistDocumentEntity[];
+  isEditable: boolean;
 }
 
 /**

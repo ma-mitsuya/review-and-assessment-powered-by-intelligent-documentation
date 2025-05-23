@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useCreateCheckListItem } from "../hooks/useCheckListItemMutations";
-import { CheckListItemEntity } from "../types";
 import { useToast } from "../../../contexts/ToastContext";
+import Button from "../../../components/Button";
+import { HiX } from "react-icons/hi";
 
 type CheckListItemAddModalProps = {
   isOpen: boolean;
   onClose: () => void;
   checkListSetId: string;
-  checkItems: CheckListItemEntity[];
+  parentId?: string;
   onSuccess: () => void;
 };
 
@@ -15,13 +16,13 @@ export default function CheckListItemAddModal({
   isOpen,
   onClose,
   checkListSetId,
-  checkItems,
+  parentId,
   onSuccess,
 }: CheckListItemAddModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    parentId: "",
+    parentId: parentId || "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,7 +80,13 @@ export default function CheckListItemAddModal({
     setIsSubmitting(true);
 
     try {
-      await createCheckListItem(formData);
+      // parentIdが指定されている場合は、formDataのparentIdを上書きして確実に使用する
+      const dataToSubmit = {
+        ...formData,
+        parentId: parentId !== undefined ? parentId : formData.parentId,
+      };
+
+      await createCheckListItem(dataToSubmit);
       onSuccess();
       onClose();
     } catch (error) {
@@ -111,25 +118,13 @@ export default function CheckListItemAddModal({
           <h2 className="text-2xl font-bold text-aws-squid-ink-light">
             チェックリスト項目の追加
           </h2>
-          <button
+          <Button
+            variant="text"
+            size="sm"
+            icon={<HiX className="h-6 w-6" />}
             onClick={onClose}
-            className="text-aws-font-color-gray hover:text-aws-squid-ink-light"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+            aria-label="閉じる"
+          />
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -174,66 +169,13 @@ export default function CheckListItemAddModal({
             />
           </div>
 
-          <div className="mb-4">
-            <label
-              htmlFor="parentId"
-              className="block text-aws-squid-ink-light font-medium mb-2"
-            >
-              親項目
-            </label>
-            <select
-              id="parentId"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-            >
-              <option value="">親項目なし（ルート項目）</option>
-              {checkItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 border border-light-gray rounded-md text-aws-squid-ink-light hover:bg-aws-paper-light transition-colors"
-            >
+            <Button variant="outline" onClick={onClose}>
               キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-aws-sea-blue-light hover:bg-aws-sea-blue-hover-light text-aws-font-color-white-light px-5 py-2.5 rounded-md flex items-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting && (
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              )}
-              追加
-            </button>
+            </Button>
+            <Button variant="primary" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "追加中..." : "追加"}
+            </Button>
           </div>
         </form>
       </div>
