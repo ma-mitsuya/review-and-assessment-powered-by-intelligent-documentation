@@ -3,7 +3,7 @@ import { usePresignedDownloadUrl } from '../hooks/usePresignedDownloadUrl';
 import Spinner from './Spinner';
 import Modal from './Modal';
 import Button from './Button';
-import { HiEye } from 'react-icons/hi';
+import { HiEye, HiZoomIn } from 'react-icons/hi';
 
 interface ImagePreviewProps {
   s3Key: string;
@@ -14,6 +14,7 @@ interface ImagePreviewProps {
 export default function ImagePreview({ s3Key, filename, thumbnailHeight = 100 }: ImagePreviewProps) {
   const [url, setUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const { getPresignedUrl, isLoading, error } = usePresignedDownloadUrl();
   
   useEffect(() => {
@@ -44,23 +45,29 @@ export default function ImagePreview({ s3Key, filename, thumbnailHeight = 100 }:
   return (
     <>
       <div className="flex flex-col items-start">
-        <div className="mb-2 overflow-hidden rounded border border-light-gray">
+        <div 
+          className="relative overflow-hidden rounded border border-light-gray"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          onClick={() => setIsModalOpen(true)}
+        >
           <img 
             src={url} 
             alt={filename} 
             style={{ height: thumbnailHeight }} 
-            className="object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setIsModalOpen(true)}
+            className="object-contain cursor-pointer transition-opacity"
           />
+          
+          {/* Hover overlay with zoom icon */}
+          <div 
+            className={`absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center transition-opacity duration-200 ${
+              isHovering ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <HiZoomIn className="text-white h-6 w-6" />
+            <span className="text-white text-xs mt-1">拡大表示</span>
+          </div>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<HiEye className="h-4 w-4" />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          拡大表示
-        </Button>
       </div>
       
       {isModalOpen && (
