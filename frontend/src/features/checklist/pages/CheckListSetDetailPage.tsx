@@ -6,7 +6,7 @@ import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
-import { HiLockClosed, HiPlus, HiTrash } from "react-icons/hi";
+import { HiLockClosed, HiPlus, HiTrash, HiExclamation, HiInformationCircle } from "react-icons/hi";
 import Button from "../../../components/Button";
 import Breadcrumb from "../../../components/Breadcrumb";
 import { useChecklistItems } from "../hooks/useCheckListItemQueries";
@@ -53,20 +53,7 @@ export function CheckListSetDetailPage() {
         role="alert"
       >
         <div className="flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <HiExclamation className="h-6 w-6 mr-2" />
           <strong className="font-medium">エラー: </strong>
           <span className="ml-2">チェックリスト情報の取得に失敗しました。</span>
         </div>
@@ -127,20 +114,7 @@ export function CheckListSetDetailPage() {
             role="alert"
           >
             <div className="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <HiExclamation className="h-6 w-6 mr-2" />
               <strong className="font-medium">エラー: </strong>
               <span className="ml-2">
                 チェックリスト項目の取得に失敗しました。
@@ -153,20 +127,7 @@ export function CheckListSetDetailPage() {
             role="alert"
           >
             <div className="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <HiInformationCircle className="h-6 w-6 mr-2" />
               <span>このチェックリストセットには項目がありません。</span>
             </div>
           </div>
