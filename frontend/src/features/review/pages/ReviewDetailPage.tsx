@@ -87,7 +87,8 @@ export default function ReviewDetailPage() {
             {job.name}
           </h1>
           <p className="text-aws-font-color-gray mt-1">
-            ドキュメント: {job.document.filename}
+            ドキュメント: {job.documents.length > 0 ? job.documents[0].filename : "なし"}
+            {job.documents.length > 1 ? ` (他 ${job.documents.length - 1} 件)` : ""}
           </p>
           <p className="text-aws-font-color-gray">
             チェックリスト: {job.checkList.name}

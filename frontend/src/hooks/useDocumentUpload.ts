@@ -27,7 +27,6 @@ export interface DocumentUploadResult {
   filename: string;
   s3Key: string;
   fileType: string;
-  index?: number;
 }
 
 interface UseDocumentUploadOptions {
@@ -132,7 +131,7 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
         throw new Error(presignedResponse.data.error || 'Failed to get presigned URLs');
       }
       
-      const { documentId, files: presignedFiles } = presignedResponse.data.data;
+      const { files: presignedFiles } = presignedResponse.data.data;
       
       // 各ファイルを並行してアップロード
       const uploadPromises = presignedFiles.map(async (presigned, index) => {
@@ -150,11 +149,10 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
         }
         
         return {
-          documentId,
+          documentId: presigned.documentId,
           filename: file.name,
           s3Key: presigned.key,
-          fileType: file.type,
-          index: presigned.index
+          fileType: file.type
         };
       });
       

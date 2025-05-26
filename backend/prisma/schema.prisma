@@ -63,7 +63,8 @@ model ReviewDocument {
   uploadDate DateTime    @map("upload_date") @db.Timestamp(0)
   userId     String?     @map("user_id") @db.VarChar(50)
   status     String      @default("pending") @db.VarChar(20)
-  reviewJobs ReviewJob[]
+  reviewJobId String     @map("review_job_id") @db.VarChar(26)
+  reviewJob  ReviewJob   @relation(fields: [reviewJobId], references: [id])
 
   @@map("review_documents")
 }
@@ -72,7 +73,6 @@ model ReviewJob {
   id             String         @id @map("review_job_id") @db.VarChar(26)
   name           String         @db.VarChar(255)
   status         String         @default("pending") @db.VarChar(20)
-  documentId     String         @map("document_id") @db.VarChar(26)
   checkListSetId String         @map("check_list_set_id") @db.VarChar(26)
   createdAt      DateTime       @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime       @map("updated_at") @db.Timestamp(0)
@@ -80,11 +80,10 @@ model ReviewJob {
   userId         String?        @map("user_id") @db.VarChar(50)
   metaData       Json?          @map("meta_data")
   checkListSet   CheckListSet   @relation(fields: [checkListSetId], references: [id])
-  document       ReviewDocument @relation(fields: [documentId], references: [id])
+  documents      ReviewDocument[]
   reviewResults  ReviewResult[]
 
   @@index([checkListSetId], map: "review_jobs_check_list_set_id_fkey")
-  @@index([documentId], map: "review_jobs_document_id_fkey")
   @@map("review_jobs")
 }
 

@@ -81,10 +81,6 @@ interface ProcessReviewItemParams {
   documentId: string;
   fileName: string;
   fileType: REVIEW_FILE_TYPE;
-  imageFiles?: Array<{
-    filename: string;
-    s3Key: string;
-  }>;
   checkId: string;
   reviewResultId: string;
 }
@@ -101,13 +97,9 @@ export async function processReviewItem(
 
   // ファイルタイプに基づいて適切なプロセッサーを呼び出す
   if (fileType === REVIEW_FILE_TYPE.IMAGE) {
-    if (!params.imageFiles || params.imageFiles.length === 0) {
-      throw new Error("Image files are required for image file type");
-    }
     return processImageReviewItem({
       reviewJobId: params.reviewJobId,
       documentId: params.documentId,
-      imageFiles: params.imageFiles,
       checkId: params.checkId,
       reviewResultId: params.reviewResultId,
     });

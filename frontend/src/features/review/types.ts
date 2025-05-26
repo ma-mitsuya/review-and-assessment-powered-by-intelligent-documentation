@@ -68,14 +68,12 @@ export interface GetReviewImagesPresignedUrlRequest {
  */
 export interface CreateReviewJobRequest {
   name: string;
-  documentId: string;
   checkListSetId: string;
-  filename: string;
-  s3Key: string;
-  fileType: REVIEW_FILE_TYPE;
-  imageFiles?: Array<{
+  documents: Array<{
+    id: string;
     filename: string;
     s3Key: string;
+    fileType: REVIEW_FILE_TYPE;
   }>;
   userId?: string;
 }
@@ -118,12 +116,11 @@ export type GetReviewPresignedUrlResponse = ApiResponse<{
  * POST /documents/review/images/presigned-url
  */
 export type GetReviewImagesPresignedUrlResponse = ApiResponse<{
-  documentId: string;
   files: Array<{
     url: string;
     key: string;
     filename: string;
-    index: number;
+    documentId: string;
   }>;
 }>;
 
@@ -198,22 +195,17 @@ export interface ReviewJobSummary {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
-  documentId: string;
   checkListSetId: string;
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
   userId?: string;
-  document: {
+  documents: Array<{
     id: string;
     filename: string;
     s3Path: string;
     fileType: REVIEW_FILE_TYPE;
-    imageFiles?: Array<{
-      filename: string;
-      s3Path: string;
-    }>;
-  };
+  }>;
   checkListSet: {
     id: string;
     name: string;
@@ -241,17 +233,12 @@ export interface ReviewJobDetail {
       status: string;
     }[];
   };
-  documentId: string;
-  document: {
+  documents: Array<{
     id: string;
     filename: string;
     s3Path: string;
     fileType: REVIEW_FILE_TYPE;
-    imageFiles?: Array<{
-      filename: string;
-      s3Path: string;
-    }>;
-  };
+  }>;
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;

@@ -35,12 +35,15 @@ export const makePrismaReviewJobRepository = (
     const jobs = await client.reviewJob.findMany({
       orderBy: { id: "desc" },
       include: {
-        document: {
+        documents: {
           select: {
             id: true,
             filename: true,
             s3Path: true,
             fileType: true,
+          },
+          orderBy: {
+            id: 'asc',
           },
         },
         checkListSet: {
@@ -75,18 +78,17 @@ export const makePrismaReviewJobRepository = (
         id: job.id,
         name: job.name,
         status: job.status as REVIEW_JOB_STATUS,
-        documentId: job.documentId,
         checkListSetId: job.checkListSetId,
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
         completedAt: job.completedAt || undefined,
         userId: job.userId || undefined,
-        document: {
-          id: job.document.id,
-          filename: job.document.filename,
-          s3Path: job.document.s3Path,
-          fileType: job.document.fileType as REVIEW_FILE_TYPE,
-        },
+        documents: job.documents.map(doc => ({
+          id: doc.id,
+          filename: doc.filename,
+          s3Path: doc.s3Path,
+          fileType: doc.fileType as REVIEW_FILE_TYPE,
+        })),
         checkListSet: {
           id: job.checkListSet.id,
           name: job.checkListSet.name,
@@ -104,7 +106,11 @@ export const makePrismaReviewJobRepository = (
     const job = await client.reviewJob.findUnique({
       where: { id: reviewJobId },
       include: {
-        document: true,
+        documents: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
         checkListSet: {
           include: {
             documents: true,
@@ -134,13 +140,12 @@ export const makePrismaReviewJobRepository = (
           status: doc.status as CheckListStatus,
         })),
       },
-      documentId: job.documentId,
-      document: {
-        id: job.document.id,
-        filename: job.document.filename,
-        s3Path: job.document.s3Path,
-        fileType: job.document.fileType as REVIEW_FILE_TYPE,
-      },
+      documents: job.documents.map(doc => ({
+        id: doc.id,
+        filename: doc.filename,
+        s3Path: doc.s3Path,
+        fileType: doc.fileType as REVIEW_FILE_TYPE,
+      })),
       createdAt: job.createdAt,
       updatedAt: job.updatedAt,
       completedAt: job.completedAt || undefined,
@@ -151,35 +156,37 @@ export const makePrismaReviewJobRepository = (
     const now = new Date();
 
     await client.$transaction(async (tx) => {
-      // 審査ドキュメントを作成
-      await tx.reviewDocument.create({
-        data: {
-          id: params.documentId,
-          filename: params.filename,
-          s3Path: params.s3Key,
-          fileType: params.fileType,
-          uploadDate: now,
-          status: "processing",
-        },
-      });
-
       // 審査ジョブを作成
       await tx.reviewJob.create({
         data: {
           id: params.id,
           name: params.name,
           status: params.status,
-          documentId: params.documentId,
           checkListSetId: params.checkListSetId,
           createdAt: now,
           updatedAt: now,
           userId: params.userId,
         },
         include: {
-          document: true,
+          documents: true,
           checkListSet: true,
         },
       });
+
+      // 審査ドキュメントを作成
+      for (const doc of params.documents) {
+        await tx.reviewDocument.create({
+          data: {
+            id: doc.id,
+            filename: doc.filename,
+            s3Path: doc.s3Key,
+            fileType: doc.fileType,
+            uploadDate: now,
+            status: "processing",
+            reviewJobId: params.id,
+          },
+        });
+      }
 
       // 審査結果を作成
       for (const result of params.results) {
@@ -203,25 +210,15 @@ export const makePrismaReviewJobRepository = (
   }): Promise<void> => {
     const { reviewJobId } = params;
     
-    // 先にジョブ情報を取得して、documentIdを確認
-    const job = await client.reviewJob.findUnique({
-      where: { id: reviewJobId },
-      select: { documentId: true }
-    });
-    
-    if (!job) {
-      throw new NotFoundError(`Review job not found`, reviewJobId);
-    }
-    
     await client.$transaction(async (tx) => {
       // 関連する審査結果を削除
       await tx.reviewResult.deleteMany({ where: { reviewJobId } });
       
+      // 関連する審査ドキュメントを削除
+      await tx.reviewDocument.deleteMany({ where: { reviewJobId } });
+      
       // 審査ジョブを削除
       await tx.reviewJob.delete({ where: { id: reviewJobId } });
-      
-      // 審査ドキュメントを削除（正しいdocumentIdを使用）
-      await tx.reviewDocument.delete({ where: { id: job.documentId } });
     });
   };
 

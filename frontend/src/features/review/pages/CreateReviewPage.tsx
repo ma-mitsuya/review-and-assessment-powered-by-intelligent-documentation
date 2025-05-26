@@ -215,33 +215,20 @@ export const CreateReviewPage: React.FC = () => {
     if (!validate() || !selectedChecklist) return;
 
     try {
-      if (fileType === REVIEW_FILE_TYPE.PDF) {
-        const doc = uploadedDocuments[0];
-        // PDF審査ジョブを作成
-        await createReviewJob({
-          name: jobName,
-          documentId: doc.documentId,
-          checkListSetId: selectedChecklist.id,
-          filename: doc.filename,
-          s3Key: doc.s3Key,
-          fileType: REVIEW_FILE_TYPE.PDF,
-        });
-      } else {
-        // 画像審査ジョブを作成
-        const firstDoc = uploadedDocuments[0];
-        await createReviewJob({
-          name: jobName,
-          documentId: firstDoc.documentId,
-          checkListSetId: selectedChecklist.id,
-          filename: firstDoc.filename,
-          s3Key: firstDoc.s3Key,
-          fileType: REVIEW_FILE_TYPE.IMAGE,
-          imageFiles: uploadedDocuments.map((doc) => ({
-            filename: doc.filename,
-            s3Key: doc.s3Key,
-          })),
-        });
-      }
+      // すべてのドキュメントを同じ構造で扱う
+      const documents = uploadedDocuments.map(doc => ({
+        id: doc.documentId,
+        filename: doc.filename,
+        s3Key: doc.s3Key,
+        fileType: fileType,
+      }));
+
+      // 審査ジョブを作成
+      await createReviewJob({
+        name: jobName,
+        checkListSetId: selectedChecklist.id,
+        documents: documents,
+      });
 
       // アップロード済みドキュメントリストをクリア
       clearUploadedDocuments();

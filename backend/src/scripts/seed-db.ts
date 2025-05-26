@@ -380,6 +380,21 @@ async function main(): Promise<void> {
   // 3. Review関連データの追加
   console.log("Review関連データの作成を開始します...");
 
+  // ReviewJob（審査ジョブ）の作成
+  const reviewJobId = ulid();
+  const reviewJob = await prisma.reviewJob.create({
+    data: {
+      id: reviewJobId,
+      name: "建築確認申請書審査",
+      status: "pending",
+      checkListSetId: buildingCheckListSetId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: "user123",
+    },
+  });
+  console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
+
   // ReviewDocument（審査対象ドキュメント）の作成
   const reviewDocumentId = ulid();
   const reviewDocument = await prisma.reviewDocument.create({
@@ -391,24 +406,10 @@ async function main(): Promise<void> {
       uploadDate: new Date(),
       userId: "user123",
       status: "uploaded",
+      reviewJobId: reviewJobId,
     },
   });
   console.log(`ReviewDocumentを作成しました: ${reviewDocument.filename}`);
-
-  // ReviewJob（審査ジョブ）の作成
-  const reviewJobId = ulid();
-  const reviewJob = await prisma.reviewJob.create({
-    data: {
-      id: reviewJobId,
-      name: "建築確認申請書審査",
-      status: "pending",
-      documentId: reviewDocumentId,
-      checkListSetId: buildingCheckListSetId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: "user123",
-    },
-  });
   console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
 
   // 建築確認申請チェックリストの全項目を取得

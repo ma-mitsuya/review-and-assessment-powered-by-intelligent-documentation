@@ -47,12 +47,8 @@ export const createInitialReviewJobModel = async (params: {
     id: jobId,
     name: req.name,
     status: REVIEW_JOB_STATUS.PENDING,
-    documentId: req.documentId,
     checkListSetId: req.checkListSetId,
-    filename: req.filename,
-    s3Key: req.s3Key,
-    fileType: req.fileType,
-    imageFiles: req.imageFiles,
+    documents: req.documents,
     results: initialResults,
   };
 };

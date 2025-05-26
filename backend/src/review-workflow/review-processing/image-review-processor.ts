@@ -4,7 +4,6 @@ import {
   ConverseCommand,
   TokenUsage,
 } from "@aws-sdk/client-bedrock-runtime";
-import { getReviewImageKey } from "../../checklist-workflow/common/storage-paths";
 import {
   makePrismaReviewJobRepository,
   makePrismaReviewResultRepository,
@@ -45,10 +44,6 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
 interface ProcessImageReviewItemParams {
   reviewJobId: string;
   documentId: string;
-  imageFiles: Array<{
-    filename: string;
-    s3Key: string;
-  }>;
   checkId: string;
   reviewResultId: string;
 }
@@ -61,7 +56,7 @@ interface ProcessImageReviewItemParams {
 export async function processImageReviewItem(
   params: ProcessImageReviewItemParams
 ): Promise<any> {
-  const { reviewJobId, documentId, imageFiles, checkId, reviewResultId } = params;
+  const { reviewJobId, documentId, checkId, reviewResultId } = params;
   const reviewJobRepository = makePrismaReviewJobRepository();
   const reviewResultRepository = makePrismaReviewResultRepository();
   const checkRepository = makePrismaCheckRepository();
@@ -74,26 +69,40 @@ export async function processImageReviewItem(
       throw new Error(`Check list item not found: ${checkId}`);
     }
 
+    // ReviewJobに関連するすべてのReviewDocumentを取得
+    const job = await reviewJobRepository.findReviewJobById({
+      reviewJobId,
+    });
+
+    if (!job) {
+      throw new Error(`Review job not found: ${reviewJobId}`);
+    }
+
     // S3から画像ファイルを取得
     const s3Client = new S3Client({});
     const bucketName = process.env.DOCUMENT_BUCKET || "";
 
+    // ジョブに関連するドキュメントを取得
+    if (!job.documents || job.documents.length === 0) {
+      throw new Error(`No documents found for review job: ${reviewJobId}`);
+    }
+
     // 最大20枚までの画像を取得
     const imageBuffers = await Promise.all(
-      imageFiles.slice(0, 20).map(async (file) => {
+      job.documents.slice(0, 20).map(async (doc) => {
         const { Body } = await s3Client.send(
           new GetObjectCommand({
             Bucket: bucketName,
-            Key: file.s3Key,
+            Key: doc.s3Path,
           })
         );
 
         if (!Body) {
-          throw new Error(`Image not found: ${file.s3Key}`);
+          throw new Error(`Image not found: ${doc.s3Path}`);
         }
 
         return {
-          filename: file.filename,
+          filename: doc.filename,
           buffer: await Body.transformToByteArray(),
         };
       })

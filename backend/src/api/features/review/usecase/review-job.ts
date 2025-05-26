@@ -54,7 +54,7 @@ export const getReviewDocumentPresignedUrl = async (params: {
 export const getReviewImagesPresignedUrl = async (params: {
   filenames: string[];
   contentTypes: string[];
-}): Promise<{ documentId: string; files: Array<{ url: string; key: string; filename: string; index: number }> }> => {
+}): Promise<{ files: Array<{ url: string; key: string; filename: string; documentId: string }> }> => {
   const { filenames, contentTypes } = params;
   const bucketName = process.env.DOCUMENT_BUCKET;
   if (!bucketName) {
@@ -65,18 +65,17 @@ export const getReviewImagesPresignedUrl = async (params: {
     throw new ApplicationError("Maximum 20 image files allowed");
   }
 
-  const documentId = ulid();
   const results = await Promise.all(
     filenames.map(async (filename, index) => {
       const contentType = contentTypes[index];
-      const key = getReviewImageKey(documentId, filename, index);
+      const documentId = ulid();
+      const key = getReviewImageKey(documentId, filename);
       const url = await getPresignedUrl(bucketName, key, contentType);
-      return { url, key, filename, index };
+      return { url, key, filename, documentId };
     })
   );
 
   return {
-    documentId,
     files: results,
   };
 };
@@ -92,15 +91,13 @@ export const createReviewJob = async (params: {
   const reviewJobRepo =
     params.deps?.reviewJobRepo || makePrismaReviewJobRepository();
 
-  // Validate file types
-  if (params.requestBody.fileType === REVIEW_FILE_TYPE.IMAGE &&
-    (!params.requestBody.imageFiles || params.requestBody.imageFiles.length === 0)) {
-    throw new ApplicationError("Image files are required for image file type");
+  // バリデーション
+  if (!params.requestBody.documents || params.requestBody.documents.length === 0) {
+    throw new ApplicationError("At least one document is required");
   }
-
-  if (params.requestBody.fileType === REVIEW_FILE_TYPE.IMAGE &&
-    params.requestBody.imageFiles!.length > 20) {
-    throw new ApplicationError("Maximum 20 image files allowed");
+  
+  if (params.requestBody.documents.length > 20) {
+    throw new ApplicationError("Maximum 20 documents allowed");
   }
 
   const reviewJob = await createInitialReviewJobModel({
@@ -122,10 +119,10 @@ export const createReviewJob = async (params: {
   // Invoke the state machine with file type information
   await startStateMachineExecution(stateMachineArn, {
     reviewJobId: reviewJob.id,
-    documentId: reviewJob.documentId,
-    fileName: reviewJob.filename,
-    fileType: reviewJob.fileType,
-    imageFiles: reviewJob.fileType === REVIEW_FILE_TYPE.IMAGE ? reviewJob.imageFiles : [], // PDF の場合は空配列
+    // 最初のドキュメントの情報を渡す（処理開始用）
+    documentId: reviewJob.documents[0].id,
+    fileName: reviewJob.documents[0].filename,
+    fileType: reviewJob.documents[0].fileType,
   });
 };
 

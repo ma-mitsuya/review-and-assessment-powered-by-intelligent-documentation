@@ -17,10 +17,6 @@ interface PrepareReviewParams {
   documentId: string;
   fileName: string;
   fileType?: REVIEW_FILE_TYPE;
-  imageFiles?: Array<{
-    filename: string;
-    s3Key: string;
-  }>;
 }
 
 /**
@@ -36,7 +32,7 @@ interface FinalizeReviewParams {
  * チェックリスト項目を取得し、処理項目を準備する
  */
 export async function prepareReview(params: PrepareReviewParams): Promise<any> {
-  const { reviewJobId, documentId, fileName, fileType, imageFiles } = params;
+  const { reviewJobId, documentId, fileName, fileType } = params;
   const reviewJobRepository = makePrismaReviewJobRepository();
   const reviewResultRepository = makePrismaReviewResultRepository();
 
@@ -63,7 +59,6 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
       documentId,
       fileName,
       fileType,
-      imageFiles,
       checkItems,
     };
   } catch (error) {

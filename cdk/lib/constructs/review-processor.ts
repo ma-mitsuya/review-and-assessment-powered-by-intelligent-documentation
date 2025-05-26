@@ -89,7 +89,6 @@ export class ReviewProcessor extends Construct {
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         fileName: sfn.JsonPath.stringAt("$.fileName"),
         fileType: sfn.JsonPath.stringAt("$.fileType"),
-        imageFiles: sfn.JsonPath.objectAt("$.imageFiles"),
       }),
       resultPath: "$.prepareResult",
     });
@@ -104,7 +103,6 @@ export class ReviewProcessor extends Construct {
         "documentId.$": "$.documentId",
         "fileName.$": "$.fileName",
         "fileType.$": "$.fileType",
-        "imageFiles.$": "$.imageFiles",
         "checkId.$": "$$.Map.Item.Value.checkId",
         "reviewResultId.$": "$$.Map.Item.Value.reviewResultId",
       },
@@ -122,7 +120,6 @@ export class ReviewProcessor extends Construct {
           documentId: sfn.JsonPath.stringAt("$.documentId"),
           fileName: sfn.JsonPath.stringAt("$.fileName"),
           fileType: sfn.JsonPath.stringAt("$.fileType"),
-          imageFiles: sfn.JsonPath.objectAt("$.imageFiles"),
           checkId: sfn.JsonPath.stringAt("$.checkId"),
           reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
         }),

@@ -93,14 +93,12 @@ export const deleteReviewDocumentHandler = async (
 
 export interface CreateReviewJobRequest {
   name: string;
-  documentId: string;
   checkListSetId: string;
-  filename: string;
-  s3Key: string;
-  fileType: REVIEW_FILE_TYPE;
-  imageFiles?: Array<{
+  documents: Array<{
+    id: string;
     filename: string;
     s3Key: string;
+    fileType: REVIEW_FILE_TYPE;
   }>;
   userId?: string;
 }

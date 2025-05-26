@@ -29,7 +29,6 @@ async function handlePrepareReview(event: any) {
     documentId: event.documentId,
     fileName: event.fileName,
     fileType: event.fileType,
-    imageFiles: event.imageFiles,
   });
 }
 
@@ -42,7 +41,6 @@ async function handleProcessReviewItem(event: any) {
     documentId: event.documentId,
     fileName: event.fileName,
     fileType: event.fileType,
-    imageFiles: event.imageFiles,
     checkId: event.checkId,
     reviewResultId: event.reviewResultId,
   });
