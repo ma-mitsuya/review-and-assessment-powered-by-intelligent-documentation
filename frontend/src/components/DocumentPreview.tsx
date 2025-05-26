@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { usePresignedDownloadUrl } from '../hooks/usePresignedDownloadUrl';
-import Spinner from './Spinner';
-import { HiExternalLink } from 'react-icons/hi';
+import { useState, useEffect } from "react";
+import { usePresignedDownloadUrl } from "../hooks/usePresignedDownloadUrl";
+import Spinner from "./Spinner";
+import { HiExternalLink } from "react-icons/hi";
 
 interface DocumentPreviewProps {
   s3Key: string;
@@ -9,10 +9,15 @@ interface DocumentPreviewProps {
   pageNumber?: number;
 }
 
-export default function DocumentPreview({ s3Key, filename, pageNumber }: DocumentPreviewProps) {
+export default function DocumentPreview({
+  s3Key,
+  filename,
+  pageNumber,
+}: DocumentPreviewProps) {
   const [url, setUrl] = useState<string | null>(null);
-  const { getPresignedUrl, getPdfPageUrl, isLoading, error } = usePresignedDownloadUrl();
-  
+  const { getPresignedUrl, getPdfPageUrl, isLoading, error } =
+    usePresignedDownloadUrl();
+
   useEffect(() => {
     const fetchUrl = async () => {
       try {
@@ -24,30 +29,32 @@ export default function DocumentPreview({ s3Key, filename, pageNumber }: Documen
           setUrl(presignedUrl);
         }
       } catch (err) {
-        console.error('Failed to get presigned URL', err);
+        console.error("Failed to get presigned URL", err);
       }
     };
-    
+
     fetchUrl();
   }, [s3Key, pageNumber]);
-  
+
   if (isLoading) {
     return <Spinner size="sm" />;
   }
-  
+
   if (error) {
-    return <div className="text-red-500">ドキュメントのURLの取得に失敗しました</div>;
+    return (
+      <div className="text-red-500">ドキュメントのURLの取得に失敗しました</div>
+    );
   }
-  
+
   if (!url) {
     return null;
   }
-  
+
   return (
     <div>
-      <a 
-        href={url} 
-        target="_blank" 
+      <a
+        href={url}
+        target="_blank"
         rel="noopener noreferrer"
         className="flex items-center text-aws-sea-blue hover:underline"
       >

@@ -203,14 +203,14 @@ interface GetDownloadPresignedUrlRequest {
  * ドキュメントのダウンロード用Presigned URLを取得するハンドラー
  */
 export const getDownloadPresignedUrlHandler = async (
-  request: FastifyRequest<{ Body: GetDownloadPresignedUrlRequest }>,
+  request: FastifyRequest<{ Querystring: GetDownloadPresignedUrlRequest }>,
   reply: FastifyReply
 ): Promise<void> => {
-  const { key, expiresIn = 3600 } = request.body;
+  const { key, expiresIn = 3600 } = request.query;
   
   const url = await getDocumentDownloadUrl({
     key,
-    expiresIn,
+    expiresIn: typeof expiresIn === 'string' ? parseInt(expiresIn, 10) : expiresIn,
   });
   
   reply.code(200).send({

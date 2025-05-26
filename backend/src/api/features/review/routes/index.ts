@@ -28,7 +28,7 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
     handler: deleteReviewDocumentHandler,
   });
   // ダウンロード用Presigned URL取得エンドポイント
-  fastify.post("/documents/download-url", {
+  fastify.get("/documents/download-url", {
     handler: getDownloadPresignedUrlHandler,
   });
 
