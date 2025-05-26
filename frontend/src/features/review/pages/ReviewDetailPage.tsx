@@ -4,7 +4,6 @@ import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
 import { FilterType } from "../hooks/useReviewResultQueries";
 import { useReviewJobDetail } from "../hooks/useReviewJobQueries";
-import Button from "../../../components/Button";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
@@ -29,13 +28,7 @@ export default function ReviewDetailPage() {
 
   // フィルタリング状態が変更されたとき
   const handleFilterChange = (newFilter: FilterType) => {
-    console.log(`[Frontend] Filter changed from ${filter} to ${newFilter}`);
     setFilter(newFilter);
-  };
-
-  // 戻るボタン
-  const handleBack = () => {
-    navigate("/review");
   };
 
   // ローディング中
@@ -87,8 +80,11 @@ export default function ReviewDetailPage() {
             {job.name}
           </h1>
           <p className="text-aws-font-color-gray mt-1">
-            ドキュメント: {job.documents.length > 0 ? job.documents[0].filename : "なし"}
-            {job.documents.length > 1 ? ` (他 ${job.documents.length - 1} 件)` : ""}
+            ドキュメント:{" "}
+            {job.documents.length > 0 ? job.documents[0].filename : "なし"}
+            {job.documents.length > 1
+              ? ` (他 ${job.documents.length - 1} 件)`
+              : ""}
           </p>
           <p className="text-aws-font-color-gray">
             チェックリスト: {job.checkList.name}

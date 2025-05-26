@@ -49,18 +49,9 @@ export default function CheckListItemTreeNode({
   const { checklistSet } = useChecklistSetDetail(setId || null);
   const isEditable = checklistSet?.isEditable ?? true;
 
-  console.log(
-    `[Frontend] CheckListItemTreeNode - setId: ${setId}, itemId: ${item.id}, level: ${level}, hasChildren: ${item.hasChildren}`
-  );
-
   // 子項目を取得（レベルが最大深度未満の場合は自動的に、それ以外は展開時に）
   const shouldLoadChildren =
     item.hasChildren && (level < maxDepth || isExpanded);
-  console.log(
-    `[Frontend] shouldLoadChildren: ${shouldLoadChildren}, parentId: ${
-      shouldLoadChildren ? item.id : "undefined"
-    }`
-  );
 
   // 子項目を取得
   const {
@@ -82,19 +73,8 @@ export default function CheckListItemTreeNode({
     item.parentId
   );
 
-  console.log(
-    `[Frontend] Child items loaded: ${
-      childItems.length
-    }, isLoading: ${isLoadingChildren}, error: ${errorChildren ? "yes" : "no"}`
-  );
-
   // 展開/折りたたみの切り替え
   const toggleExpand = () => {
-    console.log(
-      `[Frontend] Toggling expand for ${
-        item.id
-      } from ${isExpanded} to ${!isExpanded}`
-    );
     setIsExpanded(!isExpanded);
   };
 
@@ -226,9 +206,6 @@ export default function CheckListItemTreeNode({
           parentId={item.id}
           onSuccess={() => {
             setIsExpanded(true); // 追加後に自動的に展開
-            console.log(
-              `[Frontend] Child item added, refetching parent and children for item ${item.id}`
-            );
 
             console.log(`level: ${level}`);
             if (level === 0) {
