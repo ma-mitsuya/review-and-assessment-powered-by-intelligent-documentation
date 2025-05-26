@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ReviewResultDetailModel, REVIEW_RESULT, REVIEW_RESULT_STATUS, REVIEW_FILE_TYPE } from '../types';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
 import Button from '../../../components/Button';
-import { HiChevronDown, HiChevronRight, HiPencil } from 'react-icons/hi';
+import { HiChevronDown, HiChevronRight, HiPencil, HiChevronUp } from 'react-icons/hi';
 import Spinner from '../../../components/Spinner';
 import DocumentPreview from '../../../components/DocumentPreview';
 import ImagePreview from '../../../components/ImagePreview';
@@ -35,27 +35,10 @@ export default function ReviewResultItem({
   documents
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeReferenceIndex, setActiveReferenceIndex] = useState(0);
+  const [visibleReferencesCount, setVisibleReferencesCount] = useState(5); // 初期表示数
   
   // 参照元情報を取得
   const sourceReferences = result.sourceReferences || [];
-  
-  // 現在アクティブな参照元
-  const activeReference = sourceReferences.length > 0 ? sourceReferences[activeReferenceIndex] : null;
-  
-  // アクティブな参照元に対応するドキュメントを検索
-  const activeDocument = activeReference
-    ? documents.find(doc => doc.id === activeReference.documentId)
-    : null;
-  
-  // 参照元の切り替え
-  const handlePrevReference = () => {
-    setActiveReferenceIndex(prev => (prev > 0 ? prev - 1 : prev));
-  };
-  
-  const handleNextReference = () => {
-    setActiveReferenceIndex(prev => (prev < sourceReferences.length - 1 ? prev + 1 : prev));
-  };
   
   // 信頼度が閾値を下回る場合のスタイルを追加
   const isBelowThreshold = 
@@ -222,49 +205,52 @@ export default function ReviewResultItem({
                     <p className="font-medium text-aws-squid-ink-light mb-1">参照元:</p>
                     <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extractedText}</p>
                     
-                    {/* 参照元ドキュメントの表示 */}
-                    {sourceReferences.length > 0 && activeDocument && (
+                    {/* 参照元ドキュメントの表示（一覧形式） */}
+                    {sourceReferences.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-light-gray">
-                        {/* 複数の参照元がある場合はナビゲーションを表示 */}
-                        {sourceReferences.length > 1 && (
-                          <div className="flex items-center justify-between mb-2">
-                            <Button 
-                              onClick={handlePrevReference}
-                              disabled={activeReferenceIndex === 0}
+                        <p className="text-sm text-aws-font-color-gray mb-2">
+                          参照元一覧 ({sourceReferences.length}件)
+                        </p>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                          {sourceReferences.slice(0, visibleReferencesCount).map((reference, index) => {
+                            const doc = documents.find(d => d.id === reference.documentId);
+                            if (!doc) return null;
+                            
+                            return (
+                              <div key={`${reference.documentId}-${reference.pageNumber || index}`} className="border border-light-gray rounded p-2">
+                                {doc.fileType === REVIEW_FILE_TYPE.PDF ? (
+                                  <DocumentPreview 
+                                    s3Key={doc.s3Path} 
+                                    filename={doc.filename} 
+                                    pageNumber={reference.pageNumber} 
+                                  />
+                                ) : doc.fileType === REVIEW_FILE_TYPE.IMAGE ? (
+                                  <ImagePreview 
+                                    s3Key={doc.s3Path} 
+                                    filename={doc.filename} 
+                                    thumbnailHeight={80} // サムネイルサイズを小さく
+                                  />
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {sourceReferences.length > visibleReferencesCount && (
+                          <div className="mt-2 text-center">
+                            <Button
+                              onClick={() => setVisibleReferencesCount(prev => 
+                                prev === sourceReferences.length ? 5 : sourceReferences.length
+                              )}
                               variant="text"
                               size="sm"
-                              className={activeReferenceIndex === 0 ? 'text-gray-400' : 'text-aws-sea-blue'}
+                              icon={visibleReferencesCount === sourceReferences.length ? <HiChevronUp className="h-4 w-4" /> : <HiChevronDown className="h-4 w-4" />}
                             >
-                              前へ
-                            </Button>
-                            <span className="text-sm text-aws-font-color-gray">
-                              参照元 {activeReferenceIndex + 1}/{sourceReferences.length}
-                            </span>
-                            <Button 
-                              onClick={handleNextReference}
-                              disabled={activeReferenceIndex === sourceReferences.length - 1}
-                              variant="text"
-                              size="sm"
-                              className={activeReferenceIndex === sourceReferences.length - 1 ? 'text-gray-400' : 'text-aws-sea-blue'}
-                            >
-                              次へ
+                              {visibleReferencesCount === sourceReferences.length ? '折りたたむ' : 'すべて表示'}
                             </Button>
                           </div>
                         )}
-                        
-                        {/* ドキュメントプレビュー */}
-                        {activeDocument.fileType === REVIEW_FILE_TYPE.PDF ? (
-                          <DocumentPreview 
-                            s3Key={activeDocument.s3Path} 
-                            filename={activeDocument.filename} 
-                            pageNumber={activeReference.pageNumber} 
-                          />
-                        ) : activeDocument.fileType === REVIEW_FILE_TYPE.IMAGE ? (
-                          <ImagePreview 
-                            s3Key={activeDocument.s3Path} 
-                            filename={activeDocument.filename} 
-                          />
-                        ) : null}
                       </div>
                     )}
                   </div>
