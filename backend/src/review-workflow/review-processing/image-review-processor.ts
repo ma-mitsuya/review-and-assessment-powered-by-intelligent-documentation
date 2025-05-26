@@ -15,7 +15,7 @@ import {
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
 
 // 使用するモデル ID を定義
-const MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"; // Claude 3.5 Sonnet
+const MODEL_ID = "us.amazon.nova-premier-v1:0"; // Amazon Nova Premier クロスリージョン推論プロファイル
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
@@ -150,6 +150,7 @@ export async function processImageReviewItem(
         inferenceConfig: {
           maxTokens: 1000,
           temperature: 0.2,
+          topP: 0.9,
         },
       })
     );
@@ -222,6 +223,7 @@ ${prompt}
             inferenceConfig: {
               maxTokens: 1000,
               temperature: 0.2,
+              topP: 0.9,
             },
           })
         );
