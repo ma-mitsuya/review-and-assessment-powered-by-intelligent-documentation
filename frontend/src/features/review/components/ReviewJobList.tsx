@@ -82,7 +82,11 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                 <div className="text-sm font-medium text-aws-squid-ink-light">{job.name}</div>
               </td>
               <td className="px-6 py-4">
-                <div className="text-sm text-aws-font-color-gray">{job.document.filename}</div>
+                <div className="text-sm text-aws-font-color-gray">
+                  {job.documents && job.documents.length > 0 
+                    ? `${job.documents[0].filename}${job.documents.length > 1 ? ` (他 ${job.documents.length - 1} 件)` : ''}` 
+                    : 'なし'}
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div className="text-sm text-aws-font-color-gray">{job.checkListSet.name}</div>
