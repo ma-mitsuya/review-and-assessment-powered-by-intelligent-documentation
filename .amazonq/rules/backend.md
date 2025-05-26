@@ -194,3 +194,8 @@ data: {},
 
 5. トランザクション管理
    • 複数の操作を伴う場合はトランザクションを使用
+
+## StepFunctions ハンドラーの設計
+
+- src/checklist-workflow, src/review-workflow など
+- prisma client の呼び出しは厳禁。必ず repository 経由でデータにアクセスする
