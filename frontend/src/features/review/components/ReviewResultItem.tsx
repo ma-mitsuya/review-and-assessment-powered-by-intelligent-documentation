@@ -230,6 +230,7 @@ export default function ReviewResultItem({
                                     s3Key={doc.s3Path} 
                                     filename={doc.filename} 
                                     thumbnailHeight={80} // サムネイルサイズを小さく
+                                    boundingBox={reference.boundingBox} // バウンディングボックス情報を渡す
                                   />
                                 ) : null}
                               </div>

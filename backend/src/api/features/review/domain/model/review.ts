@@ -113,6 +113,10 @@ export interface ReviewJobDetail {
 export interface SourceReference {
   documentId: string;
   pageNumber?: number;
+  boundingBox?: {
+    label: string;
+    coordinates: [number, number, number, number]; // [x1, y1, x2, y2]
+  };
 }
 
 export interface ReviewResultEntity {
@@ -217,6 +221,11 @@ export const ReviewResultDomain = (() => {
         filename: string;
         buffer: Uint8Array;
       }>;
+      boundingBoxes?: Array<{
+        imageIndex: number;
+        label: string;
+        coordinates: [number, number, number, number];
+      }>;
     }): ReviewResultEntity => {
       const {
         result,
@@ -225,12 +234,42 @@ export const ReviewResultDomain = (() => {
         extractedText,
         usedImageIndexes,
         imageBuffers,
+        boundingBoxes = [],
       } = params;
 
+      // 基本的な参照元情報を構築
       const sourceReferences = _buildSourceReferencesFromImages(
         usedImageIndexes,
         imageBuffers
       );
+
+      // バウンディングボックス情報を追加
+      if (boundingBoxes && boundingBoxes.length > 0) {
+        boundingBoxes.forEach(box => {
+          const imageIndex = box.imageIndex;
+          if (imageIndex >= 0 && imageIndex < imageBuffers.length) {
+            const documentId = imageBuffers[imageIndex].documentId;
+            // 既存の参照元情報を探す
+            const existingRef = sourceReferences.find(ref => ref.documentId === documentId);
+            if (existingRef) {
+              // 既存の参照元情報にバウンディングボックスを追加
+              existingRef.boundingBox = {
+                label: box.label,
+                coordinates: box.coordinates
+              };
+            } else {
+              // 新しい参照元情報を追加
+              sourceReferences.push({
+                documentId,
+                boundingBox: {
+                  label: box.label,
+                  coordinates: box.coordinates
+                }
+              });
+            }
+          }
+        });
+      }
 
       return {
         ...params.current,
