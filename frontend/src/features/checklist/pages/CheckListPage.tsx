@@ -62,7 +62,7 @@ export function CheckListPage() {
             </h1>
           </div>
           <p className="text-aws-font-color-gray mt-2">
-            不動産書類のチェックリストセットを管理します
+            チェックリストセットを管理します
           </p>
         </div>
         <CreateChecklistButton />

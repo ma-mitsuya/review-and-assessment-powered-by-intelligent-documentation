@@ -24,7 +24,7 @@ const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
 // 審査プロンプト
 const REVIEW_PROMPT = `
-あなたは不動産書類の審査を行うAIアシスタントです。
+あなたはドキュメントの審査を行うAIアシスタントです。
 以下のチェック項目に基づいて、提供された書類を審査してください。
 
 チェック項目: {checkName}
