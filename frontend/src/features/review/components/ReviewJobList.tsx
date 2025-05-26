@@ -3,6 +3,7 @@ import { ReviewJobSummary, REVIEW_JOB_STATUS } from '../types';
 import { useDeleteReviewJob } from '../hooks/useReviewJobMutations';
 import { TableSkeleton } from '../../../components/Skeleton';
 import { HiEye, HiTrash, HiInformationCircle } from 'react-icons/hi';
+import Button from '../../../components/Button';
 
 interface ReviewJobListProps {
   jobs: ReviewJobSummary[];
@@ -101,25 +102,29 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <div className="flex items-center space-x-3">
-                  <button
+                  <Button
                     onClick={(e) => {
                       e.stopPropagation();
                       onJobClick && onJobClick(job);
                     }}
-                    className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
+                    variant="text"
+                    size="sm"
+                    icon={<HiEye className="h-4 w-4" />}
                     disabled={isDeleting}
+                    className="text-aws-font-color-blue hover:text-aws-sea-blue-light"
                   >
-                    <HiEye className="h-4 w-4 mr-1" />
                     詳細
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={(e) => handleDelete(job.id, e)}
-                    className="text-red hover:text-red flex items-center"
+                    variant="text"
+                    size="sm"
+                    icon={<HiTrash className="h-4 w-4" />}
                     disabled={isDeleting}
+                    className="text-red hover:text-red"
                   >
-                    <HiTrash className="h-4 w-4 mr-1" />
                     削除
-                  </button>
+                  </Button>
                 </div>
               </td>
             </tr>

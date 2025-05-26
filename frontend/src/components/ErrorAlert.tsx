@@ -1,3 +1,5 @@
+import Button from './Button';
+
 interface ErrorAlertProps {
   title: string;
   message: string;
@@ -10,12 +12,14 @@ export function ErrorAlert({ title, message, retry }: ErrorAlertProps) {
       <strong className="font-bold">{title}: </strong>
       <span className="block sm:inline">{message}</span>
       {retry && (
-        <button 
+        <Button 
           onClick={retry} 
+          variant="text"
+          size="sm"
           className="underline ml-2 text-red-700 hover:text-red-800"
         >
           再試行
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import {
   HiLockClosed,
 } from "react-icons/hi";
 import { CHECK_LIST_STATUS } from "../types";
+import Button from "../../../components/Button";
 
 type CheckListSetListProps = {
   checkListSets: {
@@ -211,20 +212,18 @@ export default function CheckListSetList({
                       <HiEye className="h-4 w-4 mr-1" />
                       詳細
                     </Link>
-                    <button
-                      className={`text-red hover:text-red flex items-center ${
-                        set.isEditable === false
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        handleDelete(set.id, set.name, set.isEditable)
-                      }
+                    <Button
+                      variant="text"
+                      size="sm"
+                      icon={<HiTrash className="h-4 w-4" />}
+                      onClick={() => handleDelete(set.id, set.name, set.isEditable)}
                       disabled={set.isEditable === false}
+                      className={`text-red hover:text-red ${
+                        set.isEditable === false ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
-                      <HiTrash className="h-4 w-4 mr-1" />
                       削除
-                    </button>
+                    </Button>
                   </div>
                 </td>
               </tr>
