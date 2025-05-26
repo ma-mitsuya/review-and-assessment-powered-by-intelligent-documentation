@@ -3,7 +3,9 @@ import { usePresignedDownloadUrl } from "../hooks/usePresignedDownloadUrl";
 import Spinner from "./Spinner";
 import Modal from "./Modal";
 import Button from "./Button";
-import { HiEye, HiZoomIn } from "react-icons/hi";
+import { HiZoomIn, HiZoomOut } from "react-icons/hi";
+import { FiRefreshCw } from "react-icons/fi";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface ImagePreviewProps {
   s3Key: string;
@@ -43,7 +45,7 @@ export default function ImagePreview({
     };
 
     fetchUrl();
-  }, [s3Key]);
+  }, [s3Key]); // getPresignedUrlを依存配列から除外
 
   // モーダル内の画像がロードされたときにサイズを取得
   const handleModalImageLoad = () => {
@@ -62,24 +64,21 @@ export default function ImagePreview({
     const { coordinates, label } = boundingBox;
     const [x1, y1, x2, y2] = coordinates;
 
-    // Nova の座標は 0-1000 のスケールなので、実際の画像サイズに変換
-    const scaledX1 = (x1 / 1000) * imageSize.width;
-    const scaledY1 = (y1 / 1000) * imageSize.height;
-    const scaledX2 = (x2 / 1000) * imageSize.width;
-    const scaledY2 = (y2 / 1000) * imageSize.height;
+    // Nova の座標は 0-1000 のスケールなので、実際の画像サイズに変換（パーセンテージに）
+    const percentX1 = x1 / 10; // 0-100%
+    const percentY1 = y1 / 10;
+    const percentX2 = x2 / 10;
+    const percentY2 = y2 / 10;
+    const percentWidth = percentX2 - percentX1;
+    const percentHeight = percentY2 - percentY1;
 
-    // モーダル内の画像の表示サイズに合わせてスケーリング
-    const modalImage = modalImageRef.current;
-    if (!modalImage) return null;
-
-    const displayRatio = modalImage.width / imageSize.width;
-
+    // CSSのパーセンテージを使用してバウンディングボックスを配置
     const boxStyle = {
       position: "absolute" as const,
-      left: `${scaledX1 * displayRatio}px`,
-      top: `${scaledY1 * displayRatio}px`,
-      width: `${(scaledX2 - scaledX1) * displayRatio}px`,
-      height: `${(scaledY2 - scaledY1) * displayRatio}px`,
+      left: `${percentX1}%`,
+      top: `${percentY1}%`,
+      width: `${percentWidth}%`,
+      height: `${percentHeight}%`,
       border: "2px solid red",
       boxSizing: "border-box" as const,
       pointerEvents: "none" as const,
@@ -87,14 +86,15 @@ export default function ImagePreview({
 
     const labelStyle = {
       position: "absolute" as const,
-      left: `${scaledX1 * displayRatio}px`,
-      top: `${scaledY1 * displayRatio - 20}px`,
+      left: `${percentX1}%`,
+      top: `${Math.max(0, percentY1 - 5)}%`, // 上部に少し余裕を持たせる
       backgroundColor: "rgba(255, 0, 0, 0.7)",
       color: "white",
       padding: "2px 4px",
       fontSize: "12px",
       borderRadius: "2px",
       pointerEvents: "none" as const,
+      whiteSpace: "nowrap" as const,
     };
 
     return (
@@ -153,15 +153,61 @@ export default function ImagePreview({
           title={filename}
           size="lg"
         >
-          <div className="flex justify-center relative">
-            <img
-              ref={modalImageRef}
-              src={url}
-              alt={filename}
-              className="max-w-full max-h-[70vh] object-contain"
-              onLoad={handleModalImageLoad}
-            />
-            {boundingBox && imageSize && renderBoundingBox()}
+          <div className="flex flex-col items-center w-full">
+            <TransformWrapper
+              initialScale={1}
+              initialPositionX={0}
+              initialPositionY={0}
+              minScale={0.5}
+              maxScale={5}
+              wheel={{ step: 0.1 }}
+              centerOnInit={true}
+            >
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <div className="flex justify-center gap-2 mb-3 w-full">
+                    <Button
+                      onClick={() => zoomIn()}
+                      variant="secondary"
+                      size="sm"
+                      icon={<HiZoomIn className="h-4 w-4" />}
+                    >
+                      拡大
+                    </Button>
+                    <Button
+                      onClick={() => zoomOut()}
+                      variant="secondary"
+                      size="sm"
+                      icon={<HiZoomOut className="h-4 w-4" />}
+                    >
+                      縮小
+                    </Button>
+                    <Button
+                      onClick={() => resetTransform()}
+                      variant="secondary"
+                      size="sm"
+                      icon={<FiRefreshCw className="h-4 w-4" />}
+                    >
+                      リセット
+                    </Button>
+                  </div>
+                  <div className="w-full flex justify-center">
+                    <TransformComponent wrapperStyle={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                      <div className="relative">
+                        <img
+                          ref={modalImageRef}
+                          src={url}
+                          alt={filename}
+                          className="max-w-full max-h-[60vh] object-contain"
+                          onLoad={handleModalImageLoad}
+                        />
+                        {boundingBox && imageSize && renderBoundingBox()}
+                      </div>
+                    </TransformComponent>
+                  </div>
+                </>
+              )}
+            </TransformWrapper>
           </div>
           <div className="mt-4 flex justify-end">
             <Button onClick={() => setIsModalOpen(false)}>閉じる</Button>
