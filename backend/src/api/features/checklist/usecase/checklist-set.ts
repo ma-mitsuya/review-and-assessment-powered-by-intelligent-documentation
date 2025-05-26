@@ -23,7 +23,7 @@ export const createChecklistSet = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const { req } = params;
   const checkListSet = CheckListSetDomain.fromCreateRequest(req);
@@ -59,7 +59,7 @@ export const removeChecklistSet = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const { checkListSetId } = params;
   await repo.deleteCheckListSetById({
@@ -73,7 +73,7 @@ export const getAllChecklistSets = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<CheckListSetSummary[]> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const checkListSets = await repo.findAllCheckListSets(params.status);
   return checkListSets;
@@ -103,7 +103,7 @@ export const getChecklistItems = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<CheckListItemDetail[]> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const { checkListSetId, parentId, includeAllChildren } = params;
   const checkListItems = await repo.findCheckListItems(
@@ -120,7 +120,7 @@ export const getChecklistSetById = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<CheckListSetDetailModel> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
   const { checkListSetId } = params;
   const checkListSet = await repo.findCheckListSetDetailById(checkListSetId);
   return checkListSet;

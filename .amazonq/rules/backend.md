@@ -124,7 +124,7 @@ deps?: {
 repo?: CheckRepository;
 };
 }): Promise<void> => {
-const repo = params.deps?.repo || makePrismaCheckRepository();
+const repo = params.deps?.repo || await makePrismaCheckRepository();
 const checkListSet = CheckListSetDomain.fromCreateRequest(req);
 await repo.storeCheckListSet({ checkListSet });
 };

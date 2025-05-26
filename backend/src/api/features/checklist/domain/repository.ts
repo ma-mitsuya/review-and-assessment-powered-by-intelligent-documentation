@@ -2,9 +2,9 @@ import {
   PrismaClient,
   CheckListDocument,
   CheckListSet,
+  getPrismaClient,
 } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
-import { prisma } from "../../../core/prisma";
 import {
   CheckListItemEntity,
   CheckListItemDetail,
@@ -44,9 +44,11 @@ export interface CheckRepository {
   checkSetEditable(params: { setId: string }): Promise<boolean>;
 }
 
-export const makePrismaCheckRepository = (
-  client: PrismaClient = prisma
-): CheckRepository => {
+export const makePrismaCheckRepository = async (
+  clientInput: PrismaClient | null = null
+): Promise<CheckRepository> => {
+  const client = clientInput || (await getPrismaClient());
+
   const storeCheckListSet = async (params: {
     checkListSet: CheckListSetEntity;
   }): Promise<void> => {
@@ -316,15 +318,19 @@ export const makePrismaCheckRepository = (
   }): Promise<void> => {
     const { items } = params;
 
-    await client.checkList.createMany({
-      data: items.map((item) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        parentId: item.parentId,
-        checkListSetId: item.setId,
-      })),
-    });
+    try {
+      await client.checkList.createMany({
+        data: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          parentId: item.parentId,
+          checkListSetId: item.setId,
+        })),
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   const updateDocumentStatus = async (params: {

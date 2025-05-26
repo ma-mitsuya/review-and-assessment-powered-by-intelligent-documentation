@@ -2,7 +2,7 @@ import { REVIEW_JOB_STATUS } from "../../api/features/review/domain/model/review
 import { makePrismaReviewJobRepository } from "../../api/features/review/domain/repository";
 
 export const reviewErrorHandler = async (event: any) => {
-  const reviewJobRepository = makePrismaReviewJobRepository();
+  const reviewJobRepository = await makePrismaReviewJobRepository();
 
   try {
     await reviewJobRepository.updateJobStatus({

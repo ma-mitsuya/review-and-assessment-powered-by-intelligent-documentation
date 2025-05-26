@@ -2,6 +2,7 @@
  * 審査結果の階層構造を表示するツリーコンポーネント
  */
 import { useReviewResultItems, FilterType } from '../hooks/useReviewResultQueries';
+import { useReviewJobDetail } from '../hooks/useReviewJobQueries';
 import ReviewResultTreeNode from './ReviewResultTreeNode';
 import { TreeSkeleton } from '../../../components/Skeleton';
 
@@ -20,7 +21,10 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
     error: errorRoot
   } = useReviewResultItems(jobId || null, undefined, filter);
   
-  if (isLoadingRoot) {
+  // ジョブ情報を取得して、ドキュメントタイプとパスを取得
+  const { job, isLoading: isLoadingJob } = useReviewJobDetail(jobId);
+  
+  if (isLoadingRoot || isLoadingJob) {
     return <TreeSkeleton nodes={3} />;
   }
   
@@ -53,6 +57,9 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
           confidenceThreshold={confidenceThreshold}
           maxDepth={maxDepth}
           filter={filter}
+          documentType={job?.documents[0]?.fileType}
+          documentS3Path={job?.documents[0]?.s3Path}
+          documentFilename={job?.documents[0]?.filename}
         />
       ))}
     </div>

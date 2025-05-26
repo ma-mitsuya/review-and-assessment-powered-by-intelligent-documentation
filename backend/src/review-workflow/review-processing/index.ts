@@ -33,8 +33,8 @@ interface FinalizeReviewParams {
  */
 export async function prepareReview(params: PrepareReviewParams): Promise<any> {
   const { reviewJobId, documentId, fileName, fileType } = params;
-  const reviewJobRepository = makePrismaReviewJobRepository();
-  const reviewResultRepository = makePrismaReviewResultRepository();
+  const reviewJobRepository = await makePrismaReviewJobRepository();
+  const reviewResultRepository = await makePrismaReviewResultRepository();
 
   try {
     // ジョブのステータスを処理中に更新
@@ -79,8 +79,8 @@ export async function finalizeReview(
   params: FinalizeReviewParams
 ): Promise<any> {
   const { reviewJobId, processedItems } = params;
-  const reviewJobRepository = makePrismaReviewJobRepository();
-  const reviewResultRepository = makePrismaReviewResultRepository();
+  const reviewJobRepository = await makePrismaReviewJobRepository();
+  const reviewResultRepository = await makePrismaReviewResultRepository();
 
   try {
     // 1. 審査結果の取得 - 空の親ID（ルート）から始める

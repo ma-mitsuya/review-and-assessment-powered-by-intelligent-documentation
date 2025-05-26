@@ -29,11 +29,13 @@ export async function storeChecklistItemsToDb({
 }: StoreToDbParams): Promise<StoreToDbResult> {
   const s3Client = new S3Client({});
   const bucketName = process.env.DOCUMENT_BUCKET || "";
-  const checkRepo = makePrismaCheckRepository();
+  const checkRepo = await makePrismaCheckRepository();
 
   try {
     // S3から集約結果を取得
     const aggregateKey = getChecklistAggregateKey(documentId);
+    console.log(`S3から集約結果を取得: ${aggregateKey}`);
+
     const response = await s3Client.send(
       new GetObjectCommand({
         Bucket: bucketName,
@@ -46,22 +48,50 @@ export async function storeChecklistItemsToDb({
       throw new Error(`S3オブジェクトの内容が空です: ${aggregateKey}`);
     }
 
+    console.log(`S3から取得した内容: ${bodyContents}`);
+
     const parsedItems: ParsedChecklistItem[] = JSON.parse(bodyContents);
+    console.log(`パースされたアイテム数: ${parsedItems.length}`);
 
-    const items = parsedItems.map((parsedItem) => {
-      return CheckListItemDomain.fromParsedChecklistItem({
-        item: parsedItem,
-        setId: checkListSetId,
+    if (!parsedItems || parsedItems.length === 0) {
+      console.warn(`チェックリスト項目が見つかりませんでした: ${aggregateKey}`);
+      // 項目がなくても処理は続行し、ドキュメントステータスを更新する
+    } else {
+      console.log(`チェックリスト項目を変換して保存します`);
+
+      const items = parsedItems.map((parsedItem) => {
+        console.log(`変換中のアイテム: ${JSON.stringify(parsedItem)}`);
+        return CheckListItemDomain.fromParsedChecklistItem({
+          item: parsedItem,
+          setId: checkListSetId,
+        });
       });
-    });
 
-    await checkRepo.bulkStoreCheckListItems({
-      items,
-    });
-    await checkRepo.updateDocumentStatus({
-      documentId,
-      status: "completed",
-    });
+      console.log(`変換後のアイテム: ${JSON.stringify(items)}`);
+
+      try {
+        console.log(`リポジトリのbulkStoreCheckListItemsを呼び出します`);
+        await checkRepo.bulkStoreCheckListItems({
+          items,
+        });
+        console.log(`bulkStoreCheckListItems呼び出し成功`);
+      } catch (repoError) {
+        console.error(`リポジトリ呼び出し中にエラーが発生: ${repoError}`);
+        throw repoError;
+      }
+    }
+
+    console.log(`ドキュメントステータスを更新: ${documentId}`);
+    try {
+      await checkRepo.updateDocumentStatus({
+        documentId,
+        status: "completed",
+      });
+      console.log(`ドキュメントステータス更新成功`);
+    } catch (statusError) {
+      console.error(`ステータス更新中にエラーが発生: ${statusError}`);
+      throw statusError;
+    }
 
     return {
       documentId,

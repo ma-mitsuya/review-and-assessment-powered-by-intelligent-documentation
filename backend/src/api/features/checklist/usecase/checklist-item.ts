@@ -18,7 +18,7 @@ export const createChecklistItem = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const { req } = params;
   const { setId } = req.Params;
@@ -53,7 +53,7 @@ export const getCheckListItem = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<CheckListItemEntity> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const { itemId } = params;
   const checkListItem = await repo.findCheckListItemById(itemId);
@@ -67,7 +67,7 @@ export const modifyCheckListItem = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const isEditable = await repo.checkSetEditable({
     setId: params.req.Params.setId,
@@ -96,7 +96,7 @@ export const removeCheckListItem = async (params: {
     repo?: CheckRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaCheckRepository();
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
   const isEditable = await repo.checkSetEditable({
     setId: params.setId,

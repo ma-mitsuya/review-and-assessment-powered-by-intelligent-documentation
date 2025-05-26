@@ -2,11 +2,13 @@
  * 個々の審査結果項目を表示するコンポーネント
  */
 import { useState } from 'react';
-import { ReviewResultDetailModel, REVIEW_RESULT, REVIEW_RESULT_STATUS } from '../types';
+import { ReviewResultDetailModel, REVIEW_RESULT, REVIEW_RESULT_STATUS, REVIEW_FILE_TYPE } from '../types';
 import ReviewResultOverrideModal from './ReviewResultOverrideModal';
 import Button from '../../../components/Button';
 import { HiChevronDown, HiChevronRight, HiPencil } from 'react-icons/hi';
 import Spinner from '../../../components/Spinner';
+import DocumentPreview from '../../../components/DocumentPreview';
+import ImagePreview from '../../../components/ImagePreview';
 
 interface ReviewResultItemProps {
   result: ReviewResultDetailModel;
@@ -15,6 +17,10 @@ interface ReviewResultItemProps {
   onToggleExpand: () => void;
   confidenceThreshold: number;
   isLoadingChildren?: boolean;
+  // 新規追加プロパティ
+  documentType?: REVIEW_FILE_TYPE;
+  documentS3Path?: string;
+  documentFilename?: string;
 }
 
 export default function ReviewResultItem({ 
@@ -23,7 +29,10 @@ export default function ReviewResultItem({
   isExpanded, 
   onToggleExpand,
   confidenceThreshold,
-  isLoadingChildren
+  isLoadingChildren,
+  documentType,
+  documentS3Path,
+  documentFilename
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -187,8 +196,26 @@ export default function ReviewResultItem({
                 
                 {result.extractedText && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">抽出テキスト:</p>
+                    <p className="font-medium text-aws-squid-ink-light mb-1">参照元:</p>
                     <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extractedText}</p>
+                    
+                    {/* 参照元ドキュメントの表示 */}
+                    {result.sourceDocumentId && documentS3Path && documentFilename && (
+                      <div className="mt-2 pt-2 border-t border-light-gray">
+                        {documentType === REVIEW_FILE_TYPE.PDF ? (
+                          <DocumentPreview 
+                            s3Key={documentS3Path} 
+                            filename={documentFilename} 
+                            pageNumber={result.sourcePageNumber} 
+                          />
+                        ) : documentType === REVIEW_FILE_TYPE.IMAGE ? (
+                          <ImagePreview 
+                            s3Key={documentS3Path} 
+                            filename={documentFilename} 
+                          />
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 )}
                 

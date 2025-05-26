@@ -13,6 +13,7 @@ import {
   overrideReviewResult,
   getReviewResults,
 } from "../usecase/review-result";
+import { getDocumentDownloadUrl } from "../usecase/document";
 
 export const getAllReviewJobsHandler = async (
   request: FastifyRequest,
@@ -190,5 +191,32 @@ export const getReviewJobByIdHandler = async (
   reply.code(200).send({
     success: true,
     data: job,
+  });
+};
+
+interface GetDownloadPresignedUrlRequest {
+  key: string;
+  expiresIn?: number;
+}
+
+/**
+ * ドキュメントのダウンロード用Presigned URLを取得するハンドラー
+ */
+export const getDownloadPresignedUrlHandler = async (
+  request: FastifyRequest<{ Body: GetDownloadPresignedUrlRequest }>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { key, expiresIn = 3600 } = request.body;
+  
+  const url = await getDocumentDownloadUrl({
+    key,
+    expiresIn,
+  });
+  
+  reply.code(200).send({
+    success: true,
+    data: {
+      url,
+    },
   });
 };

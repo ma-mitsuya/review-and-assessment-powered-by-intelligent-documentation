@@ -3,7 +3,7 @@
  * 子要素を動的に読み込む機能を持つ
  */
 import { useState } from 'react';
-import { ReviewResultDetailModel } from '../types';
+import { ReviewResultDetailModel, REVIEW_FILE_TYPE } from '../types';
 import ReviewResultItem from './ReviewResultItem';
 import { useReviewResultItems, FilterType } from '../hooks/useReviewResultQueries';
 import Spinner from '../../../components/Spinner';
@@ -16,6 +16,9 @@ interface ReviewResultTreeNodeProps {
   maxDepth?: number;
   autoExpand?: boolean;
   filter: FilterType;
+  documentType?: REVIEW_FILE_TYPE;
+  documentS3Path?: string;
+  documentFilename?: string;
 }
 
 export default function ReviewResultTreeNode({ 
@@ -25,7 +28,10 @@ export default function ReviewResultTreeNode({
   confidenceThreshold,
   maxDepth = 2,
   autoExpand = false,
-  filter
+  filter,
+  documentType,
+  documentS3Path,
+  documentFilename
 }: ReviewResultTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < maxDepth || autoExpand);
   
@@ -71,6 +77,9 @@ export default function ReviewResultTreeNode({
           onToggleExpand={toggleExpand}
           confidenceThreshold={confidenceThreshold}
           isLoadingChildren={shouldLoadChildren && isLoadingChildren}
+          documentType={documentType}
+          documentS3Path={documentS3Path}
+          documentFilename={documentFilename}
         />
       </div>
       
@@ -95,6 +104,9 @@ export default function ReviewResultTreeNode({
                 confidenceThreshold={confidenceThreshold}
                 maxDepth={maxDepth}
                 filter={filter}
+                documentType={documentType}
+                documentS3Path={documentS3Path}
+                documentFilename={documentFilename}
               />
             ))
           ) : (

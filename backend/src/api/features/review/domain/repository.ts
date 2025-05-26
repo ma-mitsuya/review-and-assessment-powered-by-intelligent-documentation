@@ -1,5 +1,4 @@
-import { prisma } from "../../../core/prisma";
-import { PrismaClient } from "../../../core/db";
+import { getPrismaClient, PrismaClient } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
 import {
   ReviewJobEntity,
@@ -17,9 +16,7 @@ import { CheckListStatus } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
   findAllReviewJobs(): Promise<ReviewJobSummary[]>;
-  findReviewJobById(params: {
-    reviewJobId: string;
-  }): Promise<ReviewJobDetail>;
+  findReviewJobById(params: { reviewJobId: string }): Promise<ReviewJobDetail>;
   createReviewJob(params: ReviewJobEntity): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
   updateJobStatus(params: {
@@ -28,9 +25,11 @@ export interface ReviewJobRepository {
   }): Promise<void>;
 }
 
-export const makePrismaReviewJobRepository = (
-  client: PrismaClient = prisma
-): ReviewJobRepository => {
+export const makePrismaReviewJobRepository = async (
+  clientInput: PrismaClient | null = null
+): Promise<ReviewJobRepository> => {
+  const client = clientInput || (await getPrismaClient());
+
   const findAllReviewJobs = async (): Promise<ReviewJobSummary[]> => {
     const jobs = await client.reviewJob.findMany({
       orderBy: { id: "desc" },
@@ -43,7 +42,7 @@ export const makePrismaReviewJobRepository = (
             fileType: true,
           },
           orderBy: {
-            id: 'asc',
+            id: "asc",
           },
         },
         checkListSet: {
@@ -83,7 +82,7 @@ export const makePrismaReviewJobRepository = (
         updatedAt: job.updatedAt,
         completedAt: job.completedAt || undefined,
         userId: job.userId || undefined,
-        documents: job.documents.map(doc => ({
+        documents: job.documents.map((doc) => ({
           id: doc.id,
           filename: doc.filename,
           s3Path: doc.s3Path,
@@ -108,7 +107,7 @@ export const makePrismaReviewJobRepository = (
       include: {
         documents: {
           orderBy: {
-            id: 'asc',
+            id: "asc",
           },
         },
         checkListSet: {
@@ -140,7 +139,7 @@ export const makePrismaReviewJobRepository = (
           status: doc.status as CheckListStatus,
         })),
       },
-      documents: job.documents.map(doc => ({
+      documents: job.documents.map((doc) => ({
         id: doc.id,
         filename: doc.filename,
         s3Path: doc.s3Path,
@@ -209,14 +208,14 @@ export const makePrismaReviewJobRepository = (
     reviewJobId: string;
   }): Promise<void> => {
     const { reviewJobId } = params;
-    
+
     await client.$transaction(async (tx) => {
       // 関連する審査結果を削除
       await tx.reviewResult.deleteMany({ where: { reviewJobId } });
-      
+
       // 関連する審査ドキュメントを削除
       await tx.reviewDocument.deleteMany({ where: { reviewJobId } });
-      
+
       // 審査ジョブを削除
       await tx.reviewJob.delete({ where: { id: reviewJobId } });
     });
@@ -259,9 +258,10 @@ export interface ReviewResultRepository {
   bulkUpdateResults(params: { results: ReviewResultEntity[] }): Promise<void>;
 }
 
-export const makePrismaReviewResultRepository = (
-  client: PrismaClient = prisma
-): ReviewResultRepository => {
+export const makePrismaReviewResultRepository = async (
+  clientInput: PrismaClient | null = null
+): Promise<ReviewResultRepository> => {
+  const client = clientInput || (await getPrismaClient());
   const findDetailedReviewResultById = async (params: {
     resultId: string;
   }): Promise<ReviewResultDetail> => {
@@ -298,10 +298,11 @@ export const makePrismaReviewResultRepository = (
       explanation: result.explanation ?? undefined,
       extractedText: result.extractedText ?? undefined,
       userOverride: result.userOverride,
-      // schema に userComment があるならこちらもマッピング
       userComment: (result as any).userComment ?? undefined,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      sourceDocumentId: result.sourceDocumentId ?? undefined,
+      sourcePageNumber: result.sourcePageNumber ?? undefined,
       checkList: {
         id: result.checkList.id,
         setId: result.checkList.checkListSetId,
@@ -331,7 +332,7 @@ export const makePrismaReviewResultRepository = (
     const whereCondition: any = {
       reviewJobId: jobId,
     };
-    
+
     // includeAllChildrenがfalseの場合のみ、parentIdの条件を適用
     if (!includeAllChildren) {
       whereCondition.checkList = {
@@ -345,8 +346,6 @@ export const makePrismaReviewResultRepository = (
       whereCondition.result = filter;
     }
 
-    console.log(`[Repository] Query condition:`, JSON.stringify(whereCondition, null, 2));
-
     // 審査結果を取得
     const results = await client.reviewResult.findMany({
       where: whereCondition,
@@ -359,12 +358,13 @@ export const makePrismaReviewResultRepository = (
     });
 
     console.log(`[Repository] Found ${results.length} results`);
-    
+
     // 結果のcheckIdとparentIdをログ出力
-    console.log(`[Repository] Result checkIds and parentIds:`, 
-      results.map(r => ({ 
-        checkId: r.checkId, 
-        parentId: r.checkList.parentId 
+    console.log(
+      `[Repository] Result checkIds and parentIds:`,
+      results.map((r) => ({
+        checkId: r.checkId,
+        parentId: r.checkList.parentId,
       }))
     );
 
@@ -398,16 +398,11 @@ export const makePrismaReviewResultRepository = (
     });
 
     console.log(`[Repository] Found ${childResults.length} child results`);
-    console.log(`[Repository] Child results:`, 
-      childResults.map(child => child.checkList.parentId)
-    );
 
     // 子を持つ親IDのセットを作成
     const parentsWithChildren = new Set(
       childResults.map((child) => child.checkList.parentId)
     );
-
-    console.log(`[Repository] Parents with children:`, Array.from(parentsWithChildren));
 
     // 結果を新しいモデル形式に変換して返す
     const mappedResults = results.map((result) => ({
@@ -433,13 +428,6 @@ export const makePrismaReviewResultRepository = (
       hasChildren: parentsWithChildren.has(result.checkId),
     }));
 
-    console.log(`[Repository] Final results with hasChildren:`, 
-      mappedResults.map(r => ({ 
-        checkId: r.checkId, 
-        hasChildren: r.hasChildren 
-      }))
-    );
-
     return mappedResults;
   };
 
@@ -458,6 +446,8 @@ export const makePrismaReviewResultRepository = (
         userOverride: newResult.userOverride,
         userComment: newResult.userComment,
         updatedAt: newResult.updatedAt,
+        sourceDocumentId: newResult.sourceDocumentId,
+        sourcePageNumber: newResult.sourcePageNumber,
       },
     });
   };

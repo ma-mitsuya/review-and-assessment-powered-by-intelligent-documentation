@@ -34,7 +34,8 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
 "result": "pass" または "fail",
 "confidence": 0 から 1 の間の数値（信頼度）,
 "explanation": "判断理由の説明",
-"extractedText": "関連する抽出テキスト"
+"extractedText": "関連する抽出テキスト",
+"imageIndex": 判断に使用した画像のインデックス（0から始まる整数、複数の場合はカンマ区切りで記載）
 }
 `;
 
@@ -57,9 +58,9 @@ export async function processImageReviewItem(
   params: ProcessImageReviewItemParams
 ): Promise<any> {
   const { reviewJobId, documentId, checkId, reviewResultId } = params;
-  const reviewJobRepository = makePrismaReviewJobRepository();
-  const reviewResultRepository = makePrismaReviewResultRepository();
-  const checkRepository = makePrismaCheckRepository();
+  const reviewJobRepository = await makePrismaReviewJobRepository();
+  const reviewResultRepository = await makePrismaReviewResultRepository();
+  const checkRepository = await makePrismaCheckRepository();
 
   try {
     // チェックリスト項目の取得
@@ -109,9 +110,10 @@ export async function processImageReviewItem(
     );
 
     // プロンプトの準備
-    const prompt = IMAGE_REVIEW_PROMPT
-      .replace("{checkName}", checkList.name)
-      .replace("{checkDescription}", checkList.description || "説明なし");
+    const prompt = IMAGE_REVIEW_PROMPT.replace(
+      "{checkName}",
+      checkList.name
+    ).replace("{checkDescription}", checkList.description || "説明なし");
 
     // Bedrockを使用して審査
     const bedrockClient = new BedrockRuntimeClient({
@@ -255,6 +257,8 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
+      sourceDocumentId: documentId,
+      // 画像の場合はページ番号は不要
     });
     await reviewResultRepository.updateResult({
       newResult: updated,
@@ -267,7 +271,10 @@ ${prompt}
       result: reviewData.result,
     };
   } catch (error) {
-    console.error(`Error processing image review item ${reviewResultId}:`, error);
+    console.error(
+      `Error processing image review item ${reviewResultId}:`,
+      error
+    );
 
     // エラー発生時は審査結果のステータスを失敗に更新
     await reviewJobRepository.updateJobStatus({

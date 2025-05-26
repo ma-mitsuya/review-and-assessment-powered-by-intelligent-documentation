@@ -22,7 +22,7 @@ export const getReviewResults = async (params: {
     repo?: ReviewResultRepository;
   };
 }): Promise<ReviewResultDetail[]> => {
-  const repo = params.deps?.repo || makePrismaReviewResultRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewResultRepository());
   const reviewJob = await repo.findReviewResultsById({
     jobId: params.reviewJobId,
     parentId: params.parentId,
@@ -41,7 +41,7 @@ export const overrideReviewResult = async (params: {
     repo?: ReviewResultRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaReviewResultRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewResultRepository());
 
   const current = await repo.findDetailedReviewResultById({
     resultId: params.resultId,

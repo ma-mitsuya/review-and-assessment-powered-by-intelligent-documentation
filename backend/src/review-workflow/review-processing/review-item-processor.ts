@@ -40,7 +40,8 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
   "result": "pass" または "fail",
   "confidence": 0から1の間の数値（信頼度）,
   "explanation": "判断理由の説明",
-  "extractedText": "関連する抽出テキスト"
+  "extractedText": "関連する抽出テキスト",
+  "pageNumber": 抽出テキストが記載されているページ番号（1から始まる整数）
 }
 
 信頼度スコアの例:
@@ -53,7 +54,8 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
   "result": "pass",
   "confidence": 0.95,
   "explanation": "契約書第3条に契約者の氏名、住所、連絡先が明確に記載されています。すべての必要情報が含まれており、正確です。",
-  "extractedText": "第3条（契約者情報）契約者：山田太郎、住所：東京都千代田区..."
+  "extractedText": "第3条（契約者情報）契約者：山田太郎、住所：東京都千代田区...",
+  "pageNumber": 2
 }
 
 出力例2 (中程度の信頼度で失敗):
@@ -61,7 +63,8 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
   "result": "fail",
   "confidence": 0.82,
   "explanation": "契約書に物件の所在地は記載されていますが、面積の記載が見当たりません。チェック項目では面積の記載が必要とされています。",
-  "extractedText": "物件所在地：東京都新宿区西新宿1-1-1"
+  "extractedText": "物件所在地：東京都新宿区西新宿1-1-1",
+  "pageNumber": 1
 }
 
 出力例3 (低い信頼度でパス):
@@ -69,7 +72,8 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
   "result": "pass",
   "confidence": 0.65,
   "explanation": "契約書に支払条件の記載はありますが、具体的な支払日の記載が曖昧です。ただし最低限の条件は満たしていると判断します。",
-  "extractedText": "代金は契約締結後、速やかに支払うものとする。"
+  "extractedText": "代金は契約締結後、速やかに支払うものとする。",
+  "pageNumber": 3
 }
 `;
 
@@ -119,9 +123,9 @@ async function processPdfReviewItem(
   params: ProcessReviewItemParams
 ): Promise<any> {
   const { reviewJobId, documentId, fileName, checkId, reviewResultId } = params;
-  const reviewJobRepository = makePrismaReviewJobRepository();
-  const reviewResultRepository = makePrismaReviewResultRepository();
-  const checkRepository = makePrismaCheckRepository();
+  const reviewJobRepository = await makePrismaReviewJobRepository();
+  const reviewResultRepository = await makePrismaReviewResultRepository();
+  const checkRepository = await makePrismaCheckRepository();
 
   try {
     // チェックリスト項目の取得
@@ -325,6 +329,8 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
+      sourceDocumentId: documentId,
+      sourcePageNumber: reviewData.pageNumber || undefined,
     });
     await reviewResultRepository.updateResult({
       newResult: updated,

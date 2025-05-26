@@ -5,6 +5,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -43,6 +44,27 @@ export async function getPresignedUrl(
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
+  });
+
+  return getSignedUrl(client, command, { expiresIn });
+}
+
+/**
+ * S3のダウンロード用Presigned URLを生成する
+ * @param bucket バケット名
+ * @param key オブジェクトキー
+ * @param expiresIn 有効期限（秒）
+ * @returns ダウンロード用Presigned URL
+ */
+export async function getDownloadPresignedUrl(
+  bucket: string,
+  key: string,
+  expiresIn = 3600
+): Promise<string> {
+  const client = getS3Client();
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
   });
 
   return getSignedUrl(client, command, { expiresIn });

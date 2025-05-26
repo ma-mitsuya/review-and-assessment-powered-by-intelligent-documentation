@@ -120,6 +120,8 @@ export interface ReviewResultEntity {
   userOverride: boolean;
   createdAt: Date;
   updatedAt: Date;
+  sourceDocumentId?: string;
+  sourcePageNumber?: number;
 }
 
 export interface ReviewResultDetail extends ReviewResultEntity {
@@ -150,8 +152,17 @@ export const ReviewResultDomain = (() => {
       confidenceScore: number;
       explanation: string;
       extractedText: string;
+      sourceDocumentId?: string;
+      sourcePageNumber?: number;
     }): ReviewResultEntity => {
-      const { result, confidenceScore, explanation, extractedText } = params;
+      const {
+        result,
+        confidenceScore,
+        explanation,
+        extractedText,
+        sourceDocumentId,
+        sourcePageNumber,
+      } = params;
       return {
         ...params.current,
         status: REVIEW_RESULT_STATUS.COMPLETED,
@@ -159,6 +170,8 @@ export const ReviewResultDomain = (() => {
         confidenceScore,
         explanation,
         extractedText,
+        sourceDocumentId,
+        sourcePageNumber,
         userOverride: false,
         updatedAt: new Date(),
       };

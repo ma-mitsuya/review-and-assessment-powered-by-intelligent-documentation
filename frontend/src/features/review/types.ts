@@ -260,6 +260,9 @@ export interface ReviewResultEntity {
   userOverride: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // 新規追加フィールド
+  sourceDocumentId?: string;
+  sourcePageNumber?: number;
 }
 
 /**

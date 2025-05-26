@@ -9,6 +9,7 @@ import {
   getReviewImagesPresignedUrlHandler,
   getReviewResultItemsHandler,
   overrideReviewResultHandler,
+  getDownloadPresignedUrlHandler,
 } from "./handlers";
 
 /**
@@ -25,6 +26,10 @@ export function registerReviewRoutes(fastify: FastifyInstance): void {
   });
   fastify.delete("/documents/review/:key", {
     handler: deleteReviewDocumentHandler,
+  });
+  // ダウンロード用Presigned URL取得エンドポイント
+  fastify.post("/documents/download-url", {
+    handler: getDownloadPresignedUrlHandler,
   });
 
   // 審査ジョブ関連

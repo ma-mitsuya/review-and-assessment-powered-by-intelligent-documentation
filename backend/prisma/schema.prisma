@@ -56,30 +56,30 @@ model CheckListDocument {
 }
 
 model ReviewDocument {
-  id         String      @id @map("review_document_id") @db.VarChar(26)
-  filename   String      @db.VarChar(255)
-  s3Path     String      @map("s3_path") @db.VarChar(512)
-  fileType   String      @map("file_type") @db.VarChar(50)
-  uploadDate DateTime    @map("upload_date") @db.Timestamp(0)
-  userId     String?     @map("user_id") @db.VarChar(50)
-  status     String      @default("pending") @db.VarChar(20)
-  reviewJobId String     @map("review_job_id") @db.VarChar(26)
-  reviewJob  ReviewJob   @relation(fields: [reviewJobId], references: [id])
+  id          String    @id @map("review_document_id") @db.VarChar(26)
+  filename    String    @db.VarChar(255)
+  s3Path      String    @map("s3_path") @db.VarChar(512)
+  fileType    String    @map("file_type") @db.VarChar(50)
+  uploadDate  DateTime  @map("upload_date") @db.Timestamp(0)
+  userId      String?   @map("user_id") @db.VarChar(50)
+  status      String    @default("pending") @db.VarChar(20)
+  reviewJobId String    @map("review_job_id") @db.VarChar(26)
+  reviewJob   ReviewJob @relation(fields: [reviewJobId], references: [id])
 
   @@map("review_documents")
 }
 
 model ReviewJob {
-  id             String         @id @map("review_job_id") @db.VarChar(26)
-  name           String         @db.VarChar(255)
-  status         String         @default("pending") @db.VarChar(20)
-  checkListSetId String         @map("check_list_set_id") @db.VarChar(26)
-  createdAt      DateTime       @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime       @map("updated_at") @db.Timestamp(0)
-  completedAt    DateTime?      @map("completed_at") @db.Timestamp(0)
-  userId         String?        @map("user_id") @db.VarChar(50)
-  metaData       Json?          @map("meta_data")
-  checkListSet   CheckListSet   @relation(fields: [checkListSetId], references: [id])
+  id             String           @id @map("review_job_id") @db.VarChar(26)
+  name           String           @db.VarChar(255)
+  status         String           @default("pending") @db.VarChar(20)
+  checkListSetId String           @map("check_list_set_id") @db.VarChar(26)
+  createdAt      DateTime         @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime         @map("updated_at") @db.Timestamp(0)
+  completedAt    DateTime?        @map("completed_at") @db.Timestamp(0)
+  userId         String?          @map("user_id") @db.VarChar(50)
+  metaData       Json?            @map("meta_data")
+  checkListSet   CheckListSet     @relation(fields: [checkListSetId], references: [id])
   documents      ReviewDocument[]
   reviewResults  ReviewResult[]
 
@@ -88,20 +88,23 @@ model ReviewJob {
 }
 
 model ReviewResult {
-  id              String    @id @map("review_result_id") @db.VarChar(26)
-  reviewJobId     String    @map("review_job_id") @db.VarChar(26)
-  checkId         String    @map("check_id") @db.VarChar(26)
-  status          String    @default("pending") @db.VarChar(20)
-  result          String?   @db.VarChar(20)
-  confidenceScore Float?    @map("confidence_score")
-  explanation     String?   @db.Text
-  extractedText   String?   @map("extracted_text") @db.Text
-  userOverride    Boolean   @default(false) @map("user_override")
-  userComment     String?   @map("user_comment") @db.Text
-  createdAt       DateTime  @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime  @map("updated_at") @db.Timestamp(0)
-  checkList       CheckList @relation(fields: [checkId], references: [id])
-  reviewJob       ReviewJob @relation(fields: [reviewJobId], references: [id])
+  id               String   @id @map("review_result_id") @db.VarChar(26)
+  reviewJobId      String   @map("review_job_id") @db.VarChar(26)
+  checkId          String   @map("check_id") @db.VarChar(26)
+  status           String   @default("pending") @db.VarChar(20)
+  result           String?  @db.VarChar(20)
+  confidenceScore  Float?   @map("confidence_score")
+  explanation      String?  @db.Text
+  extractedText    String?  @map("extracted_text") @db.Text
+  userOverride     Boolean  @default(false) @map("user_override")
+  userComment      String?  @map("user_comment") @db.Text
+  createdAt        DateTime @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime @map("updated_at") @db.Timestamp(0)
+  sourceDocumentId String?  @map("source_document_id") @db.VarChar(26)
+  sourcePageNumber Int?     @map("source_page_number")
+
+  checkList CheckList @relation(fields: [checkId], references: [id])
+  reviewJob ReviewJob @relation(fields: [reviewJobId], references: [id])
 
   @@index([checkId], map: "review_results_check_id_fkey")
   @@index([reviewJobId], map: "review_results_review_job_id_fkey")

@@ -15,7 +15,10 @@ import {
 } from "../domain/repository";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
-import { getReviewDocumentKey, getReviewImageKey } from "../../../../checklist-workflow/common/storage-paths";
+import {
+  getReviewDocumentKey,
+  getReviewImageKey,
+} from "../../../../checklist-workflow/common/storage-paths";
 import { CreateReviewJobRequest } from "../routes/handlers";
 import { createInitialReviewJobModel } from "../domain/service/review-job-factory";
 import {
@@ -30,7 +33,7 @@ export const getAllReviewJobs = async (params: {
     repo?: ReviewJobRepository;
   };
 }): Promise<ReviewJobSummary[]> => {
-  const repo = params.deps?.repo || makePrismaReviewJobRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewJobRepository());
   const reviewJobs = await repo.findAllReviewJobs();
   return reviewJobs;
 };
@@ -54,7 +57,14 @@ export const getReviewDocumentPresignedUrl = async (params: {
 export const getReviewImagesPresignedUrl = async (params: {
   filenames: string[];
   contentTypes: string[];
-}): Promise<{ files: Array<{ url: string; key: string; filename: string; documentId: string }> }> => {
+}): Promise<{
+  files: Array<{
+    url: string;
+    key: string;
+    filename: string;
+    documentId: string;
+  }>;
+}> => {
   const { filenames, contentTypes } = params;
   const bucketName = process.env.DOCUMENT_BUCKET;
   if (!bucketName) {
@@ -87,15 +97,19 @@ export const createReviewJob = async (params: {
     reviewJobRepo?: ReviewJobRepository;
   };
 }): Promise<void> => {
-  const checkRepo = params.deps?.checkRepo || makePrismaCheckRepository();
+  const checkRepo =
+    params.deps?.checkRepo || (await makePrismaCheckRepository());
   const reviewJobRepo =
-    params.deps?.reviewJobRepo || makePrismaReviewJobRepository();
+    params.deps?.reviewJobRepo || (await makePrismaReviewJobRepository());
 
   // バリデーション
-  if (!params.requestBody.documents || params.requestBody.documents.length === 0) {
+  if (
+    !params.requestBody.documents ||
+    params.requestBody.documents.length === 0
+  ) {
     throw new ApplicationError("At least one document is required");
   }
-  
+
   if (params.requestBody.documents.length > 20) {
     throw new ApplicationError("Maximum 20 documents allowed");
   }
@@ -132,7 +146,7 @@ export const removeReviewJob = async (params: {
     repo?: ReviewJobRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaReviewJobRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewJobRepository());
   await repo.deleteReviewJobById({
     reviewJobId: params.reviewJobId,
   });
@@ -145,7 +159,7 @@ export const modifyJobStatus = async (params: {
     repo?: ReviewJobRepository;
   };
 }): Promise<void> => {
-  const repo = params.deps?.repo || makePrismaReviewJobRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewJobRepository());
   await repo.updateJobStatus({
     reviewJobId: params.reviewJobId,
     status: params.status,
@@ -157,7 +171,7 @@ export const getReviewJobById = async (params: {
     repo?: ReviewJobRepository;
   };
 }): Promise<ReviewJobDetail> => {
-  const repo = params.deps?.repo || makePrismaReviewJobRepository();
+  const repo = params.deps?.repo || (await makePrismaReviewJobRepository());
   return await repo.findReviewJobById({
     reviewJobId: params.reviewJobId,
   });
