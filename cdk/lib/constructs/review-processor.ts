@@ -86,9 +86,6 @@ export class ReviewProcessor extends Construct {
       payload: sfn.TaskInput.fromObject({
         action: "prepareReview",
         reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
-        documentId: sfn.JsonPath.stringAt("$.documentId"),
-        fileName: sfn.JsonPath.stringAt("$.fileName"),
-        fileType: sfn.JsonPath.stringAt("$.fileType"),
       }),
       resultPath: "$.prepareResult",
     });
@@ -100,9 +97,6 @@ export class ReviewProcessor extends Construct {
       resultPath: "$.processedItems",
       parameters: {
         "reviewJobId.$": "$.reviewJobId",
-        "documentId.$": "$.documentId",
-        "fileName.$": "$.fileName",
-        "fileType.$": "$.fileType",
         "checkId.$": "$$.Map.Item.Value.checkId",
         "reviewResultId.$": "$$.Map.Item.Value.reviewResultId",
       },
@@ -117,9 +111,6 @@ export class ReviewProcessor extends Construct {
         payload: sfn.TaskInput.fromObject({
           action: "processReviewItem",
           reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
-          documentId: sfn.JsonPath.stringAt("$.documentId"),
-          fileName: sfn.JsonPath.stringAt("$.fileName"),
-          fileType: sfn.JsonPath.stringAt("$.fileType"),
           checkId: sfn.JsonPath.stringAt("$.checkId"),
           reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
         }),

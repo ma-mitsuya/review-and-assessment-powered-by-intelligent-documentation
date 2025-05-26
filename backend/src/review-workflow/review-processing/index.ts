@@ -14,9 +14,6 @@ import { updateCheckResultCascade } from "../../api/features/review/domain/servi
  */
 interface PrepareReviewParams {
   reviewJobId: string;
-  documentId: string;
-  fileName: string;
-  fileType?: REVIEW_FILE_TYPE;
 }
 
 /**
@@ -32,7 +29,7 @@ interface FinalizeReviewParams {
  * チェックリスト項目を取得し、処理項目を準備する
  */
 export async function prepareReview(params: PrepareReviewParams): Promise<any> {
-  const { reviewJobId, documentId, fileName, fileType } = params;
+  const { reviewJobId } = params;
   const reviewJobRepository = await makePrismaReviewJobRepository();
   const reviewResultRepository = await makePrismaReviewResultRepository();
 
@@ -42,6 +39,15 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
       reviewJobId,
       status: REVIEW_JOB_STATUS.PROCESSING,
     });
+
+    // ジョブに関連するドキュメント情報を取得
+    const jobDetail = await reviewJobRepository.findReviewJobById({
+      reviewJobId,
+    });
+
+    if (!jobDetail.documents || jobDetail.documents.length === 0) {
+      throw new Error(`No documents found for review job ${reviewJobId}`);
+    }
 
     // job取得
     const results = await reviewResultRepository.findReviewResultsById({
@@ -56,9 +62,7 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
 
     return {
       reviewJobId,
-      documentId,
-      fileName,
-      fileType,
+      documents: jobDetail.documents,
       checkItems,
     };
   } catch (error) {

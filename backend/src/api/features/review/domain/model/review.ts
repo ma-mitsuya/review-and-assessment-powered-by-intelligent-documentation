@@ -137,6 +137,29 @@ export interface ReviewResultDetail extends ReviewResultEntity {
 }
 
 export const ReviewResultDomain = (() => {
+  const _buildSourceReferencesFromImages = (
+    usedImageIndexes: number[] | undefined,
+    imageBuffers: Array<{
+      documentId: string;
+      filename: string;
+      buffer: Uint8Array;
+    }>
+  ): SourceReference[] => {
+    // usedImageIndexesが指定されている場合は、その画像のみを使用
+    if (usedImageIndexes && usedImageIndexes.length > 0) {
+      return usedImageIndexes
+        .filter((index) => index >= 0 && index < imageBuffers.length)
+        .map((index) => ({
+          documentId: imageBuffers[index].documentId,
+        }));
+    }
+
+    // そうでない場合は全ての画像を使用
+    return imageBuffers.map((img) => ({
+      documentId: img.documentId,
+    }));
+  };
+
   return {
     fromOverrideRequest: (params: {
       current: ReviewResultDetail;
@@ -159,7 +182,7 @@ export const ReviewResultDomain = (() => {
       confidenceScore: number;
       explanation: string;
       extractedText: string;
-      sourceReferences?: SourceReference[];
+      sourceReferences: SourceReference[];
     }): ReviewResultEntity => {
       const {
         result,
@@ -168,6 +191,7 @@ export const ReviewResultDomain = (() => {
         extractedText,
         sourceReferences,
       } = params;
+
       return {
         ...params.current,
         status: REVIEW_RESULT_STATUS.COMPLETED,
@@ -180,33 +204,80 @@ export const ReviewResultDomain = (() => {
         updatedAt: new Date(),
       };
     },
-    
-    parseSourceReferences: (documentId: string, pageNumberOrIndices?: string | number): SourceReference[] => {
+
+    fromImageLlmReviewData: (params: {
+      current: ReviewResultDetail;
+      result: REVIEW_RESULT;
+      confidenceScore: number;
+      explanation: string;
+      extractedText: string;
+      usedImageIndexes: number[];
+      imageBuffers: Array<{
+        documentId: string;
+        filename: string;
+        buffer: Uint8Array;
+      }>;
+    }): ReviewResultEntity => {
+      const {
+        result,
+        confidenceScore,
+        explanation,
+        extractedText,
+        usedImageIndexes,
+        imageBuffers,
+      } = params;
+
+      const sourceReferences = _buildSourceReferencesFromImages(
+        usedImageIndexes,
+        imageBuffers
+      );
+
+      return {
+        ...params.current,
+        status: REVIEW_RESULT_STATUS.COMPLETED,
+        result,
+        confidenceScore,
+        explanation,
+        extractedText,
+        sourceReferences,
+        userOverride: false,
+        updatedAt: new Date(),
+      };
+    },
+
+    parseSourceReferences: (
+      documentId: string,
+      pageNumberOrIndices?: string | number
+    ): SourceReference[] => {
       if (pageNumberOrIndices === undefined) {
         return [{ documentId }];
       }
-      
+
       // 文字列の場合（カンマ区切りの可能性あり）
-      if (typeof pageNumberOrIndices === 'string') {
+      if (typeof pageNumberOrIndices === "string") {
         // カンマ区切りの場合は複数の参照元を作成
-        if (pageNumberOrIndices.includes(',')) {
-          return pageNumberOrIndices.split(',').map(index => ({
+        if (pageNumberOrIndices.includes(",")) {
+          return pageNumberOrIndices.split(",").map((index) => ({
             documentId,
-            pageNumber: parseInt(index.trim(), 10)
+            pageNumber: parseInt(index.trim(), 10),
           }));
         }
         // 単一の値の場合
-        return [{ 
-          documentId, 
-          pageNumber: parseInt(pageNumberOrIndices, 10) 
-        }];
+        return [
+          {
+            documentId,
+            pageNumber: parseInt(pageNumberOrIndices, 10),
+          },
+        ];
       }
-      
+
       // 数値の場合
-      return [{ 
-        documentId, 
-        pageNumber: pageNumberOrIndices 
-      }];
-    }
+      return [
+        {
+          documentId,
+          pageNumber: pageNumberOrIndices,
+        },
+      ];
+    },
   };
 })();

@@ -133,10 +133,6 @@ export const createReviewJob = async (params: {
   // Invoke the state machine with file type information
   await startStateMachineExecution(stateMachineArn, {
     reviewJobId: reviewJob.id,
-    // 最初のドキュメントの情報を渡す（処理開始用）
-    documentId: reviewJob.documents[0].id,
-    fileName: reviewJob.documents[0].filename,
-    fileType: reviewJob.documents[0].fileType,
   });
 };
 

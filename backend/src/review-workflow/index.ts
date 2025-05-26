@@ -26,9 +26,6 @@ export const handler = async (event: any): Promise<any> => {
 async function handlePrepareReview(event: any) {
   return await prepareReview({
     reviewJobId: event.reviewJobId,
-    documentId: event.documentId,
-    fileName: event.fileName,
-    fileType: event.fileType,
   });
 }
 
@@ -38,9 +35,6 @@ async function handlePrepareReview(event: any) {
 async function handleProcessReviewItem(event: any) {
   return await processReviewItem({
     reviewJobId: event.reviewJobId,
-    documentId: event.documentId,
-    fileName: event.fileName,
-    fileType: event.fileType,
     checkId: event.checkId,
     reviewResultId: event.reviewResultId,
   });

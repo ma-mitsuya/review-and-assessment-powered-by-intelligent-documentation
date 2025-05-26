@@ -82,9 +82,6 @@ JSON「以外」の文字列を出力することは厳禁です。マークダ�
  */
 interface ProcessReviewItemParams {
   reviewJobId: string;
-  documentId: string;
-  fileName: string;
-  fileType: REVIEW_FILE_TYPE;
   checkId: string;
   reviewResultId: string;
 }
@@ -97,20 +94,47 @@ interface ProcessReviewItemParams {
 export async function processReviewItem(
   params: ProcessReviewItemParams
 ): Promise<any> {
-  const { fileType } = params;
+  const { reviewJobId, checkId, reviewResultId } = params;
+  const reviewJobRepository = await makePrismaReviewJobRepository();
 
-  // ファイルタイプに基づいて適切なプロセッサーを呼び出す
-  if (fileType === REVIEW_FILE_TYPE.IMAGE) {
+  // ジョブに関連するドキュメント情報を取得
+  const jobDetail = await reviewJobRepository.findReviewJobById({
+    reviewJobId,
+  });
+
+  if (!jobDetail.documents || jobDetail.documents.length === 0) {
+    throw new Error(`No documents found for review job ${reviewJobId}`);
+  }
+
+  // ドキュメントタイプによって処理を分岐
+  // 同じタイプのドキュメントをグループ化
+  const imageDocuments = jobDetail.documents.filter(
+    (doc) => doc.fileType === REVIEW_FILE_TYPE.IMAGE
+  );
+  const pdfDocuments = jobDetail.documents.filter(
+    (doc) => doc.fileType === REVIEW_FILE_TYPE.PDF
+  );
+
+  // 画像ドキュメントがある場合
+  if (imageDocuments.length > 0) {
     return processImageReviewItem({
       reviewJobId: params.reviewJobId,
-      documentId: params.documentId,
+      documents: imageDocuments,
       checkId: params.checkId,
       reviewResultId: params.reviewResultId,
     });
-  } else if (fileType === REVIEW_FILE_TYPE.PDF) {
-    return processPdfReviewItem(params);
+    // PDFドキュメントがある場合
+  } else if (pdfDocuments.length > 0) {
+    return processPdfReviewItem({
+      reviewJobId,
+      documents: pdfDocuments,
+      checkId,
+      reviewResultId,
+    });
   } else {
-    throw new Error(`Unsupported file type: ${fileType}`);
+    throw new Error(
+      `No supported documents found for review job ${reviewJobId}`
+    );
   }
 }
 
@@ -119,11 +143,18 @@ export async function processReviewItem(
  * @param params 処理パラメータ
  * @returns 処理結果
  */
-async function processPdfReviewItem(
-  params: ProcessReviewItemParams
-): Promise<any> {
-  const { reviewJobId, documentId, fileName, checkId, reviewResultId } = params;
-  const reviewJobRepository = await makePrismaReviewJobRepository();
+async function processPdfReviewItem(params: {
+  reviewJobId: string;
+  documents: Array<{
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: string;
+  }>;
+  checkId: string;
+  reviewResultId: string;
+}): Promise<any> {
+  const { reviewJobId, documents, checkId, reviewResultId } = params;
   const reviewResultRepository = await makePrismaReviewResultRepository();
   const checkRepository = await makePrismaCheckRepository();
 
@@ -138,31 +169,41 @@ async function processPdfReviewItem(
     // S3からドキュメントを取得
     const s3Client = new S3Client({});
     const bucketName = process.env.DOCUMENT_BUCKET || "";
-    const s3Key = getReviewDocumentKey(documentId, fileName);
 
-    const { Body } = await s3Client.send(
-      new GetObjectCommand({
-        Bucket: bucketName,
-        Key: s3Key,
+    // 複数のPDFをロード
+    const pdfContents = await Promise.all(
+      documents.map(async (document) => {
+        const s3Key = document.s3Path;
+        const { Body } = await s3Client.send(
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: s3Key,
+          })
+        );
+
+        if (!Body) {
+          throw new Error(`Document not found: ${s3Key}`);
+        }
+
+        // ファイル拡張子を取得
+        const fileExtension = document.filename.split(".").pop()?.toLowerCase();
+
+        // PDFのみサポート
+        if (fileExtension !== "pdf") {
+          throw new Error(
+            `Unsupported file format: ${fileExtension}. Only PDF is supported.`
+          );
+        }
+
+        // ドキュメントをバイト配列として取得
+        const documentBytes = await Body.transformToByteArray();
+        return {
+          documentId: document.id,
+          filename: document.filename,
+          bytes: documentBytes,
+        };
       })
     );
-
-    if (!Body) {
-      throw new Error(`Document not found: ${s3Key}`);
-    }
-
-    // ファイル拡張子を取得
-    const fileExtension = fileName.split(".").pop()?.toLowerCase();
-
-    // PDFのみサポート
-    if (fileExtension !== "pdf") {
-      throw new Error(
-        `Unsupported file format: ${fileExtension}. Only PDF is supported.`
-      );
-    }
-
-    // ドキュメントをバイト配列として取得
-    const documentBytes = await Body.transformToByteArray();
 
     // プロンプトの準備
     const prompt = REVIEW_PROMPT.replace("{checkName}", checkList.name).replace(
@@ -175,6 +216,17 @@ async function processPdfReviewItem(
       region: BEDROCK_REGION,
     });
 
+    // 複数のPDFをコンテンツとして追加
+    const pdfContentsForBedrock = pdfContents.map((pdf) => ({
+      document: {
+        name: pdf.filename,
+        format: "pdf",
+        source: {
+          bytes: pdf.bytes,
+        },
+      },
+    }));
+
     const response = await bedrockClient.send(
       new ConverseCommand({
         modelId: MODEL_ID,
@@ -183,22 +235,7 @@ async function processPdfReviewItem(
             role: "user",
             content: [
               { text: prompt },
-              // {
-              //   // NOTE: Currently cachePoint is not supported for documents
-              //   // Ref: https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html#prompt-caching-models
-              //   cachePoint: {
-              //     type: "default",
-              //   },
-              // },
-              {
-                document: {
-                  name: "ReviewDocument",
-                  format: "pdf",
-                  source: {
-                    bytes: documentBytes,
-                  },
-                },
-              },
+              ...pdfContentsForBedrock.map((content) => content as any),
             ],
           },
         ],
@@ -252,6 +289,7 @@ ${prompt}
 マークダウンの記法（\`\`\`json など）は使用せず、純粋なJSONのみを返してください。
 `;
 
+        // リトライ時も複数のPDFをコンテンツとして追加
         const retryResponse = await bedrockClient.send(
           new ConverseCommand({
             modelId: MODEL_ID,
@@ -260,20 +298,7 @@ ${prompt}
                 role: "user",
                 content: [
                   { text: retryPrompt },
-                  // {
-                  //   cachePoint: {
-                  //     type: "default",
-                  //   },
-                  // },
-                  {
-                    document: {
-                      name: "ReviewDocument",
-                      format: "pdf",
-                      source: {
-                        bytes: documentBytes,
-                      },
-                    },
-                  },
+                  ...pdfContentsForBedrock.map((content) => content as any),
                 ],
               },
             ],
@@ -329,7 +354,10 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
-      sourceReferences: ReviewResultDomain.parseSourceReferences(documentId, reviewData.pageNumber),
+      sourceReferences: pdfContents.map((pdf) => ({
+        documentId: pdf.documentId,
+        pageNumber: reviewData.pageNumber,
+      })),
     });
     await reviewResultRepository.updateResult({
       newResult: updated,
