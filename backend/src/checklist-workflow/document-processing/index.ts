@@ -4,6 +4,8 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { splitPdfPages } from "./split-pages";
 import { ProcessDocumentResult } from "../common/types";
+import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
+import { CHECK_LIST_STATUS } from "../../api/features/checklist/domain/model/checklist";
 
 export interface ProcessDocumentParams {
   documentId: string;
@@ -19,6 +21,13 @@ export async function processDocument({
   documentId,
   fileName,
 }: ProcessDocumentParams): Promise<ProcessDocumentResult> {
+  // ドキュメントステータスを処理中に更新
+  const checkRepository = await makePrismaCheckRepository();
+  await checkRepository.updateDocumentStatus({
+    documentId,
+    status: CHECK_LIST_STATUS.PROCESSING,
+  });
+
   // ファイル拡張子の確認
   const fileExtension = fileName.split('.').pop()?.toLowerCase();
   if (fileExtension !== 'pdf') {

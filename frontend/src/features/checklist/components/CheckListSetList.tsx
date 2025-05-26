@@ -7,14 +7,14 @@ import {
   HiInformationCircle,
   HiLockClosed,
 } from "react-icons/hi";
-import { CheckListStatus } from "../types";
+import { CHECK_LIST_STATUS } from "../types";
 
 type CheckListSetListProps = {
   checkListSets: {
     id: string;
     name: string;
     description: string;
-    processingStatus: CheckListStatus;
+    processingStatus: CHECK_LIST_STATUS;
     isEditable: boolean;
   }[];
   isLoading: boolean;
@@ -94,27 +94,27 @@ export default function CheckListSetList({
   }
 
   // ステータスに応じたバッジを表示する関数
-  const renderStatusBadge = (status: string) => {
+  const renderStatusBadge = (status: CHECK_LIST_STATUS) => {
     switch (status) {
-      case "pending":
+      case CHECK_LIST_STATUS.PENDING:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
             待機中
           </span>
         );
-      case "in_progress": // in_progressも処理中として表示
+      case CHECK_LIST_STATUS.PROCESSING:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
             処理中
           </span>
         );
-      case "completed":
+      case CHECK_LIST_STATUS.COMPLETED:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
             完了
           </span>
         );
-      case "failed":
+      case CHECK_LIST_STATUS.FAILED:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
             失敗

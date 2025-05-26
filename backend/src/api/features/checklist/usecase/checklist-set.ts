@@ -9,7 +9,7 @@ import {
   CheckListItemDetail,
   CheckListSetSummary,
   CheckListSetDetailModel,
-  CheckListStatus,
+  CHECK_LIST_STATUS,
 } from "../domain/model/checklist";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
@@ -68,7 +68,7 @@ export const removeChecklistSet = async (params: {
 };
 
 export const getAllChecklistSets = async (params: {
-  status?: CheckListStatus;
+  status?: CHECK_LIST_STATUS;
   deps?: {
     repo?: CheckRepository;
   };

@@ -63,10 +63,6 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
     };
   } catch (error) {
     console.error(`Error preparing review job ${reviewJobId}:`, error);
-    await reviewJobRepository.updateJobStatus({
-      reviewJobId,
-      status: REVIEW_JOB_STATUS.FAILED,
-    });
     throw error;
   }
 }
@@ -120,11 +116,6 @@ export async function finalizeReview(
     };
   } catch (error) {
     console.error(`Error finalizing review job ${reviewJobId}:`, error);
-    // エラー発生時はジョブのステータスを失敗に更新
-    await reviewJobRepository.updateJobStatus({
-      reviewJobId,
-      status: REVIEW_JOB_STATUS.FAILED,
-    });
     throw error;
   }
 }

@@ -344,12 +344,6 @@ ${prompt}
     };
   } catch (error) {
     console.error(`Error processing review item ${reviewResultId}:`, error);
-
-    // エラー発生時は審査結果のステータスを失敗に更新
-    await reviewJobRepository.updateJobStatus({
-      reviewJobId,
-      status: REVIEW_JOB_STATUS.FAILED,
-    });
     throw error;
   }
 }

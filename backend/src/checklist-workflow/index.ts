@@ -5,6 +5,7 @@ import { processDocument } from "./document-processing";
 import { processWithLLM } from "./document-processing/llm-processing";
 import { aggregatePageResults } from "./aggregate-results";
 import { storeChecklistItemsToDb } from "./store-to-db";
+import { checklistErrorHandler } from "./handle-error";
 
 export const handler = async (event: any): Promise<any> => {
   console.log("受信イベント:", JSON.stringify(event, null, 2));
@@ -71,6 +72,7 @@ async function handleStoreToDb(event: any) {
  */
 async function handleError(event: any) {
   console.error("エラー発生:", event.error);
+  await checklistErrorHandler(event);
   return {
     status: "error",
     error: event.error,

@@ -5,7 +5,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getChecklistAggregateKey } from "../common/storage-paths";
 import { ParsedChecklistItem } from "../common/types";
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
-import { CheckListItemDomain } from "../../api/features/checklist/domain/model/checklist";
+import { CheckListItemDomain, CHECK_LIST_STATUS } from "../../api/features/checklist/domain/model/checklist";
 
 export interface StoreToDbParams {
   documentId: string;
@@ -85,7 +85,7 @@ export async function storeChecklistItemsToDb({
     try {
       await checkRepo.updateDocumentStatus({
         documentId,
-        status: "completed",
+        status: CHECK_LIST_STATUS.COMPLETED,
       });
       console.log(`ドキュメントステータス更新成功`);
     } catch (statusError) {

@@ -12,7 +12,7 @@ import {
   REVIEW_FILE_TYPE,
   ReviewJobStats,
 } from "./model/review";
-import { CheckListStatus } from "../../checklist/domain/model/checklist";
+import { CHECK_LIST_STATUS } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
   findAllReviewJobs(): Promise<ReviewJobSummary[]>;
@@ -136,7 +136,7 @@ export const makePrismaReviewJobRepository = async (
           s3Key: doc.s3Path,
           fileType: doc.fileType,
           uploadDate: doc.uploadDate,
-          status: doc.status as CheckListStatus,
+          status: doc.status as CHECK_LIST_STATUS,
         })),
       },
       documents: job.documents.map((doc) => ({

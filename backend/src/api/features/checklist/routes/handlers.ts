@@ -14,7 +14,7 @@ import {
   modifyCheckListItem,
   removeCheckListItem,
 } from "../usecase/checklist-item";
-import { CheckListStatus } from "../domain/model/checklist";
+import { CHECK_LIST_STATUS } from "../domain/model/checklist";
 
 interface Document {
   documentId: string;
@@ -70,7 +70,7 @@ export const deleteChecklistSetHandler = async (
  * チェックリストセット一覧取得ハンドラー
  */
 export const getAllChecklistSetsHandler = async (
-  request: FastifyRequest<{ Querystring: { status?: CheckListStatus } }>,
+  request: FastifyRequest<{ Querystring: { status?: CHECK_LIST_STATUS } }>,
   reply: FastifyReply
 ): Promise<void> => {
   const { status } = request.query;

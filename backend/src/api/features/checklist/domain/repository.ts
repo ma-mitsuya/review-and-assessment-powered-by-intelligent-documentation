@@ -10,7 +10,7 @@ import {
   CheckListItemDetail,
   CheckListSetSummary,
   CheckListSetEntity,
-  CheckListStatus,
+  CHECK_LIST_STATUS,
   CheckListSetDetailModel,
 } from "./model/checklist";
 
@@ -18,7 +18,7 @@ export interface CheckRepository {
   storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
   findAllCheckListSets(
-    status?: CheckListStatus
+    status?: CHECK_LIST_STATUS
   ): Promise<CheckListSetSummary[]>;
   findCheckListItems(
     setId: string,
@@ -32,7 +32,7 @@ export interface CheckRepository {
   }): Promise<void>;
   updateDocumentStatus(params: {
     documentId: string;
-    status: CheckListStatus;
+    status: CHECK_LIST_STATUS;
   }): Promise<void>;
   findCheckListItemById(itemId: string): Promise<CheckListItemEntity>;
   validateParentItem(params: {
@@ -86,7 +86,7 @@ export const makePrismaCheckRepository = async (
   };
 
   const findAllCheckListSets = async (
-    status?: CheckListStatus
+    status?: CHECK_LIST_STATUS
   ): Promise<CheckListSetSummary[]> => {
     // ステータスフィルタリングのためのサブクエリを準備
     let whereCondition = {};
@@ -142,17 +142,19 @@ export const makePrismaCheckRepository = async (
     });
 
     const mappedSets = sets.map((s) => {
-      const statuses = s.documents.map((d) => d.status as CheckListStatus);
+      const statuses = s.documents.map((d) => d.status as CHECK_LIST_STATUS);
 
-      let processingStatus: CheckListStatus;
+      let processingStatus: CHECK_LIST_STATUS;
       if (statuses.length === 0) {
-        processingStatus = "pending";
-      } else if (statuses.some((st) => st === "processing")) {
-        processingStatus = "processing";
-      } else if (statuses.every((st) => st === "completed")) {
-        processingStatus = "completed";
+        processingStatus = CHECK_LIST_STATUS.PENDING;
+      } else if (statuses.some((st) => st === CHECK_LIST_STATUS.PROCESSING)) {
+        processingStatus = CHECK_LIST_STATUS.PROCESSING;
+      } else if (statuses.every((st) => st === CHECK_LIST_STATUS.COMPLETED)) {
+        processingStatus = CHECK_LIST_STATUS.COMPLETED;
+      } else if (statuses.some((st) => st === CHECK_LIST_STATUS.FAILED)) {
+        processingStatus = CHECK_LIST_STATUS.FAILED;
       } else {
-        processingStatus = "pending";
+        processingStatus = CHECK_LIST_STATUS.PENDING;
       }
 
       return {
@@ -290,7 +292,7 @@ export const makePrismaCheckRepository = async (
         s3Key: doc.s3Path,
         fileType: doc.fileType,
         uploadDate: doc.uploadDate,
-        status: doc.status as CheckListStatus,
+        status: doc.status as CHECK_LIST_STATUS,
       })),
       isEditable,
     };
@@ -335,7 +337,7 @@ export const makePrismaCheckRepository = async (
 
   const updateDocumentStatus = async (params: {
     documentId: string;
-    status: CheckListStatus;
+    status: CHECK_LIST_STATUS;
   }): Promise<void> => {
     const { documentId, status } = params;
     await client.checkListDocument.update({

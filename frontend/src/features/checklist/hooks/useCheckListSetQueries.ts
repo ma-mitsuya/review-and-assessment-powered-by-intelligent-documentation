@@ -5,13 +5,13 @@ import type {
   GetChecklistItemsResponse,
   CheckListItemDetail,
   CheckListSetDetailModel,
-  CheckListStatus,
+  CHECK_LIST_STATUS,
 } from "../types";
 
 export const getChecklistSetsKey = (
   sortBy?: string,
   sortOrder?: "asc" | "desc",
-  status?: CheckListStatus
+  status?: CHECK_LIST_STATUS
 ) => {
   const params = new URLSearchParams();
   if (sortBy) params.append("sortBy", sortBy);
@@ -29,7 +29,7 @@ export const getChecklistItemsKey = (setId: string | null) =>
 export function useChecklistSets(
   sortBy?: string,
   sortOrder?: "asc" | "desc",
-  status?: CheckListStatus
+  status?: CHECK_LIST_STATUS
 ) {
   const url = getChecklistSetsKey(sortBy, sortOrder, status);
   const { data, isLoading, error, refetch } =

@@ -13,7 +13,12 @@ export interface Document {
   fileType: string;
 }
 
-export type CheckListStatus = "pending" | "processing" | "completed";
+export enum CHECK_LIST_STATUS {
+  PENDING = "pending",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed"
+}
 
 // Request types
 
@@ -67,7 +72,7 @@ export type GetAllChecklistSetsResponse = ApiResponse<{
     checkListSetId: string;
     name: string;
     description: string;
-    processingStatus: CheckListStatus;
+    processingStatus: CHECK_LIST_STATUS;
     isEditable: boolean;
   }[];
 }>;
@@ -171,7 +176,7 @@ export interface ChecklistDocumentEntity {
   s3Key: string;
   fileType: string;
   uploadDate: Date;
-  status: CheckListStatus;
+  status: CHECK_LIST_STATUS;
 }
 
 /**
@@ -202,6 +207,6 @@ export interface CheckListSetSummary {
   id: string;
   name: string;
   description: string;
-  processingStatus: CheckListStatus;
+  processingStatus: CHECK_LIST_STATUS;
   isEditable: boolean;
 }

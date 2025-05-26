@@ -3,7 +3,7 @@
  */
 
 import { useEffect } from "react";
-import { CheckListStatus } from "../types";
+import { CHECK_LIST_STATUS } from "../types";
 import {
   HiClock,
   HiRefresh,
@@ -15,7 +15,7 @@ import {
 export interface CheckListStatusItem {
   documentId: string;
   filename: string;
-  status: CheckListStatus;
+  status: CHECK_LIST_STATUS;
 }
 
 interface ProcessingStatusProps {
@@ -26,30 +26,30 @@ interface ProcessingStatusProps {
 /**
  * ステータスに応じたラベルとスタイルを取得
  */
-const getStatusInfo = (status: CheckListStatus) => {
+const getStatusInfo = (status: CHECK_LIST_STATUS) => {
   switch (status) {
-    case "pending":
+    case CHECK_LIST_STATUS.PENDING:
       return {
         label: "待機中",
         bgColor: "bg-yellow-100",
         textColor: "text-yellow-800",
         icon: <HiClock className="mr-1" />,
       };
-    case "processing":
+    case CHECK_LIST_STATUS.PROCESSING:
       return {
         label: "処理中",
         bgColor: "bg-blue-100",
         textColor: "text-blue-800",
         icon: <HiRefresh className="mr-1" />,
       };
-    case "completed":
+    case CHECK_LIST_STATUS.COMPLETED:
       return {
         label: "完了",
         bgColor: "bg-green-100",
         textColor: "text-green-800",
         icon: <HiCheck className="mr-1" />,
       };
-    case "failed":
+    case CHECK_LIST_STATUS.FAILED:
       return {
         label: "失敗",
         bgColor: "bg-red-100",
@@ -78,7 +78,7 @@ export function ProcessingStatus({
     if (documents.length === 0) return;
 
     const allCompleted = documents.every(
-      (doc) => doc.status === "completed" || doc.status === "failed"
+      (doc) => doc.status === CHECK_LIST_STATUS.COMPLETED || doc.status === CHECK_LIST_STATUS.FAILED
     );
 
     if (allCompleted && onAllCompleted) {
