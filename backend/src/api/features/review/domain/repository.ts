@@ -418,6 +418,9 @@ export const makePrismaReviewResultRepository = async (
       userOverride: result.userOverride,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      // 新規追加フィールド
+      sourceDocumentId: (result as any).sourceDocumentId || undefined,
+      sourcePageNumber: (result as any).sourcePageNumber || undefined,
       checkList: {
         id: result.checkList.id,
         setId: result.checkList.checkListSetId,

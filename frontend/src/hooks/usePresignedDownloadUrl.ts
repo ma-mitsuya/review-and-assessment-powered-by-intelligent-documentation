@@ -35,6 +35,12 @@ export function usePresignedDownloadUrl(options: UsePresignedDownloadUrlOptions 
 
   const expiresIn = options.expiresIn || 3600; // デフォルト1時間
   const endpoint = options.endpoint || '/documents/download-url'; // デフォルトエンドポイント
+  
+  // トップレベルで useMutation フックを呼び出す
+  const { mutateAsync } = apiClient.useMutation<{ url: string }, { key: string, expiresIn: number }>(
+    'post',
+    endpoint
+  );
 
   /**
    * S3キーからpresigned URLを取得する
@@ -44,10 +50,8 @@ export function usePresignedDownloadUrl(options: UsePresignedDownloadUrlOptions 
     setError(null);
     
     try {
-      const response = await apiClient.useMutation<{ url: string }, { key: string, expiresIn: number }>(
-        'post',
-        endpoint
-      ).mutateAsync({
+      // トップレベルで取得した mutateAsync を使用
+      const response = await mutateAsync({
         key: s3Key,
         expiresIn
       });
