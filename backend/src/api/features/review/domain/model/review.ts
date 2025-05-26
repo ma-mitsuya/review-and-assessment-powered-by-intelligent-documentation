@@ -107,6 +107,14 @@ export interface ReviewJobDetail {
   completedAt?: Date;
 }
 
+/**
+ * 参照元情報
+ */
+export interface SourceReference {
+  documentId: string;
+  pageNumber?: number;
+}
+
 export interface ReviewResultEntity {
   id: string;
   reviewJobId: string;
@@ -120,8 +128,7 @@ export interface ReviewResultEntity {
   userOverride: boolean;
   createdAt: Date;
   updatedAt: Date;
-  sourceDocumentId?: string;
-  sourcePageNumber?: number;
+  sourceReferences?: SourceReference[];
 }
 
 export interface ReviewResultDetail extends ReviewResultEntity {
@@ -152,16 +159,14 @@ export const ReviewResultDomain = (() => {
       confidenceScore: number;
       explanation: string;
       extractedText: string;
-      sourceDocumentId?: string;
-      sourcePageNumber?: number;
+      sourceReferences?: SourceReference[];
     }): ReviewResultEntity => {
       const {
         result,
         confidenceScore,
         explanation,
         extractedText,
-        sourceDocumentId,
-        sourcePageNumber,
+        sourceReferences,
       } = params;
       return {
         ...params.current,
@@ -170,11 +175,38 @@ export const ReviewResultDomain = (() => {
         confidenceScore,
         explanation,
         extractedText,
-        sourceDocumentId,
-        sourcePageNumber,
+        sourceReferences,
         userOverride: false,
         updatedAt: new Date(),
       };
     },
+    
+    parseSourceReferences: (documentId: string, pageNumberOrIndices?: string | number): SourceReference[] => {
+      if (pageNumberOrIndices === undefined) {
+        return [{ documentId }];
+      }
+      
+      // 文字列の場合（カンマ区切りの可能性あり）
+      if (typeof pageNumberOrIndices === 'string') {
+        // カンマ区切りの場合は複数の参照元を作成
+        if (pageNumberOrIndices.includes(',')) {
+          return pageNumberOrIndices.split(',').map(index => ({
+            documentId,
+            pageNumber: parseInt(index.trim(), 10)
+          }));
+        }
+        // 単一の値の場合
+        return [{ 
+          documentId, 
+          pageNumber: parseInt(pageNumberOrIndices, 10) 
+        }];
+      }
+      
+      // 数値の場合
+      return [{ 
+        documentId, 
+        pageNumber: pageNumberOrIndices 
+      }];
+    }
   };
 })();

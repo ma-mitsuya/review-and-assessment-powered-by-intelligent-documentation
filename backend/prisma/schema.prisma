@@ -101,8 +101,7 @@ model ReviewResult {
   userComment      String?   @map("user_comment") @db.Text
   createdAt        DateTime  @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime  @map("updated_at") @db.Timestamp(0)
-  sourceDocumentId String?   @map("source_document_id") @db.VarChar(26)
-  sourcePageNumber Int?      @map("source_page_number")
+  sourceReferences Json?     @map("source_references")
   checkList        CheckList @relation(fields: [checkId], references: [id])
   reviewJob        ReviewJob @relation(fields: [reviewJobId], references: [id])
 

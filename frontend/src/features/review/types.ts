@@ -247,6 +247,14 @@ export interface ReviewJobDetail {
 /**
  * Review result entity model
  */
+/**
+ * 参照元情報
+ */
+export interface SourceReference {
+  documentId: string;
+  pageNumber?: number;
+}
+
 export interface ReviewResultEntity {
   id: string;
   reviewJobId: string;
@@ -260,9 +268,7 @@ export interface ReviewResultEntity {
   userOverride: boolean;
   createdAt: Date;
   updatedAt: Date;
-  // 新規追加フィールド
-  sourceDocumentId?: string;
-  sourcePageNumber?: number;
+  sourceReferences?: SourceReference[];
 }
 
 /**

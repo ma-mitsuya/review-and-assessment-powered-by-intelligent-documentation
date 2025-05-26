@@ -329,8 +329,7 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
-      sourceDocumentId: documentId,
-      sourcePageNumber: reviewData.pageNumber || undefined,
+      sourceReferences: ReviewResultDomain.parseSourceReferences(documentId, reviewData.pageNumber),
     });
     await reviewResultRepository.updateResult({
       newResult: updated,

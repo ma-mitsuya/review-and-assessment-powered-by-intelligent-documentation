@@ -57,9 +57,7 @@ export default function ReviewResultTree({ jobId, confidenceThreshold, maxDepth 
           confidenceThreshold={confidenceThreshold}
           maxDepth={maxDepth}
           filter={filter}
-          documentType={job?.documents[0]?.fileType}
-          documentS3Path={job?.documents[0]?.s3Path}
-          documentFilename={job?.documents[0]?.filename}
+          documents={job?.documents || []}
         />
       ))}
     </div>

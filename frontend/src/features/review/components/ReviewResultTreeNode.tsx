@@ -16,9 +16,12 @@ interface ReviewResultTreeNodeProps {
   maxDepth?: number;
   autoExpand?: boolean;
   filter: FilterType;
-  documentType?: REVIEW_FILE_TYPE;
-  documentS3Path?: string;
-  documentFilename?: string;
+  documents: Array<{
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: REVIEW_FILE_TYPE;
+  }>;
 }
 
 export default function ReviewResultTreeNode({ 
@@ -29,9 +32,7 @@ export default function ReviewResultTreeNode({
   maxDepth = 2,
   autoExpand = false,
   filter,
-  documentType,
-  documentS3Path,
-  documentFilename
+  documents
 }: ReviewResultTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < maxDepth || autoExpand);
   
@@ -77,9 +78,7 @@ export default function ReviewResultTreeNode({
           onToggleExpand={toggleExpand}
           confidenceThreshold={confidenceThreshold}
           isLoadingChildren={shouldLoadChildren && isLoadingChildren}
-          documentType={documentType}
-          documentS3Path={documentS3Path}
-          documentFilename={documentFilename}
+          documents={documents}
         />
       </div>
       
@@ -104,9 +103,7 @@ export default function ReviewResultTreeNode({
                 confidenceThreshold={confidenceThreshold}
                 maxDepth={maxDepth}
                 filter={filter}
-                documentType={documentType}
-                documentS3Path={documentS3Path}
-                documentFilename={documentFilename}
+                documents={documents}
               />
             ))
           ) : (

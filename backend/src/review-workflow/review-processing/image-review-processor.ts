@@ -259,8 +259,7 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
-      sourceDocumentId: documentId,
-      // 画像の場合はページ番号は不要
+      sourceReferences: ReviewResultDomain.parseSourceReferences(documentId, reviewData.imageIndex),
     });
     await reviewResultRepository.updateResult({
       newResult: updated,

@@ -17,10 +17,12 @@ interface ReviewResultItemProps {
   onToggleExpand: () => void;
   confidenceThreshold: number;
   isLoadingChildren?: boolean;
-  // 新規追加プロパティ
-  documentType?: REVIEW_FILE_TYPE;
-  documentS3Path?: string;
-  documentFilename?: string;
+  documents: Array<{
+    id: string;
+    filename: string;
+    s3Path: string;
+    fileType: REVIEW_FILE_TYPE;
+  }>;
 }
 
 export default function ReviewResultItem({ 
@@ -30,11 +32,30 @@ export default function ReviewResultItem({
   onToggleExpand,
   confidenceThreshold,
   isLoadingChildren,
-  documentType,
-  documentS3Path,
-  documentFilename
+  documents
 }: ReviewResultItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeReferenceIndex, setActiveReferenceIndex] = useState(0);
+  
+  // 参照元情報を取得
+  const sourceReferences = result.sourceReferences || [];
+  
+  // 現在アクティブな参照元
+  const activeReference = sourceReferences.length > 0 ? sourceReferences[activeReferenceIndex] : null;
+  
+  // アクティブな参照元に対応するドキュメントを検索
+  const activeDocument = activeReference
+    ? documents.find(doc => doc.id === activeReference.documentId)
+    : null;
+  
+  // 参照元の切り替え
+  const handlePrevReference = () => {
+    setActiveReferenceIndex(prev => (prev > 0 ? prev - 1 : prev));
+  };
+  
+  const handleNextReference = () => {
+    setActiveReferenceIndex(prev => (prev < sourceReferences.length - 1 ? prev + 1 : prev));
+  };
   
   // 信頼度が閾値を下回る場合のスタイルを追加
   const isBelowThreshold = 
@@ -152,9 +173,11 @@ export default function ReviewResultItem({
           {/* 展開/折りたたみボタン - 1列目 */}
           <div className="pt-1">
             {hasChildren && (
-              <button 
+              <Button 
                 onClick={onToggleExpand}
-                className="text-aws-font-color-gray hover:text-aws-squid-ink-light transition-colors"
+                variant="text"
+                size="sm"
+                className="p-0"
                 disabled={isLoadingChildren}
               >
                 {isExpanded ? (
@@ -166,7 +189,7 @@ export default function ReviewResultItem({
                 ) : (
                   <HiChevronRight className="h-5 w-5" />
                 )}
-              </button>
+              </Button>
             )}
           </div>
           
@@ -200,18 +223,46 @@ export default function ReviewResultItem({
                     <p className="whitespace-pre-wrap text-aws-font-color-gray">{result.extractedText}</p>
                     
                     {/* 参照元ドキュメントの表示 */}
-                    {result.sourceDocumentId && documentS3Path && documentFilename && (
+                    {sourceReferences.length > 0 && activeDocument && (
                       <div className="mt-2 pt-2 border-t border-light-gray">
-                        {documentType === REVIEW_FILE_TYPE.PDF ? (
+                        {/* 複数の参照元がある場合はナビゲーションを表示 */}
+                        {sourceReferences.length > 1 && (
+                          <div className="flex items-center justify-between mb-2">
+                            <Button 
+                              onClick={handlePrevReference}
+                              disabled={activeReferenceIndex === 0}
+                              variant="text"
+                              size="sm"
+                              className={activeReferenceIndex === 0 ? 'text-gray-400' : 'text-aws-sea-blue'}
+                            >
+                              前へ
+                            </Button>
+                            <span className="text-sm text-aws-font-color-gray">
+                              参照元 {activeReferenceIndex + 1}/{sourceReferences.length}
+                            </span>
+                            <Button 
+                              onClick={handleNextReference}
+                              disabled={activeReferenceIndex === sourceReferences.length - 1}
+                              variant="text"
+                              size="sm"
+                              className={activeReferenceIndex === sourceReferences.length - 1 ? 'text-gray-400' : 'text-aws-sea-blue'}
+                            >
+                              次へ
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* ドキュメントプレビュー */}
+                        {activeDocument.fileType === REVIEW_FILE_TYPE.PDF ? (
                           <DocumentPreview 
-                            s3Key={documentS3Path} 
-                            filename={documentFilename} 
-                            pageNumber={result.sourcePageNumber} 
+                            s3Key={activeDocument.s3Path} 
+                            filename={activeDocument.filename} 
+                            pageNumber={activeReference.pageNumber} 
                           />
-                        ) : documentType === REVIEW_FILE_TYPE.IMAGE ? (
+                        ) : activeDocument.fileType === REVIEW_FILE_TYPE.IMAGE ? (
                           <ImagePreview 
-                            s3Key={documentS3Path} 
-                            filename={documentFilename} 
+                            s3Key={activeDocument.s3Path} 
+                            filename={activeDocument.filename} 
                           />
                         ) : null}
                       </div>

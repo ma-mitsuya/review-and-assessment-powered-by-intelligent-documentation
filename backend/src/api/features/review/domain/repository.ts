@@ -301,8 +301,7 @@ export const makePrismaReviewResultRepository = async (
       userComment: (result as any).userComment ?? undefined,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
-      sourceDocumentId: result.sourceDocumentId ?? undefined,
-      sourcePageNumber: result.sourcePageNumber ?? undefined,
+      sourceReferences: result.sourceReferences ? JSON.parse(result.sourceReferences as string) : undefined,
       checkList: {
         id: result.checkList.id,
         setId: result.checkList.checkListSetId,
@@ -405,31 +404,41 @@ export const makePrismaReviewResultRepository = async (
     );
 
     // 結果を新しいモデル形式に変換して返す
-    const mappedResults = results.map((result) => ({
-      id: result.id,
-      reviewJobId: result.reviewJobId,
-      checkId: result.checkId,
-      status: result.status as REVIEW_RESULT_STATUS,
-      result: result.result as REVIEW_RESULT | undefined,
-      confidenceScore: result.confidenceScore || undefined,
-      explanation: result.explanation || undefined,
-      extractedText: result.extractedText || undefined,
-      userComment: result.userComment || undefined,
-      userOverride: result.userOverride,
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
-      // 新規追加フィールド
-      sourceDocumentId: (result as any).sourceDocumentId || undefined,
-      sourcePageNumber: (result as any).sourcePageNumber || undefined,
-      checkList: {
-        id: result.checkList.id,
-        setId: result.checkList.checkListSetId,
-        name: result.checkList.name,
-        description: result.checkList.description || undefined,
-        parentId: result.checkList.parentId || undefined,
-      },
-      hasChildren: parentsWithChildren.has(result.checkId),
-    }));
+    const mappedResults = results.map((result) => {
+      // sourceReferencesフィールドをパース
+      let sourceReferences;
+      if (result.sourceReferences) {
+        try {
+          sourceReferences = JSON.parse(result.sourceReferences as string);
+        } catch (e) {
+          console.error(`Failed to parse sourceReferences for result ${result.id}:`, e);
+        }
+      }
+      
+      return {
+        id: result.id,
+        reviewJobId: result.reviewJobId,
+        checkId: result.checkId,
+        status: result.status as REVIEW_RESULT_STATUS,
+        result: result.result as REVIEW_RESULT | undefined,
+        confidenceScore: result.confidenceScore || undefined,
+        explanation: result.explanation || undefined,
+        extractedText: result.extractedText || undefined,
+        userComment: result.userComment || undefined,
+        userOverride: result.userOverride,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+        sourceReferences,
+        checkList: {
+          id: result.checkList.id,
+          setId: result.checkList.checkListSetId,
+          name: result.checkList.name,
+          description: result.checkList.description || undefined,
+          parentId: result.checkList.parentId || undefined,
+        },
+        hasChildren: parentsWithChildren.has(result.checkId),
+      };
+    });
 
     return mappedResults;
   };
@@ -449,8 +458,7 @@ export const makePrismaReviewResultRepository = async (
         userOverride: newResult.userOverride,
         userComment: newResult.userComment,
         updatedAt: newResult.updatedAt,
-        sourceDocumentId: newResult.sourceDocumentId,
-        sourcePageNumber: newResult.sourcePageNumber,
+        sourceReferences: newResult.sourceReferences ? JSON.stringify(newResult.sourceReferences) : undefined,
       },
     });
   };
