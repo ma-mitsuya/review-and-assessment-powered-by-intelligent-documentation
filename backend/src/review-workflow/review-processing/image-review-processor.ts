@@ -149,7 +149,7 @@ export async function processImageReviewItem(
         ],
         inferenceConfig: {
           maxTokens: 1000,
-          temperature: 0.2,
+          temperature: 0.0,
           topP: 0.9,
         },
       })
@@ -222,7 +222,7 @@ ${prompt}
             ],
             inferenceConfig: {
               maxTokens: 1000,
-              temperature: 0.2,
+              temperature: 0.0,
               topP: 0.9,
             },
           })
@@ -259,7 +259,10 @@ ${prompt}
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       extractedText: reviewData.extractedText,
-      sourceReferences: ReviewResultDomain.parseSourceReferences(documentId, reviewData.imageIndex),
+      sourceReferences: ReviewResultDomain.parseSourceReferences(
+        documentId,
+        reviewData.imageIndex
+      ),
     });
     await reviewResultRepository.updateResult({
       newResult: updated,
