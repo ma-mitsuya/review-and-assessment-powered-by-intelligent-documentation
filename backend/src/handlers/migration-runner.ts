@@ -10,7 +10,7 @@ export const handler: Handler = async (event, _) => {
   let options: string[] = [];
 
   if (command == "reset") {
-    options = ["--force", "--skip-generate"];
+    options = ["--force", "--skip-generate", "--skip-seed"];
   }
 
   try {

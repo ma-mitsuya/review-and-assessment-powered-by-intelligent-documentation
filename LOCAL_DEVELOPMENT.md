@@ -12,7 +12,7 @@
 
 ### 1. データベースの起動
 
-プロジェクトのルートディレクトリで以下のコマンドを実行し、MySQL データベースを起動します：
+プロジェクトの`assets/local`ディレクトリで以下のコマンドを実行し、MySQL データベースを起動します：
 
 ```bash
 docker-compose up -d
@@ -165,36 +165,3 @@ npm run build
    ```bash
    docker-compose restart mysql
    ```
-
-### Prisma マイグレーションエラー
-
-Prisma マイグレーションでシャドウデータベースの作成エラーが発生した場合：
-
-```
-Error: P3014
-Prisma Migrate could not create the shadow database. Please make sure the database user has permission to create databases.
-```
-
-これは、`rapid_user`ユーザーに`CREATE DATABASE`権限がない場合に発生します。以下の対処法を試してください：
-
-1. Docker 起動時に自動的に権限が付与されるはずですが、既存のボリュームがある場合は初期化スクリプトが実行されません。その場合は、ボリュームを削除して再作成します：
-
-   ```bash
-   docker-compose down -v
-   docker-compose up -d
-   ```
-
-2. または、手動で権限を付与します：
-
-   ```bash
-   docker exec -it rapid-mysql mysql -uroot -ppassword -e "GRANT ALL PRIVILEGES ON *.* TO 'rapid_user'@'%'; FLUSH PRIVILEGES;"
-   ```
-
-3. 権限が正しく設定されているか確認：
-   ```bash
-   docker exec -it rapid-mysql mysql -uroot -ppassword -e "SHOW GRANTS FOR 'rapid_user'@'%';"
-   ```
-
-### その他の問題
-
-その他の問題が発生した場合は、各ディレクトリのログを確認し、必要に応じて依存関係を再インストールしてください。
