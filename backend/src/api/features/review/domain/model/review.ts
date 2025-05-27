@@ -214,7 +214,6 @@ export const ReviewResultDomain = (() => {
       result: REVIEW_RESULT;
       confidenceScore: number;
       explanation: string;
-      extractedText: string;
       usedImageIndexes: number[];
       imageBuffers: Array<{
         documentId: string;
@@ -231,7 +230,6 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
-        extractedText,
         usedImageIndexes,
         imageBuffers,
         boundingBoxes = [],
@@ -245,17 +243,19 @@ export const ReviewResultDomain = (() => {
 
       // バウンディングボックス情報を追加
       if (boundingBoxes && boundingBoxes.length > 0) {
-        boundingBoxes.forEach(box => {
+        boundingBoxes.forEach((box) => {
           const imageIndex = box.imageIndex;
           if (imageIndex >= 0 && imageIndex < imageBuffers.length) {
             const documentId = imageBuffers[imageIndex].documentId;
             // 既存の参照元情報を探す
-            const existingRef = sourceReferences.find(ref => ref.documentId === documentId);
+            const existingRef = sourceReferences.find(
+              (ref) => ref.documentId === documentId
+            );
             if (existingRef) {
               // 既存の参照元情報にバウンディングボックスを追加
               existingRef.boundingBox = {
                 label: box.label,
-                coordinates: box.coordinates
+                coordinates: box.coordinates,
               };
             } else {
               // 新しい参照元情報を追加
@@ -263,8 +263,8 @@ export const ReviewResultDomain = (() => {
                 documentId,
                 boundingBox: {
                   label: box.label,
-                  coordinates: box.coordinates
-                }
+                  coordinates: box.coordinates,
+                },
               });
             }
           }
@@ -277,7 +277,6 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
-        extractedText,
         sourceReferences,
         userOverride: false,
         updatedAt: new Date(),

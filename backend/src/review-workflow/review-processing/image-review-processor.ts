@@ -21,26 +21,27 @@ const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
 // 審査プロンプト (画像用)
 const IMAGE_REVIEW_PROMPT = `
-あなたはドキュメントの審査を行う AI アシスタントです。
-以下のチェック項目に基づいて、提供された画像を審査してください。
+Here's the English translation of the prompt, ensuring that explanation and label are still output in Japanese:
 
-チェック項目: {checkName}
-説明: {checkDescription}
+You are an AI assistant who reviews documents.
+Please review the provided image based on the following check items.
 
-画像の内容を確認し、このチェック項目に対して適合しているかどうかを判断してください。
-複数の画像が提供される場合、それぞれの画像は0から始まるインデックスで参照できます（0番目、1番目など）。
+Check item: {checkName}
+Description: {checkDescription}
 
-また、チェック項目に関連する物体が画像内に存在する場合は、その物体のバウンディングボックス（境界枠）の座標も提供してください。
-座標は [x1, y1, x2, y2] の形式で、値は 0 から 1000 の範囲で指定してください。
+Review the content of the image and determine whether it complies with this check item.
+If multiple images are provided, each image can be referenced with a zero-based index (0th, 1st, etc.).
 
-以下は回答例です:
+Also, if objects related to the check item exist in the image, please provide the coordinates of the bounding box for that object.
+Coordinates should be specified in the format [x1, y1, x2, y2], with values ranging from 0 to 1000.
 
-例1: 「複数の書類に署名があること」というチェック項目で、5枚の画像が提供された場合
+Here are examples of responses:
+
+Example 1: For a check item "Multiple documents should have signatures" with 5 images provided
 {
   "result": "pass",
   "confidence": 0.92,
-  "explanation": "提供された5枚の画像のうち、0番目と2番目の画像に署名が確認できます。",
-  "extractedText": "0番目の画像には契約書の署名、2番目の画像には同意書の署名があります。",
+  "explanation": "提供された5枚の画像のうち、0番目と2番目の画像に署名が確認できます。0番目の画像には契約書の署名、2番目の画像には同意書の署名があります。",
   "usedImageIndexes": [0, 2],
   "boundingBoxes": [
     {
@@ -56,12 +57,11 @@ const IMAGE_REVIEW_PROMPT = `
   ]
 }
 
-例2: 「身分証明書に顔写真と有効期限が含まれていること」というチェック項目で、1枚の画像が提供された場合
+Example 2: For a check item "ID card should include photo and expiration date" with 1 image provided
 {
   "result": "pass",
   "confidence": 0.95,
-  "explanation": "身分証明書には顔写真と有効期限の両方が含まれています。",
-  "extractedText": "有効期限: 2028年5月31日",
+  "explanation": "身分証明書には顔写真と有効期限の両方が含まれています。有効期限: 2028年5月31日",
   "usedImageIndexes": [0],
   "boundingBoxes": [
     {
@@ -77,18 +77,17 @@ const IMAGE_REVIEW_PROMPT = `
   ]
 }
 
-JSON「以外」の文字列を出力することは厳禁です。マークダウンの記法（\`\`\`json など）は使用せず、純粋な JSON のみを返してください。
+It is strictly forbidden to output anything other than JSON. Do not use markdown syntax (like \`\`\`json), return only pure JSON.
 
 {
-  "result": "pass" または "fail",
-  "confidence": 0 から 1 の間の数値（信頼度）,
-  "explanation": "判断理由の説明",
-  "extractedText": "関連する抽出テキスト",
-  "usedImageIndexes": [判断に使用した画像のインデックス（例: [0, 2] は最初の画像と3番目の画像を使用したことを意味します）],
+  "result": "pass" or "fail",
+  "confidence": A number between 0 and 1 (confidence level),
+  "explanation": "Explanation of the judgment in Japanese",
+  "usedImageIndexes": [Indexes of images used for judgment (e.g., [0, 2] means the first and third images were used)],
   "boundingBoxes": [
     {
-      "imageIndex": 画像のインデックス,
-      "label": "検出した物体のラベル",
+      "imageIndex": Image index,
+      "label": "Label of detected object in Japanese",
       "coordinates": [x1, y1, x2, y2]
     }
   ]
@@ -305,10 +304,9 @@ ${prompt}
       result: reviewData.result,
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
-      extractedText: reviewData.extractedText,
       usedImageIndexes: reviewData.usedImageIndexes,
       imageBuffers,
-      boundingBoxes: reviewData.boundingBoxes || [], // バウンディングボックス情報を追加
+      boundingBoxes: reviewData.boundingBoxes || [],
     });
     await reviewResultRepository.updateResult({
       newResult: updated,
