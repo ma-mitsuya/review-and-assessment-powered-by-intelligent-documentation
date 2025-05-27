@@ -33,9 +33,13 @@ model CheckList {
   children       CheckList[]        @relation("CheckListToCheckList")
   reviewResults  ReviewResult[]
 
+  /// `parentId` だけで検索するケース（直下の子チェック項目を取得）を高速化
   @@index([parentId], map: "idx_check_list_parent")
+  /// `checkListSetId` だけで検索するケース（あるセット配下の全チェック項目を取得）を高速化
   @@index([checkListSetId], map: "check_lists_check_list_set_id_fkey")
-  @@index([documentId], map: "check_lists_document_id_fkey")
+  /// `checkListSetId` と `parentId` を**同時に等価条件**で絞り込むクエリが最も多いため複合キーを追加
+  /// 例: `findCheckListItems(setId, parentId)`
+  @@index([checkListSetId, parentId], map: "idx_check_list_set_parent")
   @@map("check_lists")
 }
 
@@ -79,7 +83,6 @@ model ReviewJob {
   updatedAt      DateTime         @map("updated_at") @db.Timestamp(0)
   completedAt    DateTime?        @map("completed_at") @db.Timestamp(0)
   userId         String?          @map("user_id") @db.VarChar(50)
-  metaData       Json?            @map("meta_data")
   documents      ReviewDocument[]
   checkListSet   CheckListSet     @relation(fields: [checkListSetId], references: [id])
   reviewResults  ReviewResult[]
@@ -105,7 +108,14 @@ model ReviewResult {
   checkList        CheckList @relation(fields: [checkId], references: [id])
   reviewJob        ReviewJob @relation(fields: [reviewJobId], references: [id])
 
+  /// `checkId` 単体で詳細取得する際に使用（`findDetailedReviewResultById` で JOIN される）
   @@index([checkId], map: "review_results_check_id_fkey")
+  /// `reviewJobId` 単体でジョブの全結果を集める際に使用。
   @@index([reviewJobId], map: "review_results_review_job_id_fkey")
+  /// `reviewJobId` + `status` + `result` を同時に  
+  /// フィルタリングするクエリ（`findReviewResultsById`）を高速化。先頭列が `reviewJobId` なので単体検索もカバー。
+  @@index([reviewJobId, status, result], map: "idx_review_results_job_status_result")
+  /// 子結果の有無チェックで `WHERE reviewJobId = ? AND checkId IN (…)` が発生するため追加
+  @@index([reviewJobId, checkId], map: "idx_review_results_job_check")
   @@map("review_results")
 }
