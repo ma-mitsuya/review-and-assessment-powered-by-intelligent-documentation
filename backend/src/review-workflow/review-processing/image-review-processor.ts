@@ -21,8 +21,6 @@ const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
 // 審査プロンプト (画像用)
 const IMAGE_REVIEW_PROMPT = `
-Here's the English translation of the prompt, ensuring that explanation and label are still output in Japanese:
-
 You are an AI assistant who reviews documents.
 Please review the provided image based on the following check items.
 
