@@ -1,0 +1,117 @@
+# GitLab CI/CD パイプライン設定
+stages:
+  - lint
+  - build
+  - docker
+
+# キャッシュ設定 - node_modules を再利用して CI を高速化
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - backend/node_modules/
+    - frontend/node_modules/
+    - cdk/node_modules/
+
+# 並列実行の設定
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# バックエンドのリンターチェック
+backend-lint:
+  stage: lint
+  image: node:22
+  script:
+    - cd backend
+    - npm ci
+    - npx eslint . --ext .ts
+  rules:
+    - changes:
+        - backend/**/*
+  needs: []
+
+# フロントエンドのリンターチェック
+frontend-lint:
+  stage: lint
+  image: node:22
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+  rules:
+    - changes:
+        - frontend/**/*
+  needs: []
+
+# バックエンドのビルド確認
+backend-build:
+  stage: build
+  image: node:22
+  script:
+    - cd backend
+    - npm ci
+    - npm run prisma:generate
+    - npm run build
+  rules:
+    - changes:
+        - backend/**/*
+  artifacts:
+    paths:
+      - backend/dist/
+    expire_in: 1 hour
+  needs: []
+
+# フロントエンドのビルド確認
+frontend-build:
+  stage: build
+  image: node:22
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  rules:
+    - changes:
+        - frontend/**/*
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 hour
+  needs: []
+
+# CDK synth 確認
+cdk-synth:
+  stage: build
+  image: node:22
+  script:
+    - cd cdk
+    - npm ci
+    - npm run build
+    - npx cdk synth
+  rules:
+    - changes:
+        - cdk/**/*
+        - backend/**/*
+  artifacts:
+    paths:
+      - cdk/cdk.out/
+    expire_in: 1 hour
+  needs: []
+
+# バックエンドの Docker ビルド確認
+backend-docker-build:
+  stage: docker
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - cd backend
+    - docker build -t rapid-backend:${CI_COMMIT_SHORT_SHA} .
+  rules:
+    - changes:
+        - backend/**/*
+        - backend/Dockerfile
+  needs:
+    - backend-build
