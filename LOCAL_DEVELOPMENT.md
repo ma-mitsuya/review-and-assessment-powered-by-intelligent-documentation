@@ -26,9 +26,7 @@ docker-compose up -d
 - ユーザー名: rapid_user
 - パスワード: rapid_password
 
-注意: Docker 起動時に自動的に`mysql-init/01-grant-permissions.sql`が実行され、`rapid_user`に必要な権限が付与されます。ただし、既存のデータボリュームがある場合（一度起動した後）は初期化スクリプトは実行されません。その場合は、以下のいずれかの方法で対応してください：
-
-1. ボリュームを削除して再作成する：
+NOTE: DB のデータリセットしたい場合、下記のコマンドでボリュームを削除して再作成可能です
 
 ```bash
 docker-compose down -v
