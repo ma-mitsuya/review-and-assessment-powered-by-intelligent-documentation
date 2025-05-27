@@ -212,7 +212,7 @@ export default function ReviewResultItem({
               result.userComment) && (
               <div className="mt-3 grid grid-cols-1 gap-3">
                 {result.explanation && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm">
+                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
                       AI判断:
                     </p>
@@ -224,7 +224,7 @@ export default function ReviewResultItem({
 
                 {/* 抽出テキストの表示 */}
                 {result.extractedText && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm">
+                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
                       参照元テキスト:
                     </p>
@@ -236,7 +236,7 @@ export default function ReviewResultItem({
 
                 {/* 参照元ドキュメントの表示（一覧形式）*/}
                 {sourceReferences.length > 0 && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm mt-3">
+                  <div className="bg-aws-paper-light rounded p-3 text-sm mt-3 border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
                       参照元ドキュメント:
                     </p>
