@@ -55,10 +55,25 @@ export async function prepareReview(params: PrepareReviewParams): Promise<any> {
       includeAllChildren: true, // すべての項目を取得
     });
 
-    const checkItems = results.map((result) => ({
-      checkId: result.checkList.id,
-      reviewResultId: result.id,
-    }));
+    // 子項目を持つ親項目のIDを特定
+    const childrenMap = new Map<string, string[]>();
+    results.forEach((r) => {
+      const pid = r.checkList.parentId;
+      if (pid) {
+        if (!childrenMap.has(pid)) {
+          childrenMap.set(pid, []);
+        }
+        childrenMap.get(pid)!.push(r.checkId);
+      }
+    });
+
+    // 子項目を持つ親項目をスキップし、子項目のみまたは子項目を持たない項目のみを処理対象とする
+    const checkItems = results
+      .filter((result) => !childrenMap.has(result.checkId))
+      .map((result) => ({
+        checkId: result.checkList.id,
+        reviewResultId: result.id,
+      }));
 
     return {
       reviewJobId,

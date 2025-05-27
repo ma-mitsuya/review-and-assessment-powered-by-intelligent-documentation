@@ -68,7 +68,7 @@ export const updateCheckResultCascade = async (params: {
       // Update the parent node
       node.status = REVIEW_RESULT_STATUS.COMPLETED;
       node.result = allPass ? REVIEW_RESULT.PASS : REVIEW_RESULT.FAIL;
-      node.confidenceScore = calculateAverageConfidence(childModels);
+      node.confidenceScore = calculateMinimumConfidence(childModels);
       node.explanation = generateParentExplanation(childModels, allPass);
       node.extractedText = "";
 
@@ -96,11 +96,10 @@ export const updateCheckResultCascade = async (params: {
   }
 };
 
-/** 子アイテムの confidenceScore 平均を計算 */
-const calculateAverageConfidence = (children: ReviewResultDetail[]): number => {
+/** 子アイテムの confidenceScore の最小値を取得 */
+const calculateMinimumConfidence = (children: ReviewResultDetail[]): number => {
   if (children.length === 0) return 0;
-  const sum = children.reduce((acc, c) => acc + (c.confidenceScore ?? 0), 0);
-  return sum / children.length;
+  return Math.min(...children.map(c => c.confidenceScore ?? 0));
 };
 
 /** 子アイテムの結果から、親の説明文を生成 */
