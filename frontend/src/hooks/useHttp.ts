@@ -1,5 +1,5 @@
 import useSWR, { SWRConfiguration, Fetcher } from "swr";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE =
   import.meta.env.VITE_APP_API_ENDPOINT || "http://localhost:3000";
@@ -33,9 +33,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     // 401エラーの場合は認証エラーとして処理
     if (response.status === 401) {
-      throw new Error('認証エラー: ログインが必要です');
+      throw new Error("認証エラー: ログインが必要です");
     }
-    
+
     const errorData = await response.json().catch(() => ({}));
     const error = new Error(errorData.message || response.statusText);
     throw Object.assign(error, {
@@ -53,7 +53,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
  */
 const useHttp = () => {
   const { getIdToken } = useAuth();
-  
+
   // Define the custom fetcher types
   const fetcher: Fetcher<any, string> = async (url: string) => {
     const headers = await getAuthHeaders(getIdToken);
@@ -62,10 +62,10 @@ const useHttp = () => {
   };
 
   // Fetcher with params for SWR
-  const fetchWithParams: Fetcher<any, [string, Record<string, any>]> = async ([url, params]: [
-    string,
-    Record<string, any>
-  ]) => {
+  const fetchWithParams: Fetcher<any, [string, Record<string, any>]> = async ([
+    url,
+    params,
+  ]: [string, Record<string, any>]) => {
     const headers = await getAuthHeaders(getIdToken);
     const queryParams = new URLSearchParams();
 

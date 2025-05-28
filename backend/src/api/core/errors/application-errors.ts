@@ -18,7 +18,7 @@ export class ApplicationError extends Error {
  */
 export class NotFoundError extends ApplicationError {
   constructor(resource: string, id: string) {
-    super(`${resource} not found: ${id}`, 404, 'NOT_FOUND');
+    super(`${resource} not found: ${id}`, 404, "NOT_FOUND");
   }
 }
 
@@ -27,7 +27,7 @@ export class NotFoundError extends ApplicationError {
  */
 export class ValidationError extends ApplicationError {
   constructor(message: string) {
-    super(message, 400, 'VALIDATION_ERROR');
+    super(message, 400, "VALIDATION_ERROR");
   }
 }
 
@@ -36,7 +36,7 @@ export class ValidationError extends ApplicationError {
  */
 export class ForbiddenError extends ApplicationError {
   constructor(message: string) {
-    super(message, 403, 'FORBIDDEN');
+    super(message, 403, "FORBIDDEN");
   }
 }
 
@@ -45,7 +45,7 @@ export class ForbiddenError extends ApplicationError {
  */
 export class LinkedResourceError extends ApplicationError {
   constructor(message: string) {
-    super(message, 400, 'LINKED_RESOURCE');
+    super(message, 400, "LINKED_RESOURCE");
   }
 }
 

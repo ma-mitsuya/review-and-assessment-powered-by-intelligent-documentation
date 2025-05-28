@@ -1,14 +1,10 @@
 import {
-  REVIEW_JOB_STATUS,
   REVIEW_RESULT,
-  ReviewJobSummary,
   ReviewResultDetail,
   ReviewResultDomain,
 } from "../domain/model/review";
 import {
-  ReviewJobRepository,
   ReviewResultRepository,
-  makePrismaReviewJobRepository,
   makePrismaReviewResultRepository,
 } from "../domain/repository";
 import { updateCheckResultCascade } from "../domain/service/review-result-cascade-update";

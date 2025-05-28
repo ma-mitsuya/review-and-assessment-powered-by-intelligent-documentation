@@ -49,7 +49,9 @@ export const getReviewPresignedUrlHandler = async (
 };
 
 export const getReviewImagesPresignedUrlHandler = async (
-  request: FastifyRequest<{ Body: { filenames: string[], contentTypes: string[] } }>,
+  request: FastifyRequest<{
+    Body: { filenames: string[]; contentTypes: string[] };
+  }>,
   reply: FastifyReply
 ): Promise<void> => {
   const { filenames, contentTypes } = request.body;
@@ -134,7 +136,11 @@ export const deleteReviewJobHandler = async (
 export const getReviewResultItemsHandler = async (
   request: FastifyRequest<{
     Params: { jobId: string };
-    Querystring: { parentId?: string; filter?: string; includeAllChildren?: string };
+    Querystring: {
+      parentId?: string;
+      filter?: string;
+      includeAllChildren?: string;
+    };
   }>,
   reply: FastifyReply
 ): Promise<void> => {
@@ -144,7 +150,7 @@ export const getReviewResultItemsHandler = async (
     filter: request.query.filter
       ? (request.query.filter as REVIEW_RESULT)
       : undefined,
-    includeAllChildren: request.query.includeAllChildren === 'true',
+    includeAllChildren: request.query.includeAllChildren === "true",
   });
   reply.code(200).send({
     success: true,
@@ -187,7 +193,7 @@ export const getReviewJobByIdHandler = async (
   const job = await getReviewJobById({
     reviewJobId: jobId,
   });
-  
+
   reply.code(200).send({
     success: true,
     data: job,
@@ -207,12 +213,13 @@ export const getDownloadPresignedUrlHandler = async (
   reply: FastifyReply
 ): Promise<void> => {
   const { key, expiresIn = 3600 } = request.query;
-  
+
   const url = await getDocumentDownloadUrl({
     key,
-    expiresIn: typeof expiresIn === 'string' ? parseInt(expiresIn, 10) : expiresIn,
+    expiresIn:
+      typeof expiresIn === "string" ? parseInt(expiresIn, 10) : expiresIn,
   });
-  
+
   reply.code(200).send({
     success: true,
     data: {

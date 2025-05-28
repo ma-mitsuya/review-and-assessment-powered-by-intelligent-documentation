@@ -3,7 +3,7 @@
  * These types correspond to the backend API endpoints in backend/src/api/features/review/routes
  */
 
-import { ApiResponse } from '../../types/api';
+import { ApiResponse } from "../../types/api";
 
 // Enum types
 /**

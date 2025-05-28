@@ -1,17 +1,11 @@
 import {
-  REVIEW_FILE_TYPE,
   REVIEW_JOB_STATUS,
-  REVIEW_RESULT,
-  REVIEW_RESULT_STATUS,
   ReviewJobSummary,
   ReviewJobDetail,
-  ReviewResultDetail,
 } from "../domain/model/review";
 import {
   ReviewJobRepository,
-  ReviewResultRepository,
   makePrismaReviewJobRepository,
-  makePrismaReviewResultRepository,
 } from "../domain/repository";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";

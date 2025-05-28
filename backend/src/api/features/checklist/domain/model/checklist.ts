@@ -10,7 +10,7 @@ export enum CHECK_LIST_STATUS {
   PENDING = "pending",
   PROCESSING = "processing",
   COMPLETED = "completed",
-  FAILED = "failed"
+  FAILED = "failed",
 }
 
 export interface CheckListSetEntity {

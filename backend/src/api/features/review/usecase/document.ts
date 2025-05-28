@@ -13,10 +13,10 @@ export async function getDocumentDownloadUrl(
 ): Promise<string> {
   const { key, expiresIn = 3600 } = params;
   const bucketName = process.env.DOCUMENT_BUCKET;
-  
+
   if (!bucketName) {
     throw new Error("Document bucket name is not defined");
   }
-  
+
   return getDownloadPresignedUrl(bucketName, key, expiresIn);
 }

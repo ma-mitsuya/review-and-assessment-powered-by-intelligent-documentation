@@ -7,9 +7,7 @@ import {
   REVIEW_JOB_STATUS,
   ReviewJobEntity,
   ReviewResultEntity,
-  REVIEW_RESULT,
 } from "../model/review";
-import { ReviewJobRepository } from "../repository";
 
 export const createInitialReviewJobModel = async (params: {
   req: CreateReviewJobRequest;

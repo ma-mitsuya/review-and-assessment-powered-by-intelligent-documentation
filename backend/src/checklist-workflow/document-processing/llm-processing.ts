@@ -157,11 +157,7 @@ export async function processWithLLM({
     // LLMの出力をJSONとしてパース
     checklistItems = JSON.parse(llmResponse);
     console.log(
-      `LLMの応答をJSONとしてパースしました: ${JSON.stringify(
-        checklistItems,
-        null,
-        2
-      )}`
+      `LLMの応答をJSONとしてパースしました: ${JSON.stringify(checklistItems, null, 2)}`
     );
 
     // パース直後に各項目にIDを割り当て

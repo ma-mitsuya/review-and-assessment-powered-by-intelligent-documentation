@@ -29,17 +29,22 @@ export async function processDocument({
   });
 
   // ファイル拡張子の確認
-  const fileExtension = fileName.split('.').pop()?.toLowerCase();
-  if (fileExtension !== 'pdf') {
+  const fileExtension = fileName.split(".").pop()?.toLowerCase();
+  if (fileExtension !== "pdf") {
     throw new Error(`サポートされていないファイル形式です: ${fileExtension}`);
   }
 
   const s3Client = new S3Client({});
-  const bucketName = process.env.DOCUMENT_BUCKET || '';
-  
+  const bucketName = process.env.DOCUMENT_BUCKET || "";
+
   // PDFをページに分割
-  const pageCount = await splitPdfPages(s3Client, bucketName, documentId, fileName);
-  
+  const pageCount = await splitPdfPages(
+    s3Client,
+    bucketName,
+    documentId,
+    fileName
+  );
+
   // 各ページの情報を返す
   const pages = Array.from({ length: pageCount }, (_, i) => ({
     pageNumber: i + 1,
