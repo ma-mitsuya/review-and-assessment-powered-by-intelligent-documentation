@@ -136,6 +136,30 @@ export async function processReviewItem(
   }
 }
 
+import { createHash } from "crypto";
+
+/**
+ * ファイル名をBedrockの要件に合わせてサニタイズする
+ * @param filename サニタイズするファイル名
+ * @returns サニタイズされたファイル名
+ */
+function sanitizeFileNameForBedrock(filename: string): string {
+  const parts = filename.split(".");
+  const nameWithoutExtension = parts.join(".");
+
+  // ファイル名のハッシュ値を計算
+  const hash = createHash("md5")
+    .update(nameWithoutExtension)
+    .digest("hex")
+    .substring(0, 8);
+
+  const sanitized = `doc_${hash}`;
+  console.log(
+    `Sanitized filename for Bedrock: ${sanitized} (original: ${filename})`
+  );
+  return sanitized;
+}
+
 /**
  * PDF 審査項目を処理する
  * @param params 処理パラメータ
@@ -217,7 +241,7 @@ async function processPdfReviewItem(params: {
     // 複数のPDFをコンテンツとして追加
     const pdfContentsForBedrock = pdfContents.map((pdf) => ({
       document: {
-        name: pdf.filename,
+        name: sanitizeFileNameForBedrock(pdf.filename),
         format: "pdf",
         source: {
           bytes: pdf.bytes,
