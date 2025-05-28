@@ -7,11 +7,20 @@ export const checklistErrorHandler = async (event: any) => {
   try {
     // documentIdが存在する場合のみステータス更新
     if (event.documentId) {
+      // エラー詳細を取得
+      const errorDetail = event.error
+        ? typeof event.error === "string"
+          ? event.error
+          : JSON.stringify(event.error)
+        : "Unknown error occurred";
+
       await checkRepository.updateDocumentStatus({
         documentId: event.documentId,
         status: CHECK_LIST_STATUS.FAILED,
+        errorDetail,
       });
       console.log(`Document status updated to FAILED: ${event.documentId}`);
+      console.log(`Error detail: ${errorDetail}`);
     } else {
       console.warn("No documentId provided in error event");
     }

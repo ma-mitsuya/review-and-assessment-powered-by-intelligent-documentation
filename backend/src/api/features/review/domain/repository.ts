@@ -21,6 +21,7 @@ export interface ReviewJobRepository {
   updateJobStatus(params: {
     reviewJobId: string;
     status: REVIEW_JOB_STATUS;
+    errorDetail?: string;
   }): Promise<void>;
 }
 
@@ -125,6 +126,8 @@ export const makePrismaReviewJobRepository = async (
       id: job.id,
       name: job.name,
       status: job.status as REVIEW_JOB_STATUS,
+      errorDetail: job.errorDetail || undefined,
+      hasError: job.status === REVIEW_JOB_STATUS.FAILED && !!job.errorDetail,
       checkList: {
         id: job.checkListSet.id,
         name: job.checkListSet.name,
@@ -223,12 +226,14 @@ export const makePrismaReviewJobRepository = async (
   const updateJobStatus = async (params: {
     reviewJobId: string;
     status: REVIEW_JOB_STATUS;
+    errorDetail?: string;
   }): Promise<void> => {
-    const { reviewJobId, status } = params;
+    const { reviewJobId, status, errorDetail } = params;
     await client.reviewJob.update({
       where: { id: reviewJobId },
       data: {
         status,
+        errorDetail,
         updatedAt: new Date(),
       },
     });

@@ -220,6 +220,8 @@ export interface ReviewJobDetail {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
+  errorDetail?: string;
+  hasError: boolean;
   checkList: {
     id: string;
     name: string;

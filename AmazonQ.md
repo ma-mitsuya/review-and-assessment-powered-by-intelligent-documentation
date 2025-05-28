@@ -20,3 +20,4 @@ NOTE: root ディレクトリに package.json は存在しません。　 npm in
 - 実装フェーズ
   - 計画したファイル以外の修正は厳禁です。
   - 実装後、ビルドが通るかテストしてください。backend / frontend は`npm run build`, cdk は`cdk synth`です。
+  - ビルドが通過したら、backend / frontend では`npm run format`を実行し、フォーマットしてください。

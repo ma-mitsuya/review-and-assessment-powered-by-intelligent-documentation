@@ -28,6 +28,7 @@ export interface CheckRepository {
   updateDocumentStatus(params: {
     documentId: string;
     status: CHECK_LIST_STATUS;
+    errorDetail?: string;
   }): Promise<void>;
   findCheckListItemById(itemId: string): Promise<CheckListItemEntity>;
   validateParentItem(params: {
@@ -277,6 +278,21 @@ export const makePrismaCheckRepository = async (
     // チェックリストセットが編集可能かどうかを確認
     const isEditable = await checkSetEditable({ setId });
 
+    // ドキュメントのエラー情報を集約
+    const failedDocuments = checkListSet.documents.filter(
+      (doc) => doc.status === "failed" && doc.errorDetail
+    );
+
+    // エラーサマリーを作成
+    let errorSummary: string | undefined;
+    if (failedDocuments.length > 0) {
+      if (failedDocuments.length === 1) {
+        errorSummary = `ドキュメント「${failedDocuments[0].filename}」の処理中にエラーが発生しました: ${failedDocuments[0].errorDetail}`;
+      } else {
+        errorSummary = `${failedDocuments.length}件のドキュメント処理中にエラーが発生しました`;
+      }
+    }
+
     return {
       id: checkListSet.id,
       name: checkListSet.name,
@@ -288,8 +304,11 @@ export const makePrismaCheckRepository = async (
         fileType: doc.fileType,
         uploadDate: doc.uploadDate,
         status: doc.status as CHECK_LIST_STATUS,
+        errorDetail: doc.errorDetail || undefined,
       })),
       isEditable,
+      errorSummary,
+      hasError: failedDocuments.length > 0,
     };
   };
 
@@ -334,11 +353,15 @@ export const makePrismaCheckRepository = async (
   const updateDocumentStatus = async (params: {
     documentId: string;
     status: CHECK_LIST_STATUS;
+    errorDetail?: string;
   }): Promise<void> => {
-    const { documentId, status } = params;
+    const { documentId, status, errorDetail } = params;
     await client.checkListDocument.update({
       where: { id: documentId },
-      data: { status },
+      data: {
+        status,
+        errorDetail,
+      },
     });
   };
 
