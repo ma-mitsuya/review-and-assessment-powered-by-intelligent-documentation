@@ -6,10 +6,17 @@ import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
-import { HiLockClosed, HiPlus, HiTrash, HiExclamation, HiInformationCircle } from "react-icons/hi";
+import {
+  HiLockClosed,
+  HiPlus,
+  HiTrash,
+  HiExclamation,
+  HiInformationCircle,
+} from "react-icons/hi";
 import Button from "../../../components/Button";
 import Breadcrumb from "../../../components/Breadcrumb";
 import { useChecklistItems } from "../hooks/useCheckListItemQueries";
+import { ErrorAlert } from "../../../components/ErrorAlert";
 
 /**
  * チェックリストセット詳細ページ
@@ -49,11 +56,10 @@ export function CheckListSetDetailPage() {
   if (error) {
     return (
       <div
-        className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm"
-        role="alert"
-      >
+        className="rounded-lg border border-red bg-light-red px-6 py-4 text-red shadow-sm"
+        role="alert">
         <div className="flex items-center">
-          <HiExclamation className="h-6 w-6 mr-2" />
+          <HiExclamation className="mr-2 h-6 w-6" />
           <strong className="font-medium">エラー: </strong>
           <span className="ml-2">チェックリスト情報の取得に失敗しました。</span>
         </div>
@@ -63,22 +69,21 @@ export function CheckListSetDetailPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <Breadcrumb to="/checklist" label="チェックリスト一覧に戻る" />
-          <h1 className="text-3xl font-bold text-aws-squid-ink-light flex items-center">
+          <h1 className="flex items-center text-3xl font-bold text-aws-squid-ink-light">
             {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
             {checklistSet && !checklistSet.isEditable && (
               <div
-                className="ml-2 text-gray-500"
-                title="このチェックリストは編集できません"
-              >
+                className="text-gray-500 ml-2"
+                title="このチェックリストは編集できません">
                 <HiLockClosed className="h-5 w-5" />
               </div>
             )}
           </h1>
           {checklistSet && checklistSet.description && (
-            <p className="text-aws-font-color-gray mt-1">
+            <p className="mt-1 text-aws-font-color-gray">
               {checklistSet.description}
             </p>
           )}
@@ -99,22 +104,27 @@ export function CheckListSetDetailPage() {
             <Button
               variant="danger"
               onClick={handleDelete}
-              icon={<HiTrash className="h-5 w-5" />}
-            >
+              icon={<HiTrash className="h-5 w-5" />}>
               削除
             </Button>
           )}
         </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray mb-8">
+      {/* エラー詳細表示 */}
+      {checklistSet && checklistSet.hasError && checklistSet.errorSummary && (
+        <div className="mb-6">
+          <ErrorAlert title="処理エラー" message={checklistSet.errorSummary} />
+        </div>
+      )}
+
+      <div className="mb-8 rounded-lg border border-light-gray bg-white p-6 shadow-md">
         {error ? (
           <div
-            className="bg-light-red border border-red text-red px-6 py-4 rounded-lg shadow-sm"
-            role="alert"
-          >
+            className="rounded-lg border border-red bg-light-red px-6 py-4 text-red shadow-sm"
+            role="alert">
             <div className="flex items-center">
-              <HiExclamation className="h-6 w-6 mr-2" />
+              <HiExclamation className="mr-2 h-6 w-6" />
               <strong className="font-medium">エラー: </strong>
               <span className="ml-2">
                 チェックリスト項目の取得に失敗しました。
@@ -123,11 +133,10 @@ export function CheckListSetDetailPage() {
           </div>
         ) : !id ? (
           <div
-            className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm"
-            role="alert"
-          >
+            className="rounded-lg border border-yellow bg-light-yellow px-6 py-4 text-yellow shadow-sm"
+            role="alert">
             <div className="flex items-center">
-              <HiInformationCircle className="h-6 w-6 mr-2" />
+              <HiInformationCircle className="mr-2 h-6 w-6" />
               <span>このチェックリストセットには項目がありません。</span>
             </div>
           </div>
@@ -143,9 +152,8 @@ export function CheckListSetDetailPage() {
               onClick={() => setIsAddModalOpen(true)}
               disabled={!checklistSet.isEditable}
               className={
-                !checklistSet.isEditable ? "opacity-50 cursor-not-allowed" : ""
-              }
-            >
+                !checklistSet.isEditable ? "cursor-not-allowed opacity-50" : ""
+              }>
               ルート項目を追加
             </Button>
           </div>

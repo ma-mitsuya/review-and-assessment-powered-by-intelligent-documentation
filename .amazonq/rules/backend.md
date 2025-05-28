@@ -30,6 +30,9 @@ npm test
 
 # ビルド通るか確認
 npm run build
+
+# ビルド通ったらフォーマット
+npm run format
 ```
 
 ## DB

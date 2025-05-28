@@ -93,6 +93,8 @@ export interface ReviewJobDetail {
   id: string;
   name: string;
   status: REVIEW_JOB_STATUS;
+  errorDetail?: string;
+  hasError: boolean;
   checkList: CheckListSetEntity;
   documents: Array<{
     id: string;

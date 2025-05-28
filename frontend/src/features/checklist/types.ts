@@ -177,6 +177,7 @@ export interface ChecklistDocumentEntity {
   fileType: string;
   uploadDate: Date;
   status: CHECK_LIST_STATUS;
+  errorDetail?: string;
 }
 
 /**
@@ -198,6 +199,8 @@ export interface CheckListSetDetailModel {
   description: string;
   documents: ChecklistDocumentEntity[];
   isEditable: boolean;
+  errorSummary?: string;
+  hasError: boolean;
 }
 
 /**

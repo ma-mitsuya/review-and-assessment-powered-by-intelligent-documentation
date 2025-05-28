@@ -120,6 +120,16 @@ export default function ReviewDetailPage() {
         </div>
       </div>
 
+      {/* エラー詳細表示 */}
+      {job.hasError && job.errorDetail && (
+        <div className="mb-6">
+          <ErrorAlert
+            title="処理エラー"
+            message={job.errorDetail}
+          />
+        </div>
+      )}
+
       {/* 審査結果 */}
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <div className="flex justify-between items-center mb-4">

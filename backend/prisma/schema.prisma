@@ -52,6 +52,7 @@ model CheckListDocument {
   checkListSetId String       @map("check_list_set_id") @db.VarChar(26)
   userId         String?      @map("user_id") @db.VarChar(50)
   status         String       @default("pending") @db.VarChar(20)
+  errorDetail    String?      @map("error_detail") @db.Text
   checkLists     CheckList[]
   checkListSet   CheckListSet @relation(fields: [checkListSetId], references: [id])
 
@@ -78,6 +79,7 @@ model ReviewJob {
   id             String           @id @map("review_job_id") @db.VarChar(26)
   name           String           @db.VarChar(255)
   status         String           @default("pending") @db.VarChar(20)
+  errorDetail    String?          @map("error_detail") @db.Text
   checkListSetId String           @map("check_list_set_id") @db.VarChar(26)
   createdAt      DateTime         @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @map("updated_at") @db.Timestamp(0)
