@@ -1,9 +1,4 @@
-import {
-  PrismaClient,
-  CheckListDocument,
-  CheckListSet,
-  getPrismaClient,
-} from "../../../core/db";
+import { PrismaClient, CheckListSet, getPrismaClient } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
 import {
   CheckListItemEntity,
@@ -38,7 +33,7 @@ export interface CheckRepository {
   validateParentItem(params: {
     parentItemId: string;
     setId: string;
-  }): Promise<Boolean>;
+  }): Promise<boolean>;
   updateCheckListItem(params: { newItem: CheckListItemEntity }): Promise<void>;
   deleteCheckListItemById(params: { itemId: string }): Promise<void>;
   checkSetEditable(params: { setId: string }): Promise<boolean>;
@@ -331,6 +326,7 @@ export const makePrismaCheckRepository = async (
         })),
       });
     } catch (error) {
+      console.error("Error creating checklist items:", error);
       throw error;
     }
   };
@@ -374,7 +370,7 @@ export const makePrismaCheckRepository = async (
   const validateParentItem = async (params: {
     parentItemId: string;
     setId: string;
-  }): Promise<Boolean> => {
+  }): Promise<boolean> => {
     const parent = await client.checkList.findUnique({
       where: { id: params.parentItemId },
       select: {

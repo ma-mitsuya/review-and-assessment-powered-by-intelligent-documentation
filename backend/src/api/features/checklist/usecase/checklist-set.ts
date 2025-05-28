@@ -5,7 +5,6 @@ import {
 } from "../domain/repository";
 import {
   CheckListSetDomain,
-  CheckListItemEntity,
   CheckListItemDetail,
   CheckListSetSummary,
   CheckListSetDetailModel,
@@ -14,7 +13,7 @@ import {
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
 import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
-import { ApplicationError, NotFoundError } from "../../../core/errors";
+import { ApplicationError } from "../../../core/errors";
 import { startStateMachineExecution } from "../../../core/sfn";
 
 export const createChecklistSet = async (params: {

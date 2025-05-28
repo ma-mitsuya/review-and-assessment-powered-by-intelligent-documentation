@@ -99,7 +99,7 @@ export const updateCheckResultCascade = async (params: {
 /** 子アイテムの confidenceScore の最小値を取得 */
 const calculateMinimumConfidence = (children: ReviewResultDetail[]): number => {
   if (children.length === 0) return 0;
-  return Math.min(...children.map(c => c.confidenceScore ?? 0));
+  return Math.min(...children.map((c) => c.confidenceScore ?? 0));
 };
 
 /** 子アイテムの結果から、親の説明文を生成 */

@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError } from "../../../core/errors";
+import { ValidationError } from "../../../core/errors";
 import {
   CheckListItemDomain,
   CheckListItemEntity,

@@ -50,10 +50,12 @@ export function usePresignedDownloadUrl(
       try {
         // GETリクエストでURLを取得（http.getOnceを使用）
         const queryParams = `?key=${encodeURIComponent(s3Key)}&expiresIn=${expiresIn}`;
-        const response = await http.getOnce<{ success: boolean; data: { url: string }; error?: string }>(
-          `${endpoint}${queryParams}`
-        );
-        
+        const response = await http.getOnce<{
+          success: boolean;
+          data: { url: string };
+          error?: string;
+        }>(`${endpoint}${queryParams}`);
+
         if (!response.data.success) {
           throw new Error(response.data.error || "Failed to get presigned URL");
         }

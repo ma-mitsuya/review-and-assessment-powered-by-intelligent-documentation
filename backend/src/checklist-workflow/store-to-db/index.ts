@@ -5,7 +5,10 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getChecklistAggregateKey } from "../common/storage-paths";
 import { ParsedChecklistItem } from "../common/types";
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
-import { CheckListItemDomain, CHECK_LIST_STATUS } from "../../api/features/checklist/domain/model/checklist";
+import {
+  CheckListItemDomain,
+  CHECK_LIST_STATUS,
+} from "../../api/features/checklist/domain/model/checklist";
 
 export interface StoreToDbParams {
   documentId: string;

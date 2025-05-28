@@ -1,2 +1,6 @@
 tasks
 .DS_Store
+node_modules
+dist
+.vscode
+.env

@@ -10,7 +10,6 @@ import {
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
   REVIEW_FILE_TYPE,
-  ReviewJobStats,
 } from "./model/review";
 import { CHECK_LIST_STATUS } from "../../checklist/domain/model/checklist";
 
@@ -301,7 +300,9 @@ export const makePrismaReviewResultRepository = async (
       userComment: (result as any).userComment ?? undefined,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
-      sourceReferences: result.sourceReferences ? JSON.parse(result.sourceReferences as string) : undefined,
+      sourceReferences: result.sourceReferences
+        ? JSON.parse(result.sourceReferences as string)
+        : undefined,
       checkList: {
         id: result.checkList.id,
         setId: result.checkList.checkListSetId,
@@ -411,10 +412,13 @@ export const makePrismaReviewResultRepository = async (
         try {
           sourceReferences = JSON.parse(result.sourceReferences as string);
         } catch (e) {
-          console.error(`Failed to parse sourceReferences for result ${result.id}:`, e);
+          console.error(
+            `Failed to parse sourceReferences for result ${result.id}:`,
+            e
+          );
         }
       }
-      
+
       return {
         id: result.id,
         reviewJobId: result.reviewJobId,
@@ -458,7 +462,9 @@ export const makePrismaReviewResultRepository = async (
         userOverride: newResult.userOverride,
         userComment: newResult.userComment,
         updatedAt: newResult.updatedAt,
-        sourceReferences: newResult.sourceReferences ? JSON.stringify(newResult.sourceReferences) : undefined,
+        sourceReferences: newResult.sourceReferences
+          ? JSON.stringify(newResult.sourceReferences)
+          : undefined,
       },
     });
   };

@@ -3,7 +3,6 @@ import {
   makePrismaReviewResultRepository,
 } from "../../api/features/review/domain/repository";
 import {
-  REVIEW_FILE_TYPE,
   REVIEW_JOB_STATUS,
   REVIEW_RESULT_STATUS,
 } from "../../api/features/review/domain/model/review";

@@ -2,9 +2,9 @@
  * ドキュメントアップロード用のカスタムフック
  * ファイル選択時にpresigned URLを取得し、S3へのアップロードを行う
  */
-import { useState } from 'react';
-import useHttp from './useHttp';
-import { GetReviewImagesPresignedUrlResponse } from '../features/review/types';
+import { useState } from "react";
+import useHttp from "./useHttp";
+import { GetReviewImagesPresignedUrlResponse } from "../features/review/types";
 
 /**
  * Presigned URL レスポンス
@@ -43,12 +43,17 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
-  const [uploadedDocuments, setUploadedDocuments] = useState<DocumentUploadResult[]>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<
+    DocumentUploadResult[]
+  >([]);
   const http = useHttp();
 
-  const presignedUrlEndpoint = options.presignedUrlEndpoint || '/documents/presigned-url';
-  const imagesPresignedUrlEndpoint = options.imagesPresignedUrlEndpoint || '/documents/review/images/presigned-url';
-  const deleteEndpointPrefix = options.deleteEndpointPrefix || '/documents/';
+  const presignedUrlEndpoint =
+    options.presignedUrlEndpoint || "/documents/presigned-url";
+  const imagesPresignedUrlEndpoint =
+    options.imagesPresignedUrlEndpoint ||
+    "/documents/review/images/presigned-url";
+  const deleteEndpointPrefix = options.deleteEndpointPrefix || "/documents/";
 
   /**
    * ファイルをアップロードする
@@ -59,47 +64,53 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
-    
+
     try {
       // Presigned URLを取得
-      const presignedResponse = await http.post<PresignedUrlResponse>(presignedUrlEndpoint, {
-        filename: file.name,
-        contentType: file.type
-      });
-      
+      const presignedResponse = await http.post<PresignedUrlResponse>(
+        presignedUrlEndpoint,
+        {
+          filename: file.name,
+          contentType: file.type,
+        }
+      );
+
       if (!presignedResponse.data.success) {
-        throw new Error(presignedResponse.data.error || 'Failed to get presigned URL');
+        throw new Error(
+          presignedResponse.data.error || "Failed to get presigned URL"
+        );
       }
-      
+
       const { url, key, documentId } = presignedResponse.data.data;
-      
+
       // S3にファイルをアップロード
       const uploadResponse = await fetch(url, {
-        method: 'PUT',
+        method: "PUT",
         body: file,
         headers: {
-          'Content-Type': file.type
-        }
+          "Content-Type": file.type,
+        },
       });
-      
+
       if (!uploadResponse.ok) {
         throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
       }
-      
+
       // アップロード結果を設定
       const result: DocumentUploadResult = {
         documentId,
         filename: file.name,
         s3Key: key,
-        fileType: file.type
+        fileType: file.type,
       };
-      
-      setUploadedDocuments(prev => [...prev, result]);
+
+      setUploadedDocuments((prev) => [...prev, result]);
       setUploadProgress(100);
-      
+
       return result;
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to upload document');
+      const err =
+        error instanceof Error ? error : new Error("Failed to upload document");
       setError(err);
       throw err;
     } finally {
@@ -112,64 +123,74 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
    * @param files アップロードするファイル配列
    * @returns アップロード結果の配列
    */
-  const uploadDocuments = async (files: File[]): Promise<DocumentUploadResult[]> => {
+  const uploadDocuments = async (
+    files: File[]
+  ): Promise<DocumentUploadResult[]> => {
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
-    
+
     try {
       // 画像ファイル用のpresigned URLを一括取得
-      const presignedResponse = await http.post<GetReviewImagesPresignedUrlResponse>(
-        imagesPresignedUrlEndpoint,
-        {
-          filenames: files.map(f => f.name),
-          contentTypes: files.map(f => f.type)
-        }
-      );
-      
+      const presignedResponse =
+        await http.post<GetReviewImagesPresignedUrlResponse>(
+          imagesPresignedUrlEndpoint,
+          {
+            filenames: files.map((f) => f.name),
+            contentTypes: files.map((f) => f.type),
+          }
+        );
+
       if (!presignedResponse.data.success) {
-        throw new Error(presignedResponse.data.error || 'Failed to get presigned URLs');
+        throw new Error(
+          presignedResponse.data.error || "Failed to get presigned URLs"
+        );
       }
-      
+
       const { files: presignedFiles } = presignedResponse.data.data;
-      
+
       // 各ファイルを並行してアップロード
       const uploadPromises = presignedFiles.map(async (presigned, index) => {
         const file = files[index];
         const uploadResponse = await fetch(presigned.url, {
-          method: 'PUT',
+          method: "PUT",
           body: file,
           headers: {
-            'Content-Type': file.type
-          }
+            "Content-Type": file.type,
+          },
         });
-        
+
         if (!uploadResponse.ok) {
-          throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+          throw new Error(
+            `Failed to upload file: ${uploadResponse.statusText}`
+          );
         }
-        
+
         return {
           documentId: presigned.documentId,
           filename: file.name,
           s3Key: presigned.key,
-          fileType: file.type
+          fileType: file.type,
         };
       });
-      
+
       const results = await Promise.all(uploadPromises);
-      setUploadedDocuments(prev => [...prev, ...results]);
+      setUploadedDocuments((prev) => [...prev, ...results]);
       setUploadProgress(100);
-      
+
       return results;
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to upload documents');
+      const err =
+        error instanceof Error
+          ? error
+          : new Error("Failed to upload documents");
       setError(err);
       throw err;
     } finally {
       setIsUploading(false);
     }
   };
-  
+
   /**
    * アップロードをキャンセルする
    */
@@ -178,21 +199,23 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
     setIsUploading(false);
     setUploadProgress(0);
   };
-  
+
   /**
    * アップロードしたドキュメントを削除する
    */
   const deleteDocument = async (documentId: string): Promise<boolean> => {
     try {
-      const response = await http.delete<{success: boolean}>(`${deleteEndpointPrefix}${documentId}`);
-      
+      const response = await http.delete<{ success: boolean }>(
+        `${deleteEndpointPrefix}${documentId}`
+      );
+
       if (response.data.success) {
         removeDocument(documentId);
       }
-      
+
       return response.data.success;
     } catch (error) {
-      console.error('Failed to delete document', error);
+      console.error("Failed to delete document", error);
       return false;
     }
   };
@@ -201,7 +224,9 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
    * アップロードしたドキュメントをリストから削除する（S3からは削除しない）
    */
   const removeDocument = (documentId: string) => {
-    setUploadedDocuments(prev => prev.filter(doc => doc.documentId !== documentId));
+    setUploadedDocuments((prev) =>
+      prev.filter((doc) => doc.documentId !== documentId)
+    );
   };
 
   /**
@@ -210,7 +235,7 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
   const clearUploadedDocuments = () => {
     setUploadedDocuments([]);
   };
-  
+
   return {
     uploadDocument,
     uploadDocuments,
@@ -221,6 +246,6 @@ export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
     isUploading,
     uploadProgress,
     error,
-    uploadedDocuments
+    uploadedDocuments,
   };
 }

@@ -18,27 +18,25 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-# バックエンドのリンターチェック
-backend-lint:
+backend-format-check:
   stage: lint
   image: node:22
   script:
     - cd backend
     - npm ci
-    - npx eslint . --ext .ts
+    - npm run format:check
   rules:
     - changes:
         - backend/**/*
   needs: []
 
-# フロントエンドのリンターチェック
-frontend-lint:
+frontend-format-check:
   stage: lint
   image: node:22
   script:
     - cd frontend
     - npm ci
-    - npm run lint
+    - npm run format:check
   rules:
     - changes:
         - frontend/**/*
@@ -101,14 +99,12 @@ cdk-synth:
 # バックエンドの Docker ビルド確認
 backend-docker-build:
   stage: docker
-  image: docker:24
-  services:
-    - docker:24-dind
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
     - cd backend
-    - docker build -t rapid-backend:${CI_COMMIT_SHORT_SHA} .
+    - /kaniko/executor --context $CI_PROJECT_DIR/backend --dockerfile $CI_PROJECT_DIR/backend/Dockerfile --no-push
   rules:
     - changes:
         - backend/**/*

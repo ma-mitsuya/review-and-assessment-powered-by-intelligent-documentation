@@ -1,8 +1,8 @@
 /**
  * エラーハンドラーミドルウェア
  */
-import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { ApplicationError } from './application-errors';
+import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import { ApplicationError } from "./application-errors";
 
 /**
  * エラーレスポンスの型
@@ -58,6 +58,6 @@ export function errorHandler(
   reply.code(500).send({
     success: false,
     error: `${error.name}: ${error.message}`,
-    errorType: error.name
+    errorType: error.name,
   });
 }

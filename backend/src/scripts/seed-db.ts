@@ -5,7 +5,7 @@
  * Prismaのseed機能と連携して使用します。
  */
 
-import { PrismaClient, Prisma } from "../api/core/db";
+import { PrismaClient } from "../api/core/db";
 import { ulid } from "ulid";
 
 const prisma = new PrismaClient();

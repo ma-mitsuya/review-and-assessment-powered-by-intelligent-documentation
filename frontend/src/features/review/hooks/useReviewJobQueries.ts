@@ -1,9 +1,9 @@
 import { useApiClient } from "../../../hooks/useApiClient";
-import type { 
-  ReviewJobSummary, 
+import type {
+  ReviewJobSummary,
   GetAllReviewJobsResponse,
   ReviewJobDetail,
-  GetReviewJobDetailResponse
+  GetReviewJobDetailResponse,
 } from "../types";
 
 /**
@@ -64,12 +64,8 @@ export function useReviewJobs(
  */
 export function useReviewJobDetail(jobId: string | null) {
   const url = getReviewJobDetailKey(jobId);
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useApiClient().useQuery<GetReviewJobDetailResponse>(url);
+  const { data, isLoading, error, refetch } =
+    useApiClient().useQuery<GetReviewJobDetailResponse>(url);
 
   return {
     job: data as ReviewJobDetail | null,

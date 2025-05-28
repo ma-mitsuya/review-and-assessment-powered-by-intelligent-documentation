@@ -2,8 +2,15 @@
  * PDFをページに分割する処理
  */
 import { PDFDocument } from "pdf-lib";
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getChecklistOriginalKey, getChecklistPageKey } from "../common/storage-paths";
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
+import {
+  getChecklistOriginalKey,
+  getChecklistPageKey,
+} from "../common/storage-paths";
 
 /**
  * PDFをページに分割してS3に保存する
@@ -42,10 +49,10 @@ export async function splitPdfPages(
     const newPdf = await PDFDocument.create();
     const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
     newPdf.addPage(copiedPage);
-    
+
     const pageBytes = await newPdf.save();
     const pageKey = getChecklistPageKey(documentId, i + 1, "pdf");
-    
+
     await s3Client.send(
       new PutObjectCommand({
         Bucket: bucketName,
