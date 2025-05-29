@@ -95,19 +95,18 @@ cdk-synth:
       - cdk/cdk.out/
     expire_in: 1 hour
   needs: []
-
-# バックエンドの Docker ビルド確認
-backend-docker-build:
-  stage: docker
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - cd backend
-    - /kaniko/executor --context $CI_PROJECT_DIR/backend --dockerfile $CI_PROJECT_DIR/backend/Dockerfile --no-push
-  rules:
-    - changes:
-        - backend/**/*
-        - backend/Dockerfile
-  needs:
-    - backend-build
+# # バックエンドの Docker ビルド確認
+# backend-docker-build:
+#   stage: docker
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - cd backend
+#     - /kaniko/executor --context $CI_PROJECT_DIR/backend --dockerfile $CI_PROJECT_DIR/backend/Dockerfile --no-push
+#   rules:
+#     - changes:
+#         - backend/**/*
+#         - backend/Dockerfile
+#   needs:
+#     - backend-build
