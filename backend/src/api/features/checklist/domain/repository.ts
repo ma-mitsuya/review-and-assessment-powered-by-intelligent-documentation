@@ -75,9 +75,80 @@ export const makePrismaCheckRepository = async (
   }): Promise<void> => {
     const { checkListSetId } = params;
     await client.$transaction(async (tx) => {
-      await tx.checkList.deleteMany({ where: { checkListSetId } });
-      await tx.checkListDocument.deleteMany({ where: { checkListSetId } });
-      await tx.checkListSet.delete({ where: { id: checkListSetId } });
+      // 1. まず ReviewResult を削除 (CheckList への外部キー参照があるため)
+      await tx.reviewResult.deleteMany({
+        where: {
+          checkList: {
+            checkListSetId: checkListSetId,
+          },
+        },
+      });
+
+      // 2. チェックリスト項目を階層的に削除：最下層から上へ
+      // すべてのノードが削除されるまで繰り返す
+      let deletedCount = 0;
+      do {
+        // リーフノード（子を持たないノード）を検索して削除
+        const childParentIds = await tx.checkList.findMany({
+          where: {
+            checkListSetId: checkListSetId,
+            parentId: { not: null },
+          },
+          select: { parentId: true },
+        });
+
+        const parentIdsToExclude = childParentIds
+          .map((r) => r.parentId)
+          .filter(Boolean) as string[];
+
+        const result = await tx.checkList.deleteMany({
+          where: {
+            checkListSetId: checkListSetId,
+            // このIDを親として参照している子が存在しないノードを検索
+            id: {
+              notIn: parentIdsToExclude,
+            },
+          },
+        });
+
+        deletedCount = result.count;
+        console.log(
+          `[Repository] Deleted ${deletedCount} leaf nodes from check list`
+        );
+
+        // もう削除するノードがなくなったら終了
+        if (deletedCount === 0) break;
+      } while (true);
+
+      // 3. ReviewDocument を削除
+      await tx.reviewDocument.deleteMany({
+        where: {
+          reviewJob: {
+            checkListSetId: checkListSetId,
+          },
+        },
+      });
+
+      // 4. ReviewJob を削除
+      await tx.reviewJob.deleteMany({
+        where: {
+          checkListSetId: checkListSetId,
+        },
+      });
+
+      // 5. CheckListDocument を削除
+      await tx.checkListDocument.deleteMany({
+        where: { checkListSetId: checkListSetId },
+      });
+
+      // 6. 最後に CheckListSet 自体を削除
+      await tx.checkListSet.delete({
+        where: { id: checkListSetId },
+      });
+
+      console.log(
+        `[Repository] Successfully deleted check list set: ${checkListSetId}`
+      );
     });
   };
 
