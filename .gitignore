@@ -4,4 +4,4 @@ node_modules
 dist
 .vscode
 .env
-.amazonq/rules/gitlab.md
+gitlab.md

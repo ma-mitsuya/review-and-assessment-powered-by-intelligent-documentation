@@ -6,7 +6,6 @@
 
 ```
 cd backend
-npm run build  // ここで失敗した場合、概要のみ報告。修正は行ってはいけません
 cd ../cdk
 cdk deploy --require-approval never
 ```
