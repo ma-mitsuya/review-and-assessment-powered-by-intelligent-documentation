@@ -30,6 +30,16 @@ export interface CreateChecklistSetRequest {
   name: string;
   description?: string;
   documents: Document[];
+  templateId?: string; // プロンプトテンプレートID
+}
+
+/**
+ * Request type for duplicating a checklist set
+ * POST /checklist-sets/:checklistSetId/duplicate
+ */
+export interface DuplicateChecklistSetRequest {
+  name?: string;
+  description?: string;
 }
 
 /**
@@ -122,6 +132,12 @@ export type GetChecklistItemResponse = ApiResponse<{
  * POST /checklist-sets
  */
 export type CreateChecklistSetResponse = ApiResponse<Record<string, never>>;
+
+/**
+ * Response type for duplicating a checklist set
+ * POST /checklist-sets/:checklistSetId/duplicate
+ */
+export type DuplicateChecklistSetResponse = ApiResponse<Record<string, never>>;
 
 /**
  * Response type for deleting a checklist set

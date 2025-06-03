@@ -4,6 +4,7 @@
 import { createApp } from "./core/app";
 import { registerChecklistRoutes } from "./features/checklist/routes";
 import { registerReviewRoutes } from "./features/review/routes";
+import { registerPromptTemplateRoutes } from "./features/prompt-template/routes";
 import { authMiddleware } from "./core/middleware/auth";
 import { errorHandler } from "./core/errors";
 import { isLocalDevelopment } from "./core/utils/stage-aware-auth";
@@ -46,6 +47,7 @@ async function startApp() {
   // ルートの登録
   registerChecklistRoutes(app);
   registerReviewRoutes(app);
+  registerPromptTemplateRoutes(app);
 
   // アプリケーションの起動
   try {

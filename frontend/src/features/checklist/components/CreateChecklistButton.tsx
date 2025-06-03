@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, LinkButtonProps } from '../../../components/Button';
 import { HiPlus } from 'react-icons/hi';
 
@@ -14,9 +15,11 @@ export const CreateChecklistButton: React.FC<CreateChecklistButtonProps> = ({
   variant = 'primary',
   size = 'md',
   to = '/checklist/new',
-  children = '新規作成',
+  children,
   ...rest
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <Button
       variant={variant}
@@ -26,7 +29,7 @@ export const CreateChecklistButton: React.FC<CreateChecklistButtonProps> = ({
       iconPosition="left"
       {...rest}
     >
-      {children}
+      {children || t('checklist.create')}
     </Button>
   );
 };

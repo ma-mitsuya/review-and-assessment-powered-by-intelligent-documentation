@@ -482,6 +482,16 @@ async function main(): Promise<void> {
       }
     }
 
+    // shortExplanationを追加
+    let shortExplanation = null;
+    if (explanation) {
+      // 説明文から短い説明を生成（80文字以内）
+      shortExplanation =
+        explanation.length > 80
+          ? explanation.substring(0, 77) + "..."
+          : explanation;
+    }
+
     await prisma.reviewResult.create({
       data: {
         id: ulid(),
@@ -491,6 +501,7 @@ async function main(): Promise<void> {
         result,
         confidenceScore,
         explanation,
+        shortExplanation,
         extractedText,
         userOverride,
         userComment,
@@ -501,6 +512,92 @@ async function main(): Promise<void> {
   }
   console.log(
     `ReviewResultを作成しました: ${allBuildingCheckItems.length}件（実際のデータを含む）`
+  );
+
+  // 4. プロンプトテンプレートの追加
+  console.log("プロンプトテンプレートの作成を開始します...");
+
+  // デフォルトのチェックリスト用プロンプトテンプレート
+  const defaultChecklistPrompt = await prisma.promptTemplate.create({
+    data: {
+      id: ulid(),
+      userId: "user123",
+      name: "デフォルトチェックリストプロンプト",
+      description: "チェックリスト生成のためのデフォルトプロンプト",
+      prompt: `あなたは法律文書の分析エキスパートです。
+以下の文書を分析し、指定されたチェックリスト項目に基づいて評価してください。
+
+文書: {{document}}
+
+チェックリスト項目:
+{{checklist_items}}
+
+各チェックリスト項目について、以下の形式で回答してください:
+1. 項目名: [チェックリスト項目名]
+2. 評価: [合格/不合格/要確認]
+3. 根拠: [文書内の該当部分を引用]
+4. 説明: [評価理由の詳細な説明]`,
+      type: "checklist",
+    },
+  });
+  console.log(
+    `デフォルトチェックリストプロンプトを作成しました: ${defaultChecklistPrompt.name}`
+  );
+
+  // カスタムチェックリスト用プロンプトテンプレート
+  const customChecklistPrompt = await prisma.promptTemplate.create({
+    data: {
+      id: ulid(),
+      userId: "user123",
+      name: "詳細分析チェックリストプロンプト",
+      description: "より詳細な分析を行うためのカスタムプロンプト",
+      prompt: `あなたは法律文書の詳細分析エキスパートです。
+以下の文書を徹底的に分析し、指定されたチェックリスト項目に基づいて詳細な評価を行ってください。
+
+文書: {{document}}
+
+チェックリスト項目:
+{{checklist_items}}
+
+各チェックリスト項目について、以下の形式で回答してください:
+1. 項目名: [チェックリスト項目名]
+2. 評価: [合格/不合格/要確認]
+3. 根拠: [文書内の該当部分を引用]
+4. 詳細分析: [法的観点からの詳細な分析]
+5. リスク評価: [潜在的なリスクの特定と評価]
+6. 改善提案: [問題がある場合の具体的な改善提案]`,
+      type: "checklist",
+    },
+  });
+  console.log(
+    `カスタムチェックリストプロンプトを作成しました: ${customChecklistPrompt.name}`
+  );
+
+  // デフォルトのレビュー用プロンプトテンプレート
+  const defaultReviewPrompt = await prisma.promptTemplate.create({
+    data: {
+      id: ulid(),
+      userId: "user123",
+      name: "デフォルトレビュープロンプト",
+      description: "文書レビューのためのデフォルトプロンプト",
+      prompt: `あなたは法律文書のレビューエキスパートです。
+以下の文書を分析し、指定されたレビュー項目に基づいて評価してください。
+
+文書: {{document}}
+
+レビュー項目:
+{{review_items}}
+
+各レビュー項目について、以下の形式で回答してください:
+1. 項目名: [レビュー項目名]
+2. 評価: [合格/不合格/要確認]
+3. 根拠: [文書内の該当部分を引用]
+4. 説明: [評価理由の説明]`,
+      type: "review",
+    },
+  });
+  console.log(
+    `デフォルトレビュープロンプトを作成しました: ${defaultReviewPrompt.name}`
   );
 
   console.log("シードデータの投入が完了しました");

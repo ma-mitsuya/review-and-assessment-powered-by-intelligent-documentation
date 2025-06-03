@@ -2,6 +2,8 @@ import { useApiClient } from "../../../hooks/useApiClient";
 import type {
   CreateChecklistSetRequest,
   CreateChecklistSetResponse,
+  DuplicateChecklistSetRequest,
+  DuplicateChecklistSetResponse,
 } from "../types";
 
 export function useCreateChecklistSet() {
@@ -40,4 +42,20 @@ export function useDeleteChecklistSet() {
   }
 
   return { deleteChecklistSet, status, error };
+}
+
+export function useDuplicateChecklistSet() {
+  const { mutateAsync, status, error } = useApiClient().useMutation<
+    DuplicateChecklistSetResponse,
+    DuplicateChecklistSetRequest
+  >("post", "/checklist-sets");
+
+  function duplicateChecklistSet(
+    id: string,
+    body?: DuplicateChecklistSetRequest
+  ) {
+    return mutateAsync(body || {}, `/checklist-sets/${id}/duplicate`);
+  }
+
+  return { duplicateChecklistSet, status, error };
 }

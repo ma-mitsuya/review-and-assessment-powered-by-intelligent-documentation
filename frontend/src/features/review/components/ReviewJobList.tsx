@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ReviewJobSummary, REVIEW_JOB_STATUS } from '../types';
 import { useDeleteReviewJob } from '../hooks/useReviewJobMutations';
 import { TableSkeleton } from '../../../components/Skeleton';
@@ -13,13 +14,14 @@ interface ReviewJobListProps {
 }
 
 export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, revalidate, isLoading }) => {
+  const { t } = useTranslation();
   const { deleteReviewJob, status } = useDeleteReviewJob();
   const isDeleting = status === 'loading';
 
   const handleDelete = async (jobId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (confirm('この審査ジョブを削除してもよろしいですか？')) {
+    if (confirm(t('review.deleteConfirmation'))) {
       try {
         await deleteReviewJob(jobId);
         // 削除後にデータを再取得
@@ -27,9 +29,68 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
           revalidate();
         }
       } catch (error) {
-        alert('審査ジョブの削除に失敗しました');
+        alert(t('review.deleteError'));
         console.error(error);
       }
+    }
+  };
+
+  // ステータスに応じたバッジを表示する関数
+  const renderStatusBadge = (status: REVIEW_JOB_STATUS) => {
+    switch (status) {
+      case REVIEW_JOB_STATUS.COMPLETED:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
+            {t('status.completed')}
+          </span>
+        );
+      case REVIEW_JOB_STATUS.PROCESSING:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
+            {t('status.processing')}
+          </span>
+        );
+      case REVIEW_JOB_STATUS.PENDING:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
+            {t('status.pending')}
+          </span>
+        );
+      case REVIEW_JOB_STATUS.FAILED:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
+            {t('status.failed')}
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-gray">
+            {t('status.unknown')}
+          </span>
+        );
+    }
+  };
+
+  // 日付のフォーマット
+  const formatDate = (dateString: string | Date) => {
+    if (!dateString) return t('date.noDate');
+    
+    try {
+      const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+      if (isNaN(date.getTime())) {
+        return t('date.invalidDate');
+      }
+      
+      return new Intl.DateTimeFormat('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error('Date formatting error:', error, dateString);
+      return t('date.dateError');
     }
   };
 
@@ -42,7 +103,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
       <div className="bg-light-yellow border border-yellow text-yellow px-6 py-4 rounded-lg shadow-sm" role="alert">
         <div className="flex items-center">
           <HiInformationCircle className="h-6 w-6 mr-2" />
-          <span>審査ジョブがありません。</span>
+          <span>{t('review.noJobs')}</span>
         </div>
       </div>
     );
@@ -54,22 +115,22 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
         <thead className="bg-aws-paper-light">
           <tr>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              名前
+              {t('checklist.name')}
             </th>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              ドキュメント
+              {t('review.documents')}
             </th>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              チェックリスト
+              {t('review.checklist')}
             </th>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              ステータス
+              {t('review.status')}
             </th>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              作成日時
+              {t('review.createdAt')}
             </th>
             <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider">
-              操作
+              {t('review.actions')}
             </th>
           </tr>
         </thead>
@@ -85,8 +146,8 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
               <td className="px-6 py-4">
                 <div className="text-sm text-aws-font-color-gray">
                   {job.documents && job.documents.length > 0 
-                    ? `${job.documents[0].filename}${job.documents.length > 1 ? ` (他 ${job.documents.length - 1} 件)` : ''}` 
-                    : 'なし'}
+                    ? `${job.documents[0].filename}${job.documents.length > 1 ? ` (${t('review.otherDocuments', { count: job.documents.length - 1 })})` : ''}` 
+                    : t('review.noDocuments')}
                 </div>
               </td>
               <td className="px-6 py-4">
@@ -113,7 +174,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                     disabled={isDeleting}
                     className="text-aws-font-color-blue hover:text-aws-sea-blue-light"
                   >
-                    詳細
+                    {t('common.details')}
                   </Button>
                   <Button
                     onClick={(e) => handleDelete(job.id, e)}
@@ -123,7 +184,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
                     disabled={isDeleting}
                     className="text-red hover:text-red"
                   >
-                    削除
+                    {t('common.delete')}
                   </Button>
                 </div>
               </td>
@@ -133,65 +194,6 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({ jobs, onJobClick, 
       </table>
     </div>
   );
-};
-
-// ステータスに応じたバッジを表示する関数
-const renderStatusBadge = (status: REVIEW_JOB_STATUS) => {
-  switch (status) {
-    case REVIEW_JOB_STATUS.COMPLETED:
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
-          完了
-        </span>
-      );
-    case REVIEW_JOB_STATUS.PROCESSING:
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
-          処理中
-        </span>
-      );
-    case REVIEW_JOB_STATUS.PENDING:
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
-          待機中
-        </span>
-      );
-    case REVIEW_JOB_STATUS.FAILED:
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
-          失敗
-        </span>
-      );
-    default:
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-gray">
-          不明
-        </span>
-      );
-  }
-};
-
-// 日付のフォーマット
-const formatDate = (dateString: string | Date) => {
-  if (!dateString) return '日付なし';
-  
-  try {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    if (isNaN(date.getTime())) {
-      return '無効な日付';
-    }
-    
-    return new Intl.DateTimeFormat('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (error) {
-    console.error('Date formatting error:', error, dateString);
-    return '日付エラー';
-  }
 };
 
 export default ReviewJobList;

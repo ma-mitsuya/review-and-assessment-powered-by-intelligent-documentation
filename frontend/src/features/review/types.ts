@@ -265,6 +265,7 @@ export interface ReviewResultEntity {
   result?: REVIEW_RESULT;
   confidenceScore?: number;
   explanation?: string;
+  shortExplanation?: string;
   extractedText?: string;
   userComment?: string;
   userOverride: boolean;

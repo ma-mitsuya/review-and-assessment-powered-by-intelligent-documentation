@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { TableSkeleton } from "../../../components/Skeleton";
 import {
   HiEye,
@@ -6,6 +7,7 @@ import {
   HiExclamationCircle,
   HiInformationCircle,
   HiLockClosed,
+  HiDuplicate,
 } from "react-icons/hi";
 import { CHECK_LIST_STATUS } from "../types";
 import Button from "../../../components/Button";
@@ -21,6 +23,7 @@ type CheckListSetListProps = {
   isLoading: boolean;
   error: string | null;
   onDelete: (id: string, name: string) => Promise<void>;
+  onDuplicate: (id: string, name: string) => void; // 複製ハンドラーを追加
 };
 
 /**
@@ -31,7 +34,10 @@ export default function CheckListSetList({
   isLoading,
   error,
   onDelete,
+  onDuplicate,
 }: CheckListSetListProps) {
+  const { t } = useTranslation();
+  
   // チェックリストセットの削除処理
   const handleDelete = async (
     id: string,
@@ -40,21 +46,19 @@ export default function CheckListSetList({
   ) => {
     // 編集不可の場合は削除できない
     if (isEditable === false) {
-      alert(
-        "このチェックリストセットは審査ジョブに紐づいているため削除できません"
-      );
+      alert(t('checklist.notEditable'));
       return;
     }
 
     if (
-      confirm(`チェックリストセット「${name}」を削除してもよろしいですか？`)
+      confirm(t('checklist.deleteConfirmation', { name }))
     ) {
       try {
         // 削除ロジックは親コンポーネントに委譲
         await onDelete(id, name);
       } catch (error) {
         console.error("削除に失敗しました", error);
-        alert("チェックリストセットの削除に失敗しました");
+        alert(t('checklist.deleteError'));
       }
     }
   };
@@ -71,9 +75,9 @@ export default function CheckListSetList({
       >
         <div className="flex items-center">
           <HiExclamationCircle className="h-6 w-6 mr-2" />
-          <strong className="font-medium">エラー: </strong>
+          <strong className="font-medium">{t('common.error')}: </strong>
           <span className="ml-2">
-            チェックリストセットの取得に失敗しました。
+            {t('checklist.loadError')}
           </span>
         </div>
       </div>
@@ -88,7 +92,7 @@ export default function CheckListSetList({
       >
         <div className="flex items-center">
           <HiInformationCircle className="h-6 w-6 mr-2" />
-          <span>チェックリストセットがありません。</span>
+          <span>{t('checklist.noChecklists')}</span>
         </div>
       </div>
     );
@@ -100,31 +104,31 @@ export default function CheckListSetList({
       case CHECK_LIST_STATUS.PENDING:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-yellow">
-            待機中
+            {t('status.pending')}
           </span>
         );
       case CHECK_LIST_STATUS.PROCESSING:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-blue">
-            処理中
+            {t('status.processing')}
           </span>
         );
       case CHECK_LIST_STATUS.COMPLETED:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-lab">
-            完了
+            {t('status.completed')}
           </span>
         );
       case CHECK_LIST_STATUS.FAILED:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-red">
-            失敗
+            {t('status.failed')}
           </span>
         );
       default:
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-aws-paper-light text-aws-font-color-gray">
-            不明
+            {t('status.unknown')}
           </span>
         );
     }
@@ -140,25 +144,25 @@ export default function CheckListSetList({
                 scope="col"
                 className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider"
               >
-                名前
+                {t('checklist.name')}
               </th>
               <th
                 scope="col"
                 className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider"
               >
-                説明
+                {t('checklist.description')}
               </th>
               <th
                 scope="col"
                 className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider"
               >
-                ステータス
+                {t('checklist.status')}
               </th>
               <th
                 scope="col"
                 className="px-6 py-4 text-left text-xs font-medium text-aws-font-color-gray uppercase tracking-wider"
               >
-                操作
+                {t('checklist.actions')}
               </th>
             </tr>
           </thead>
@@ -178,7 +182,7 @@ export default function CheckListSetList({
                       <div className="ml-2 text-gray-500">
                         <HiLockClosed
                           className="h-5 w-5"
-                          title="編集不可"
+                          title={t('checklist.notEditable')}
                         />
                       </div>
                     )}
@@ -210,8 +214,18 @@ export default function CheckListSetList({
                       className="text-aws-font-color-blue hover:text-aws-sea-blue-light flex items-center"
                     >
                       <HiEye className="h-4 w-4 mr-1" />
-                      詳細
+                      {t('common.details')}
                     </Link>
+                    {/* 複製ボタンを追加 - 編集可能かどうかに関わらず表示 */}
+                    <Button
+                      variant="text"
+                      size="sm"
+                      icon={<HiDuplicate className="h-4 w-4" />}
+                      onClick={() => onDuplicate(set.id, set.name)}
+                      className="text-aws-font-color-blue hover:text-aws-sea-blue-light"
+                    >
+                      {t('common.duplicate')}
+                    </Button>
                     <Button
                       variant="text"
                       size="sm"
@@ -222,7 +236,7 @@ export default function CheckListSetList({
                         set.isEditable === false ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                     >
-                      削除
+                      {t('common.delete')}
                     </Button>
                   </div>
                 </td>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { HiChevronLeft } from "react-icons/hi";
 
 interface BreadcrumbProps {
@@ -11,6 +12,8 @@ interface BreadcrumbProps {
  * 戻るリンクを表示する
  */
 export default function Breadcrumb({ to, label }: BreadcrumbProps) {
+  const { t } = useTranslation();
+  
   return (
     <Link
       to={to}

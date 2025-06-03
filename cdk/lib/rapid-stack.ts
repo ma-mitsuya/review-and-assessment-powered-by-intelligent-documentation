@@ -82,6 +82,7 @@ export class RapidStack extends cdk.Stack {
     const prismaMigration = new PrismaMigration(this, "PrismaMigration", {
       vpc,
       databaseConnection: database.connection,
+      databaseCluster: database.cluster,
     });
 
     // データベース接続権限の付与

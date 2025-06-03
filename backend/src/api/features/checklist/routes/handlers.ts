@@ -6,6 +6,7 @@ import {
   getCheckListDocumentPresignedUrl,
   getChecklistItems,
   getChecklistSetById,
+  duplicateChecklistSet,
 } from "../usecase/checklist-set";
 import { deleteS3Object } from "../../../core/s3";
 import {
@@ -30,6 +31,19 @@ export interface CreateChecklistSetRequest {
   name: string;
   description?: string;
   documents: Document[];
+}
+
+/**
+ * チェックリスト複製リクエストの型定義
+ */
+export interface DuplicateChecklistSetRequest {
+  Params: {
+    checklistSetId: string;
+  };
+  Body: {
+    name?: string;
+    description?: string;
+  };
 }
 
 /**
@@ -60,6 +74,28 @@ export const deleteChecklistSetHandler = async (
   await removeChecklistSet({
     checkListSetId: checklistSetId,
   });
+  reply.code(200).send({
+    success: true,
+    data: {},
+  });
+};
+
+/**
+ * チェックリストセット複製ハンドラー
+ */
+export const duplicateChecklistSetHandler = async (
+  request: FastifyRequest<DuplicateChecklistSetRequest>,
+  reply: FastifyReply
+): Promise<void> => {
+  const { checklistSetId } = request.params;
+  const { name, description } = request.body;
+
+  await duplicateChecklistSet({
+    sourceCheckListSetId: checklistSetId,
+    newName: name,
+    newDescription: description,
+  });
+
   reply.code(200).send({
     success: true,
     data: {},

@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Button from "../../../components/Button";
 import { ReviewJobList } from "../components/ReviewJobList";
 import { useReviewJobs } from "../hooks/useReviewJobQueries";
@@ -9,6 +10,8 @@ import { ErrorAlert } from "../../../components/ErrorAlert";
 export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
+  
   const {
     items: reviewJobs,
     refetch: revalidate,
@@ -34,11 +37,11 @@ export const ReviewListPage: React.FC = () => {
           <div className="flex items-center">
             <HiDocumentText className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
             <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">
-              審査ジョブ一覧
+              {t('review.title')}
             </h1>
           </div>
           <p className="text-aws-font-color-gray mt-2">
-            審査ジョブを管理します
+            {t('review.description')}
           </p>
         </div>
         <Button
@@ -46,14 +49,14 @@ export const ReviewListPage: React.FC = () => {
           to="/review/create"
           icon={<HiPlus className="h-5 w-5" />}
         >
-          新規ジョブ作成
+          {t('review.create')}
         </Button>
       </div>
 
       {error ? (
         <ErrorAlert
-          title="読み込みエラー"
-          message="審査ジョブの取得に失敗しました。"
+          title={t('review.loadError')}
+          message={t('review.loadErrorMessage')}
           retry={revalidate}
         />
       ) : (

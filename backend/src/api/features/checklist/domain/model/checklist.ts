@@ -79,6 +79,21 @@ export const CheckListSetDomain = {
       })),
     };
   },
+
+  fromDuplicateRequest: (
+    sourceId: string,
+    newName: string | undefined,
+    newDescription: string | undefined,
+    source: CheckListSetDetailModel
+  ): CheckListSetEntity => {
+    return {
+      id: ulid(),
+      name: newName || `${source.name} (コピー)`,
+      description:
+        newDescription !== undefined ? newDescription : source.description,
+      documents: [], // 複製時にはドキュメントは含めない
+    };
+  },
 };
 
 export const CheckListItemDomain = {

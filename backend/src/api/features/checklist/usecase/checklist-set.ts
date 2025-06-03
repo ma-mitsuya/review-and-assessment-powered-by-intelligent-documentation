@@ -52,6 +52,66 @@ export const createChecklistSet = async (params: {
   });
 };
 
+export const duplicateChecklistSet = async (params: {
+  sourceCheckListSetId: string;
+  newName?: string;
+  newDescription?: string;
+  deps?: {
+    repo?: CheckRepository;
+  };
+}): Promise<void> => {
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
+  const { sourceCheckListSetId, newName, newDescription } = params;
+
+  // 1. 元のチェックリストセットを取得
+  const sourceCheckListSet =
+    await repo.findCheckListSetDetailById(sourceCheckListSetId);
+
+  // 2. 新しいチェックリストセットを作成
+  const newCheckListSet = CheckListSetDomain.fromDuplicateRequest(
+    sourceCheckListSetId,
+    newName,
+    newDescription,
+    sourceCheckListSet
+  );
+
+  // 3. 新しいチェックリストセットを保存
+  await repo.storeCheckListSet({
+    checkListSet: newCheckListSet,
+  });
+
+  // 4. 元のチェックリストの項目を全て取得
+  const sourceItems = await repo.findCheckListItems(
+    sourceCheckListSetId,
+    undefined,
+    true // すべての子項目を含める
+  );
+
+  if (sourceItems.length === 0) {
+    return; // 項目がなければ終了
+  }
+
+  // 5. IDマッピングを作成（古いID -> 新しいID）
+  const idMapping = new Map<string, string>();
+  sourceItems.forEach((item) => {
+    idMapping.set(item.id, ulid());
+  });
+
+  // 6. 新しいチェックリスト項目を作成
+  const newItems = sourceItems.map((item) => ({
+    id: idMapping.get(item.id)!,
+    setId: newCheckListSet.id,
+    name: item.name,
+    description: item.description || "",
+    parentId: item.parentId ? idMapping.get(item.parentId) : undefined,
+  }));
+
+  // 7. 新しいチェックリスト項目を保存
+  if (newItems.length > 0) {
+    await repo.bulkStoreCheckListItems({ items: newItems });
+  }
+};
+
 export const removeChecklistSet = async (params: {
   checkListSetId: string;
   deps?: {
