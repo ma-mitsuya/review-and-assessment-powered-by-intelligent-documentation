@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
 import { FilterType } from "../hooks/useReviewResultQueries";
@@ -11,14 +12,15 @@ import { REVIEW_JOB_STATUS } from "../types";
 import Breadcrumb from "../../../components/Breadcrumb";
 
 export default function ReviewDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // 全件表示でスタート
-  const [filter, setFilter] = useState<FilterType>("all");
+  // Start with showing fail items
+  const [filter, setFilter] = useState<FilterType>("fail");
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
 
-  // 審査ジョブ詳細を取得
+  // Get review job details
   const {
     job,
     isLoading: isLoadingJob,
@@ -26,45 +28,45 @@ export default function ReviewDetailPage() {
     refetch: refetchJob,
   } = useReviewJobDetail(id || null);
 
-  // フィルタリング状態が変更されたとき
+  // When filter state changes
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter);
   };
 
-  // ローディング中
+  // Loading state
   if (isLoadingJob) {
     return <DetailSkeleton lines={8} />;
   }
 
-  // エラー発生時
+  // Error state
   if (jobError) {
     return (
       <div className="mt-4">
         <ErrorAlert
-          title="読み込みエラー"
-          message="審査ジョブの取得に失敗しました。"
+          title={t('review.loadError')}
+          message={t('review.loadErrorMessage')}
           retry={() => {
             refetchJob();
           }}
         />
         <div className="mt-4">
-          <Breadcrumb to="/review" label="審査一覧に戻る" />
+          <Breadcrumb to="/review" label={t('review.backToList')} />
         </div>
       </div>
     );
   }
 
-  // ジョブが取得できなかった場合
+  // If job not found
   if (!job) {
     return (
       <div className="mt-4">
         <ErrorAlert
-          title="データエラー"
-          message="審査ジョブが見つかりませんでした。"
+          title={t('common.error')}
+          message={t('review.jobNotFound')}
           retry={() => refetchJob()}
         />
         <div className="mt-4">
-          <Breadcrumb to="/review" label="審査一覧に戻る" />
+          <Breadcrumb to="/review" label={t('review.backToList')} />
         </div>
       </div>
     );
@@ -72,25 +74,25 @@ export default function ReviewDetailPage() {
 
   return (
     <div>
-      {/* ヘッダー */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Breadcrumb to="/review" label="審査一覧に戻る" />
+          <Breadcrumb to="/review" label={t('review.backToList')} />
           <h1 className="text-2xl font-bold text-aws-squid-ink-light">
             {job.name}
           </h1>
           <p className="text-aws-font-color-gray mt-1">
-            ドキュメント:{" "}
-            {job.documents.length > 0 ? job.documents[0].filename : "なし"}
+            {t('review.documents')}:{" "}
+            {job.documents.length > 0 ? job.documents[0].filename : t('review.noDocuments')}
             {job.documents.length > 1
-              ? ` (他 ${job.documents.length - 1} 件)`
+              ? t('review.otherDocuments', { count: job.documents.length - 1 })
               : ""}
           </p>
           <p className="text-aws-font-color-gray">
-            チェックリスト: {job.checkList.name}
+            {t('review.checklist')}: {job.checkList.name}
           </p>
           <p className="text-aws-font-color-gray">
-            ステータス:&nbsp;
+            {t('review.status')}:&nbsp;
             <span
               className={`font-medium ${
                 job.status === REVIEW_JOB_STATUS.COMPLETED
@@ -100,41 +102,35 @@ export default function ReviewDetailPage() {
                   : "text-yellow-600"
               }`}
             >
-              {job.status === REVIEW_JOB_STATUS.PENDING
-                ? "待機中"
-                : job.status === REVIEW_JOB_STATUS.PROCESSING
-                ? "処理中"
-                : job.status === REVIEW_JOB_STATUS.COMPLETED
-                ? "完了"
-                : "失敗"}
+              {t(`status.${job.status}`)}
             </span>
           </p>
           <p className="text-aws-font-color-gray">
-            作成日時: {new Date(job.createdAt).toLocaleString()}
+            {t('review.createdAt')}: {new Date(job.createdAt).toLocaleString()}
           </p>
           {job.completedAt && (
             <p className="text-aws-font-color-gray">
-              完了日時: {new Date(job.completedAt).toLocaleString()}
+              {t('review.completedAt', 'Completed At')}: {new Date(job.completedAt).toLocaleString()}
             </p>
           )}
         </div>
       </div>
 
-      {/* エラー詳細表示 */}
+      {/* Error details */}
       {job.hasError && job.errorDetail && (
         <div className="mb-6">
           <ErrorAlert
-            title="処理エラー"
+            title={t('common.processingError')}
             message={job.errorDetail}
           />
         </div>
       )}
 
-      {/* 審査結果 */}
+      {/* Review results */}
       <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-medium text-aws-squid-ink-light">
-            審査結果
+            {t('review.results')}
           </h2>
           <div className="w-64">
             <Slider
@@ -143,15 +139,15 @@ export default function ReviewDetailPage() {
               step={0.05}
               value={confidenceThreshold}
               onChange={setConfidenceThreshold}
-              label="信頼度閾値"
+              label={t('review.confidenceThreshold')}
             />
           </div>
         </div>
 
-        {/* フィルタリング */}
+        {/* Filtering */}
         <ReviewResultFilter filter={filter} onChange={handleFilterChange} />
 
-        {/* ツリー表示 */}
+        {/* Tree view */}
         <ReviewResultTree
           jobId={id!}
           confidenceThreshold={confidenceThreshold}

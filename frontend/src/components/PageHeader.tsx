@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { HiChevronLeft } from 'react-icons/hi';
 
 interface PageHeaderProps {
@@ -16,6 +17,8 @@ interface PageHeaderProps {
  * タイトル、説明文、戻るリンクを表示する共通コンポーネント
  */
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, description, backLink }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="mb-8">
       {backLink && (

@@ -2,6 +2,7 @@
  * モーダルコンポーネント
  */
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HiX } from 'react-icons/hi';
 
 interface ModalProps {
@@ -19,6 +20,8 @@ export default function Modal({
   children,
   size = 'md'
 }: ModalProps) {
+  const { t } = useTranslation();
+  
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -84,7 +87,7 @@ export default function Modal({
               className="text-gray-400 hover:text-gray-500 focus:outline-none"
               onClick={onClose}
             >
-              <span className="sr-only">閉じる</span>
+              <span className="sr-only">{t('common.close')}</span>
               <HiX className="h-6 w-6" />
             </button>
           </div>

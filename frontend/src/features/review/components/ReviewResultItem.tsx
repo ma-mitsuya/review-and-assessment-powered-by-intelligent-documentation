@@ -1,7 +1,8 @@
 /**
- * 個々の審査結果項目を表示するコンポーネント
+ * Component to display individual review result items
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ReviewResultDetailModel,
   REVIEW_RESULT,
@@ -15,6 +16,8 @@ import {
   HiChevronRight,
   HiPencil,
   HiChevronUp,
+  HiEye,
+  HiEyeOff,
 } from "react-icons/hi";
 import Spinner from "../../../components/Spinner";
 import DocumentPreview from "../../../components/DocumentPreview";
@@ -44,23 +47,25 @@ export default function ReviewResultItem({
   isLoadingChildren,
   documents,
 }: ReviewResultItemProps) {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [visibleReferencesCount, setVisibleReferencesCount] = useState(5); // 初期表示数
+  const [showDetails, setShowDetails] = useState(false); // いかなる場合も詳細を最初は隠した状態に設定
 
-  // 参照元情報を取得
+  // Get source references
   const sourceReferences = result.sourceReferences || [];
 
-  // 信頼度が閾値を下回る場合のスタイルを追加
+  // Add style if confidence is below threshold
   const isBelowThreshold =
     result.confidenceScore !== null &&
     result.confidenceScore < confidenceThreshold;
 
-  // 結果に基づいてバッジの色とテキストを決定
+  // Determine badge color and text based on result
   const renderStatusBadge = () => {
     if (result.status === REVIEW_RESULT_STATUS.PROCESSING) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-          処理中
+          {t('status.processing')}
         </span>
       );
     }
@@ -68,7 +73,7 @@ export default function ReviewResultItem({
     if (result.status === REVIEW_RESULT_STATUS.FAILED) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-          エラー
+          {t('status.failed')}
         </span>
       );
     }
@@ -76,7 +81,7 @@ export default function ReviewResultItem({
     if (result.status === REVIEW_RESULT_STATUS.PENDING) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-          未処理
+          {t('status.pending')}
         </span>
       );
     }
@@ -84,7 +89,7 @@ export default function ReviewResultItem({
     if (result.result === REVIEW_RESULT.PASS) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-          合格
+          {t('review.pass', 'Pass')}
         </span>
       );
     }
@@ -92,35 +97,35 @@ export default function ReviewResultItem({
     if (result.result === REVIEW_RESULT.FAIL) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-          不合格
+          {t('review.fail', 'Fail')}
         </span>
       );
     }
 
     return (
       <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-        不明
+        {t('common.unknown')}
       </span>
     );
   };
 
-  // ユーザー上書きバッジ
+  // User override badge
   const renderUserOverrideBadge = () => {
     if (result.userOverride) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-aws-sea-blue-light bg-opacity-20 text-aws-sea-blue-light ml-2">
-          ユーザー上書き
+          {t('review.userOverride', 'User Override')}
         </span>
       );
     }
     return null;
   };
 
-  // 信頼度スコアの表示
+  // Display confidence score
   const renderConfidenceScore = () => {
     if (result.confidenceScore === null) return null;
 
-    // 信頼度スコアに基づいて色を決定
+    // Determine color based on confidence score
     const getScoreColor = () => {
       if (result.confidenceScore >= confidenceThreshold) return "text-aws-lab";
       return "text-yellow";
@@ -132,18 +137,18 @@ export default function ReviewResultItem({
           isBelowThreshold ? "font-bold" : ""
         }`}
       >
-        信頼度: {Math.round(result.confidenceScore * 100)}%
+        {t('review.confidence', 'Confidence')}: {Math.round(result.confidenceScore * 100)}%
         {isBelowThreshold && <span className="ml-1 text-yellow">⚠️</span>}
       </span>
     );
   };
 
-  // checkList が undefined の場合のフォールバック
+  // Fallback if checkList is undefined
   if (!result.checkList) {
     return (
       <div className="bg-white border border-light-gray rounded-md p-4">
         <div className="text-red">
-          データエラー: チェックリスト情報がありません (ID: {result.checkId})
+          {t('review.dataError', 'Data Error')}: {t('review.noChecklistInfo', 'No checklist information')} (ID: {result.checkId})
         </div>
         <div className="mt-2">
           <Button
@@ -151,7 +156,7 @@ export default function ReviewResultItem({
             variant="secondary"
             size="sm"
           >
-            再読み込み
+            {t('common.retry')}
           </Button>
         </div>
       </div>
@@ -169,7 +174,7 @@ export default function ReviewResultItem({
         }`}
       >
         <div className="grid grid-cols-[auto_1fr_auto] gap-4">
-          {/* 展開/折りたたみボタン - 1列目 */}
+          {/* Expand/collapse button - 1st column */}
           <div className="pt-1">
             {hasChildren && (
               <Button
@@ -192,29 +197,81 @@ export default function ReviewResultItem({
             )}
           </div>
 
-          {/* 項目情報 - 2列目 */}
+          {/* Item information - 2nd column */}
           <div>
-            <div className="font-medium text-aws-squid-ink-light flex items-center">
-              {result.checkList.name}
-              <div className="ml-2">
-                {renderStatusBadge()}
-                {renderUserOverrideBadge()}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="font-medium text-aws-squid-ink-light">
+                  {result.checkList.name}
+                </div>
+                <div className="ml-2">
+                  {renderStatusBadge()}
+                  {renderUserOverrideBadge()}
+                </div>
+                {/* 信頼度スコアを上段に表示 */}
+                {!hasChildren && renderConfidenceScore() && (
+                  <div className="ml-3">
+                    {renderConfidenceScore()}
+                  </div>
+                )}
+              </div>
+              
+              {/* アクションボタンを上段の右側に配置 */}
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={() => setShowDetails(!showDetails)}
+                  variant="outline"
+                  size="sm"
+                  className="text-aws-font-color-blue"
+                  icon={showDetails ? <HiEyeOff className="h-4 w-4" /> : <HiEye className="h-4 w-4" />}
+                >
+                  {showDetails ? "詳細を隠す" : "詳細を表示"}
+                </Button>
+                
+                {/* 上書きボタンを同じ行に配置 */}
+                {!hasChildren && result.status === REVIEW_RESULT_STATUS.COMPLETED && (
+                  <Button
+                    onClick={() => setIsModalOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="text-aws-font-color-blue"
+                    icon={<HiPencil className="h-4 w-4" />}
+                  >
+                    {t('review.overrideResult', 'Override Result')}
+                  </Button>
+                )}
               </div>
             </div>
 
-            <p className="text-sm text-aws-font-color-gray mt-1">
-              {result.checkList.description || "説明なし"}
-            </p>
+            {/* 短い説明文を表示 */}
+            {result.shortExplanation && (
+              <div className="mt-1">
+                <p className="text-sm text-aws-font-color-gray">{result.shortExplanation}</p>
+              </div>
+            )}
 
             {/* 説明文と抽出テキスト */}
-            {(result.explanation ||
+            {showDetails && (result.explanation ||
               result.extractedText ||
-              result.userComment) && (
+              result.userComment || 
+              result.checkList.description) && (
               <div className="mt-3 grid grid-cols-1 gap-3">
+                {/* 項目の説明 */}
+                {result.checkList.description && (
+                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
+                    <p className="font-medium text-aws-squid-ink-light mb-1">
+                      項目の説明:
+                    </p>
+                    <p className="text-aws-font-color-gray">
+                      {result.checkList.description}
+                    </p>
+                  </div>
+                )}
+
                 {result.explanation && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
-                      AI判断:
+                      {t('review.aiDecision', 'AI Decision')}:
                     </p>
                     <p className="text-aws-font-color-gray">
                       {result.explanation}
@@ -222,11 +279,11 @@ export default function ReviewResultItem({
                   </div>
                 )}
 
-                {/* 抽出テキストの表示 */}
+                {/* Display extracted text */}
                 {result.extractedText && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
-                      参照元テキスト:
+                      {t('review.sourceText', 'Source Text')}:
                     </p>
                     <p className="whitespace-pre-wrap text-aws-font-color-gray">
                       {result.extractedText}
@@ -234,14 +291,14 @@ export default function ReviewResultItem({
                   </div>
                 )}
 
-                {/* 参照元ドキュメントの表示（一覧形式）*/}
+                {/* Display source documents (list format) */}
                 {sourceReferences.length > 0 && (
                   <div className="bg-aws-paper-light rounded p-3 text-sm mt-3 border border-light-gray">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
-                      参照元ドキュメント:
+                      {t('review.sourceDocuments', 'Source Documents')}:
                     </p>
                     <p className="text-sm text-aws-font-color-gray mb-2">
-                      参照元一覧 ({sourceReferences.length}件)
+                      {t('review.sourceList', 'Source List')} ({sourceReferences.length}{t('review.items', 'items')})
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -270,8 +327,8 @@ export default function ReviewResultItem({
                                 <ImagePreview
                                   s3Key={doc.s3Path}
                                   filename={doc.filename}
-                                  thumbnailHeight={80} // サムネイルサイズを小さく
-                                  boundingBox={reference.boundingBox} // バウンディングボックス情報を渡す
+                                  thumbnailHeight={80} // Smaller thumbnail size
+                                  boundingBox={reference.boundingBox} // Pass bounding box info
                                 />
                               ) : null}
                             </div>
@@ -301,19 +358,19 @@ export default function ReviewResultItem({
                           }
                         >
                           {visibleReferencesCount === sourceReferences.length
-                            ? "折りたたむ"
-                            : "すべて表示"}
+                            ? t('review.collapse', 'Collapse')
+                            : t('review.showAll', 'Show All')}
                         </Button>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* ユーザーコメント */}
+                {/* User comments */}
                 {result.userComment && (
                   <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
                     <p className="font-medium text-aws-squid-ink-light mb-1">
-                      ユーザーコメント:
+                      {t('review.userComment', 'User Comment')}:
                     </p>
                     <p className="text-aws-font-color-gray">
                       {result.userComment}
@@ -324,28 +381,14 @@ export default function ReviewResultItem({
             )}
           </div>
 
-          {/* 信頼度スコアと上書きボタン - 3列目 */}
+          {/* Confidence score and override button - 3rd column */}
           <div className="flex flex-col items-end space-y-2 self-start">
-            {/* 子項目でない場合のみ信頼度スコアを表示 */}
-            {!hasChildren && renderConfidenceScore()}
-
-            {/* 子項目でない場合かつ結果が確定している場合のみ上書きボタンを表示 */}
-            {!hasChildren &&
-              result.status === REVIEW_RESULT_STATUS.COMPLETED && (
-                <Button
-                  onClick={() => setIsModalOpen(true)}
-                  variant="secondary"
-                  size="sm"
-                  icon={<HiPencil className="h-4 w-4" />}
-                >
-                  結果を上書き
-                </Button>
-              )}
+            {/* 信頼度スコアは上段に移動したため、ここでは表示しない */}
           </div>
         </div>
       </div>
 
-      {/* 上書きモーダル */}
+      {/* Override modal */}
       {isModalOpen && (
         <ReviewResultOverrideModal
           isOpen={isModalOpen}

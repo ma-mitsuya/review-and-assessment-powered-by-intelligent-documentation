@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { HiOutlineCloudUpload, HiOutlineDocumentText, HiOutlineCheckCircle, HiOutlineTrash } from 'react-icons/hi';
 import { ImSpinner8 } from 'react-icons/im';
@@ -34,6 +35,8 @@ export function FileUploader({
   uploadedDocuments = [],
   onDeleteFile
 }: FileUploaderProps) {
+  const { t } = useTranslation();
+  
   // ファイルドロップ処理
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (isUploading) return; // アップロード中は新しいファイルを追加しない
@@ -70,18 +73,18 @@ export function FileUploader({
       >
         <input {...getInputProps()} disabled={isUploading} />
         {isDragActive ? (
-          <p className="text-aws-sea-blue-light">ファイルをドロップしてください</p>
+          <p className="text-aws-sea-blue-light">{t('fileUploader.dropFiles')}</p>
         ) : isUploading ? (
           <div>
             <ImSpinner8 className="animate-spin h-12 w-12 mx-auto text-aws-sea-blue-light" />
-            <p className="mt-2 text-aws-squid-ink-light">ファイルをアップロード中...</p>
+            <p className="mt-2 text-aws-squid-ink-light">{t('fileUploader.uploading')}</p>
           </div>
         ) : (
           <div>
             <HiOutlineCloudUpload className="h-12 w-12 mx-auto text-aws-font-color-gray" />
-            <p className="mt-2 text-aws-squid-ink-light">ファイルをドラッグ＆ドロップするか、クリックして選択してください</p>
+            <p className="mt-2 text-aws-squid-ink-light">{t('fileUploader.dragAndDrop')}</p>
             <p className="text-sm text-aws-font-color-gray mt-1">
-              対応形式: {Object.values(acceptedFileTypes).flat().join(', ').replace(/\./g, '')}
+              {t('fileUploader.supportedFormats', { formats: Object.values(acceptedFileTypes).flat().join(', ').replace(/\./g, '') })}
             </p>
           </div>
         )}
@@ -89,7 +92,9 @@ export function FileUploader({
       
       {files.length > 0 && (
         <div className="mt-4">
-          <h3 className="text-sm font-medium text-aws-squid-ink-light mb-2">ファイル ({files.length})</h3>
+          <h3 className="text-sm font-medium text-aws-squid-ink-light mb-2">
+            {t('fileUploader.files', { count: files.length })}
+          </h3>
           <ul className="space-y-2">
             {files.map((file, index) => {
               // アップロード済みかどうかを確認
@@ -112,7 +117,7 @@ export function FileUploader({
                       {file.name}
                     </span>
                     <span className="text-xs text-aws-font-color-gray ml-2">
-                      ({(file.size / 1024).toFixed(1)} KB)
+                      {t('fileUploader.fileSize', { size: (file.size / 1024).toFixed(1) })}
                     </span>
                   </div>
                   <Button

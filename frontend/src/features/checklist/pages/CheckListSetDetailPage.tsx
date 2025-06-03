@@ -1,9 +1,11 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useChecklistSetDetail } from "../hooks/useCheckListSetQueries";
-import { useDeleteChecklistSet } from "../hooks/useCheckListSetMutations";
+import { useDeleteChecklistSet, useDuplicateChecklistSet } from "../hooks/useCheckListSetMutations";
 import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
+import DuplicateChecklistModal from "../components/DuplicateChecklistModal";
 import { useToast } from "../../../contexts/ToastContext";
 import { DetailSkeleton } from "../../../components/Skeleton";
 import {
@@ -12,11 +14,14 @@ import {
   HiTrash,
   HiExclamation,
   HiInformationCircle,
+  HiDuplicate,
 } from "react-icons/hi";
 import Button from "../../../components/Button";
 import Breadcrumb from "../../../components/Breadcrumb";
 import { useChecklistItems } from "../hooks/useCheckListItemQueries";
 import { ErrorAlert } from "../../../components/ErrorAlert";
+import { mutate } from "swr";
+import { getChecklistSetsKey } from "../hooks/useCheckListSetQueries";
 
 /**
  * チェックリストセット詳細ページ
@@ -24,6 +29,7 @@ import { ErrorAlert } from "../../../components/ErrorAlert";
 export function CheckListSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const { checklistSet, isLoading, error } = useChecklistSetDetail(id || null);
   const {
@@ -31,21 +37,54 @@ export function CheckListSetDetailPage() {
     status: deleteStatus,
     error: deleteError,
   } = useDeleteChecklistSet();
+  const {
+    duplicateChecklistSet,
+    status: duplicateStatus,
+  } = useDuplicateChecklistSet();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const { refetch: refetchRoot } = useChecklistItems(id || null);
 
   const handleDelete = async () => {
     if (!id) return;
 
-    if (confirm(`チェックリスト #${id} を削除してもよろしいですか？`)) {
+    if (confirm(t('checklist.deleteConfirmation', { name: `#${id}` }))) {
       try {
         await deleteChecklistSet(id);
-        addToast(`チェックリスト #${id} を削除しました`, "success");
+        addToast(t('checklist.deleteConfirm', { name: `#${id}` }), "success");
         navigate("/checklist", { replace: true });
       } catch (error) {
-        console.error("削除に失敗しました", error);
-        addToast("チェックリストセットの削除に失敗しました", "error");
+        console.error(t('common.error'), error);
+        addToast(t('checklist.deleteError'), "error");
       }
+    }
+  };
+
+  const handleDuplicateClick = () => {
+    if (checklistSet) {
+      setNewName(`${checklistSet.name} (${t('common.duplicate')})`);
+      setNewDescription(checklistSet.description);
+      setIsDuplicateModalOpen(true);
+    }
+  };
+
+  const handleDuplicateConfirm = async (name: string, description: string) => {
+    if (!id) return;
+
+    try {
+      await duplicateChecklistSet(id, {
+        name,
+        description,
+      });
+      addToast(t('checklist.duplicateSuccess'), "success");
+      setIsDuplicateModalOpen(false);
+      // チェックリスト一覧を更新
+      mutate(getChecklistSetsKey());
+    } catch (error) {
+      console.error(t('common.error'), error);
+      addToast(t('checklist.duplicateError'), "error");
     }
   };
 
@@ -60,8 +99,8 @@ export function CheckListSetDetailPage() {
         role="alert">
         <div className="flex items-center">
           <HiExclamation className="mr-2 h-6 w-6" />
-          <strong className="font-medium">エラー: </strong>
-          <span className="ml-2">チェックリスト情報の取得に失敗しました。</span>
+          <strong className="font-medium">{t('common.error')}: </strong>
+          <span className="ml-2">{t('checklist.fetchError')}</span>
         </div>
       </div>
     );
@@ -71,13 +110,13 @@ export function CheckListSetDetailPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <Breadcrumb to="/checklist" label="チェックリスト一覧に戻る" />
+          <Breadcrumb to="/checklist" label={t('checklist.backToList')} />
           <h1 className="flex items-center text-3xl font-bold text-aws-squid-ink-light">
-            {checklistSet ? checklistSet.name : `チェックリスト #${id}`}
+            {checklistSet ? checklistSet.name : t('checklist.checklistWithId', { id })}
             {checklistSet && !checklistSet.isEditable && (
               <div
                 className="text-gray-500 ml-2"
-                title="このチェックリストは編集できません">
+                title={t('checklist.notEditableTitle')}>
                 <HiLockClosed className="h-5 w-5" />
               </div>
             )}
@@ -94,18 +133,28 @@ export function CheckListSetDetailPage() {
             checklistSet.documents.length > 0 && (
               <div className="mt-2">
                 <p className="text-aws-font-color-gray">
-                  ドキュメント: {checklistSet.documents[0].filename}
+                  {t('checklist.document')}: {checklistSet.documents[0].filename}
                 </p>
               </div>
             )}
         </div>
         <div className="flex space-x-3">
+          {/* 複製ボタン - 常に表示（編集不可でも複製は可能） */}
+          <Button
+            variant="secondary"
+            onClick={handleDuplicateClick}
+            disabled={duplicateStatus === 'loading'}
+            icon={<HiDuplicate className="h-5 w-5" />}>
+            {t('common.duplicate') || "複製"}
+          </Button>
+
+          {/* 削除ボタン - 編集可能な場合のみ表示 */}
           {checklistSet && checklistSet.isEditable && (
             <Button
               variant="danger"
               onClick={handleDelete}
               icon={<HiTrash className="h-5 w-5" />}>
-              削除
+              {t('common.delete')}
             </Button>
           )}
         </div>
@@ -114,7 +163,7 @@ export function CheckListSetDetailPage() {
       {/* エラー詳細表示 */}
       {checklistSet && checklistSet.hasError && checklistSet.errorSummary && (
         <div className="mb-6">
-          <ErrorAlert title="処理エラー" message={checklistSet.errorSummary} />
+          <ErrorAlert title={t('common.processingError')} message={checklistSet.errorSummary} />
         </div>
       )}
 
@@ -125,9 +174,9 @@ export function CheckListSetDetailPage() {
             role="alert">
             <div className="flex items-center">
               <HiExclamation className="mr-2 h-6 w-6" />
-              <strong className="font-medium">エラー: </strong>
+              <strong className="font-medium">{t('common.error')}: </strong>
               <span className="ml-2">
-                チェックリスト項目の取得に失敗しました。
+                {t('checklist.itemsFetchError')}
               </span>
             </div>
           </div>
@@ -137,7 +186,7 @@ export function CheckListSetDetailPage() {
             role="alert">
             <div className="flex items-center">
               <HiInformationCircle className="mr-2 h-6 w-6" />
-              <span>このチェックリストセットには項目がありません。</span>
+              <span>{t('checklist.noItems')}</span>
             </div>
           </div>
         ) : (
@@ -154,7 +203,7 @@ export function CheckListSetDetailPage() {
               className={
                 !checklistSet.isEditable ? "cursor-not-allowed opacity-50" : ""
               }>
-              ルート項目を追加
+              {t('checklist.addRootItem')}
             </Button>
           </div>
         )}
@@ -169,9 +218,21 @@ export function CheckListSetDetailPage() {
           onSuccess={() => {
             if (id) {
               refetchRoot();
-              addToast("チェックリスト項目を追加しました", "success");
+              addToast(t('checklist.itemAddSuccess'), "success");
             }
           }}
+        />
+      )}
+
+      {/* 複製ダイアログ */}
+      {isDuplicateModalOpen && (
+        <DuplicateChecklistModal
+          isOpen={isDuplicateModalOpen}
+          onClose={() => setIsDuplicateModalOpen(false)}
+          onConfirm={handleDuplicateConfirm}
+          initialName={newName}
+          initialDescription={newDescription}
+          isLoading={duplicateStatus === 'loading'}
         />
       )}
     </div>

@@ -127,6 +127,7 @@ export interface ReviewResultEntity {
   result?: REVIEW_RESULT;
   confidenceScore?: number;
   explanation?: string;
+  shortExplanation?: string;
   extractedText?: string;
   userComment?: string;
   userOverride: boolean;
@@ -185,6 +186,7 @@ export const ReviewResultDomain = (() => {
       result: REVIEW_RESULT;
       confidenceScore: number;
       explanation: string;
+      shortExplanation: string;
       extractedText: string;
       sourceReferences: SourceReference[];
     }): ReviewResultEntity => {
@@ -192,6 +194,7 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
+        shortExplanation,
         extractedText,
         sourceReferences,
       } = params;
@@ -202,6 +205,7 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
+        shortExplanation,
         extractedText,
         sourceReferences,
         userOverride: false,

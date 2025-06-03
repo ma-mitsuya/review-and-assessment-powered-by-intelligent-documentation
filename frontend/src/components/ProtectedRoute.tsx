@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
@@ -10,6 +11,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -26,10 +28,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         <div className="max-w-md w-full space-y-8">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              RAPID
+              {t('common.appName')}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Review & Assessment Powered by Intelligent Documentation
+              {t('auth.appDescription')}
             </p>
           </div>
           <Authenticator
@@ -39,7 +41,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
                 Header() {
                   return (
                     <h3 className="text-xl font-semibold text-center">
-                      サインイン
+                      {t('auth.signIn')}
                     </h3>
                   );
                 },
@@ -48,7 +50,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
                 Header() {
                   return (
                     <h3 className="text-xl font-semibold text-center">
-                      アカウント作成
+                      {t('auth.signUp')}
                     </h3>
                   );
                 },

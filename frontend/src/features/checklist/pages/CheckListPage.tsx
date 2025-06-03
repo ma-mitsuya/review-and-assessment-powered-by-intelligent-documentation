@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useChecklistSets } from "../hooks/useCheckListSetQueries";
-import { useDeleteChecklistSet } from "../hooks/useCheckListSetMutations";
+import { useDeleteChecklistSet, useDuplicateChecklistSet } from "../hooks/useCheckListSetMutations";
 import { useToast } from "../../../contexts/ToastContext";
 import CheckListSetList from "../components/CheckListSetList";
 import CreateChecklistButton from "../components/CreateChecklistButton";
+import DuplicateChecklistModal from "../components/DuplicateChecklistModal";
 import { HiCheck } from "react-icons/hi";
+import { mutate } from "swr";
+import { getChecklistSetsKey } from "../hooks/useCheckListSetQueries";
 
 /**
  * チェックリスト一覧ページ
@@ -15,6 +19,14 @@ export function CheckListPage() {
   const [itemsPerPage] = useState(10);
   const location = useLocation();
   const { addToast } = useToast();
+  const { t } = useTranslation();
+
+  // 複製用の状態を追加
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [selectedChecklistId, setSelectedChecklistId] = useState<string | null>(null);
+  const [selectedChecklistName, setSelectedChecklistName] = useState<string>("");
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
 
   const {
     items: checkListSets,
@@ -30,6 +42,12 @@ export function CheckListPage() {
     error: deleteError,
   } = useDeleteChecklistSet();
 
+  // 複製フックを追加
+  const {
+    duplicateChecklistSet,
+    status: duplicateStatus,
+  } = useDuplicateChecklistSet();
+
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
     // 新規作成後に一覧画面に戻ってきた場合など、locationが変わった時にデータを再取得
@@ -43,11 +61,45 @@ export function CheckListPage() {
       // 削除後にリストを再取得
       refetch();
       // 削除成功のトースト通知を表示
-      addToast(`チェックリスト「${name}」を削除しました`, "success");
+      addToast(t('checklist.deleteConfirm', { name }), "success");
     } catch (error) {
       console.error("削除に失敗しました", error);
       // 削除失敗のトースト通知を表示
-      addToast("チェックリストセットの削除に失敗しました", "error");
+      addToast(t('checklist.deleteError'), "error");
+    }
+  };
+
+  // 複製モーダルを開く処理
+  const handleDuplicateClick = (id: string, name: string) => {
+    setSelectedChecklistId(id);
+    setSelectedChecklistName(name);
+    setNewName(`${name} (${t('common.duplicate')})`);
+    setNewDescription(""); // 説明は空にしておく
+    setIsDuplicateModalOpen(true);
+  };
+
+  // 複製確認処理
+  const handleDuplicateConfirm = async (name: string, description: string) => {
+    if (!selectedChecklistId) return;
+
+    try {
+      await duplicateChecklistSet(selectedChecklistId, {
+        name,
+        description,
+      });
+      
+      // 複製成功のトースト通知を表示
+      addToast(t('checklist.duplicateSuccess'), "success");
+      
+      // モーダルを閉じる
+      setIsDuplicateModalOpen(false);
+      
+      // チェックリスト一覧を更新
+      mutate(getChecklistSetsKey());
+      refetch();
+    } catch (error) {
+      console.error(t('common.error'), error);
+      addToast(t('checklist.duplicateError'), "error");
     }
   };
 
@@ -58,11 +110,11 @@ export function CheckListPage() {
           <div className="flex items-center">
             <HiCheck className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
             <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">
-              チェックリストセット一覧
+              {t('checklist.title')}
             </h1>
           </div>
           <p className="text-aws-font-color-gray mt-2">
-            チェックリストセットを管理します
+            {t('checklist.description')}
           </p>
         </div>
         <CreateChecklistButton />
@@ -73,7 +125,20 @@ export function CheckListPage() {
         isLoading={isLoading}
         error={error}
         onDelete={handleDelete}
+        onDuplicate={handleDuplicateClick} // 複製ハンドラーを渡す
       />
+
+      {/* 複製ダイアログ */}
+      {isDuplicateModalOpen && (
+        <DuplicateChecklistModal
+          isOpen={isDuplicateModalOpen}
+          onClose={() => setIsDuplicateModalOpen(false)}
+          onConfirm={handleDuplicateConfirm}
+          initialName={newName}
+          initialDescription={newDescription}
+          isLoading={duplicateStatus === 'loading'}
+        />
+      )}
     </div>
   );
 }

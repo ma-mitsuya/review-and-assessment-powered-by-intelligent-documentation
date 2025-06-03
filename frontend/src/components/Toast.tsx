@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { HiCheck, HiX, HiExclamation, HiInformationCircle } from "react-icons/hi";
 
 export type ToastType = "success" | "error" | "warning" | "info";
@@ -24,6 +25,7 @@ export const Toast: React.FC<ToastProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const { t } = useTranslation();
 
   // トーストのスタイル
   const toastStyles = {
@@ -81,7 +83,7 @@ export const Toast: React.FC<ToastProps> = ({
         type="button"
         className="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-black/10 focus:outline-none"
         onClick={handleClose}
-        aria-label="閉じる"
+        aria-label={t('common.close')}
       >
         <HiX className="w-4 h-4" />
       </button>

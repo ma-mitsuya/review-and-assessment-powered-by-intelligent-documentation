@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PageHeader from "../../../components/PageHeader";
 import FormTextField from "../../../components/FormTextField";
 import FormTextArea from "../../../components/FormTextArea";
@@ -13,6 +14,9 @@ import { useCreateChecklistSet } from "../hooks/useCheckListSetMutations";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { HiExclamationCircle } from "react-icons/hi";
 import { useToast } from "../../../contexts/ToastContext";
+import { usePromptTemplates } from "../../prompt-template/hooks/usePromptTemplateQueries";
+import { PromptTemplateSelector } from "../../prompt-template/components/PromptTemplateSelector";
+import { PromptTemplateType } from "../../prompt-template/types";
 
 /**
  * チェックリスト作成ページ
@@ -20,6 +24,7 @@ import { useToast } from "../../../contexts/ToastContext";
 export function CreateChecklistPage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { t } = useTranslation();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: "",
@@ -29,6 +34,14 @@ export function CreateChecklistPage() {
     name: "",
     files: "",
   });
+  const [selectedTemplateId, setSelectedTemplateId] = useState<
+    string | undefined
+  >(undefined);
+
+  // プロンプトテンプレートを取得
+  const { templates, isLoading: isLoadingTemplates } = usePromptTemplates(
+    PromptTemplateType.CHECKLIST
+  );
 
   const {
     createChecklistSet,
@@ -72,7 +85,8 @@ export function CreateChecklistPage() {
     setSelectedFiles(newFiles);
 
     // 新しく追加されたファイルのみをアップロード
-    const existingFilenames = uploadedDocuments?.map((doc) => doc.filename) || [];
+    const existingFilenames =
+      uploadedDocuments?.map((doc) => doc.filename) || [];
     const filesToUpload = newFiles.filter(
       (file) => !existingFilenames.includes(file.name)
     );
@@ -92,8 +106,8 @@ export function CreateChecklistPage() {
         }));
       }
     } catch (error) {
-      console.error("ファイルアップロードエラー:", error);
-      addToast("ファイルのアップロードに失敗しました", "error");
+      console.error(t("fileUploader.fileUploadError"), error);
+      addToast(t("checklist.fileUploadError"), "error");
     }
   };
 
@@ -119,7 +133,7 @@ export function CreateChecklistPage() {
     if (newSelectedFiles.length === 0) {
       setErrors((prev) => ({
         ...prev,
-        files: "少なくとも1つのファイルを選択してください",
+        files: t("checklist.fileRequired"),
       }));
     }
   };
@@ -132,11 +146,11 @@ export function CreateChecklistPage() {
     };
 
     if (!formData.name.trim()) {
-      newErrors.name = "名前は必須です";
+      newErrors.name = t("checklist.nameRequired");
     }
 
     if (!uploadedDocuments || uploadedDocuments.length === 0) {
-      newErrors.files = "少なくとも1つのファイルをアップロードしてください";
+      newErrors.files = t("checklist.fileRequired");
     }
 
     setErrors(newErrors);
@@ -154,19 +168,20 @@ export function CreateChecklistPage() {
         name: formData.name,
         description: formData.description,
         documents: uploadedDocuments || [],
+        templateId: selectedTemplateId, // テンプレートIDを追加
       });
 
       // アップロード済みドキュメントリストをクリア
       clearUploadedDocuments();
-      
+
       // 成功メッセージを表示
-      addToast("チェックリストセットを作成しました", "success");
+      addToast(t("checklist.createSuccess"), "success");
 
       // 作成成功後、一覧ページに遷移
       navigate("/checklist", { replace: true });
     } catch (error) {
-      console.error("チェックリスト作成エラー:", error);
-      addToast("チェックリストセットの作成に失敗しました", "error");
+      console.error(t("checklist.createError"), error);
+      addToast(t("checklist.createError"), "error");
     }
   };
 
@@ -176,36 +191,35 @@ export function CreateChecklistPage() {
   return (
     <div>
       <PageHeader
-        title="チェックリストセットの新規作成"
-        description="新しいチェックリストセットを作成し、関連ファイルをアップロードします"
+        title={t("checklist.createTitle")}
+        description={t("checklist.createDescription")}
         backLink={{
           to: "/checklist",
-          label: "チェックリスト一覧に戻る",
+          label: t("checklist.backToList"),
         }}
       />
 
       {displayError && (
         <div
-          className="bg-light-red border border-red text-red px-6 py-4 rounded-md shadow-sm mb-6"
-          role="alert"
-        >
+          className="mb-6 rounded-md border border-red bg-light-red px-6 py-4 text-red shadow-sm"
+          role="alert">
           <div className="flex items-center">
-            <HiExclamationCircle className="h-6 w-6 mr-2" />
-            <strong className="font-medium">エラー: </strong>
+            <HiExclamationCircle className="mr-2 h-6 w-6" />
+            <strong className="font-medium">{t("common.error")}: </strong>
             <span className="ml-2">{displayError.message}</span>
           </div>
         </div>
       )}
 
-      <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
+      <div className="rounded-lg border border-light-gray bg-white p-6 shadow-md">
         <form onSubmit={handleSubmit}>
           <FormTextField
             id="name"
             name="name"
-            label="名前"
+            label={t("checklist.name")}
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="チェックリストセットの名前"
+            placeholder={t("checklist.namePlaceholder")}
             required
             error={errors.name}
           />
@@ -213,14 +227,14 @@ export function CreateChecklistPage() {
           <FormTextArea
             id="description"
             name="description"
-            label="説明"
+            label={t("checklist.description")}
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="チェックリストセットの説明"
+            placeholder={t("checklist.descriptionPlaceholder")}
           />
 
           <FormFileUpload
-            label="ファイル"
+            label={t("fileUploader.files", { count: 0 })}
             files={selectedFiles}
             onFilesChange={handleFilesChange}
             required
@@ -231,26 +245,42 @@ export function CreateChecklistPage() {
             onDeleteFile={handleFileRemove}
           />
 
-          <div className="flex justify-end space-x-3">
+          {/* プロンプトテンプレート選択セクション */}
+          <div className="mt-6 border-t border-light-gray pt-4">
+            <h3 className="mb-4 text-lg font-medium">
+              {t(
+                "checklist.promptTemplateHeading",
+                "Prompt Template Selection"
+              )}
+            </h3>
+
+            <PromptTemplateSelector
+              templates={templates}
+              selectedTemplateId={selectedTemplateId}
+              onChange={setSelectedTemplateId}
+              isLoading={isLoadingTemplates}
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end space-x-3">
             <Button variant="outline" to="/checklist">
-              キャンセル
+              {t("common.cancel")}
             </Button>
             <Button
               variant="primary"
               type="submit"
               disabled={
-                isCreating || 
-                isUploading || 
-                !uploadedDocuments || 
+                isCreating ||
+                isUploading ||
+                !uploadedDocuments ||
                 uploadedDocuments.length === 0
-              }
-            >
+              }>
               {(isCreating || isUploading) && (
-                <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
-                  <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white"></div>
+                <div className="-ml-1 mr-2 h-4 w-4 animate-spin text-white">
+                  <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"></div>
                 </div>
               )}
-              作成
+              {t("common.create")}
             </Button>
           </div>
         </form>

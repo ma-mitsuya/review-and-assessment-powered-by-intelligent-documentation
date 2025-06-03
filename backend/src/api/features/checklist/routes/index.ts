@@ -14,6 +14,7 @@ import {
   getChecklistSetByIdHandler,
   updateChecklistItemHandler,
   getAllChecklistSetsHandler,
+  duplicateChecklistSetHandler,
 } from "./handlers";
 
 /**
@@ -39,6 +40,11 @@ export function registerChecklistRoutes(fastify: FastifyInstance): void {
   // チェックリストセット削除エンドポイント
   fastify.delete("/checklist-sets/:checklistSetId", {
     handler: deleteChecklistSetHandler,
+  });
+
+  // チェックリストセット複製エンドポイント
+  fastify.post("/checklist-sets/:checklistSetId/duplicate", {
+    handler: duplicateChecklistSetHandler,
   });
 
   // チェックリストドキュメントpresigned-url取得エンドポイント

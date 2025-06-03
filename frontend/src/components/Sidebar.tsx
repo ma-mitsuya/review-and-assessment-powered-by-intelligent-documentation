@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import iconImage from "../assets/icon.png";
 import {
   HiX,
@@ -9,8 +10,13 @@ import {
   HiInformationCircle,
   HiLogout,
   HiUser,
+  HiCog,
+  HiChevronDown,
+  HiChevronRight,
+  HiAnnotation,
 } from "react-icons/hi";
 import { useAuth } from "../contexts/AuthContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 /**
  * サイドバーコンポーネント
@@ -18,8 +24,10 @@ import { useAuth } from "../contexts/AuthContext";
  */
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPromptMenuOpen, setIsPromptMenuOpen] = useState(false);
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { t } = useTranslation();
 
   // 現在のパスに基づいてアクティブなメニュー項目を判定
   const isActive = (path: string) => {
@@ -31,6 +39,11 @@ export default function Sidebar() {
     setIsOpen(!isOpen);
   };
 
+  // プロンプト管理メニューの開閉を切り替える
+  const togglePromptMenu = () => {
+    setIsPromptMenuOpen(!isPromptMenuOpen);
+  };
+
   // ログアウト処理
   const handleLogout = async () => {
     await signOut();
@@ -40,23 +53,21 @@ export default function Sidebar() {
     <>
       {/* モバイル用のハンバーガーメニュー */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden bg-aws-squid-ink-light text-aws-font-color-white-light p-2 rounded-md"
+        className="fixed left-4 top-4 z-50 rounded-md bg-aws-squid-ink-light p-2 text-aws-font-color-white-light md:hidden"
         onClick={toggleSidebar}
-        aria-label="メニュー"
-      >
+        aria-label={t("sidebar.menu")}>
         {isOpen ? <HiX className="h-6 w-6" /> : <HiMenu className="h-6 w-6" />}
       </button>
 
       {/* サイドバー */}
       <div
-        className={`fixed top-0 left-0 h-full bg-aws-squid-ink-light text-aws-font-color-white-light w-64 transform transition-transform duration-300 ease-in-out z-40 ${
+        className={`fixed left-0 top-0 z-40 h-full w-64 transform bg-aws-squid-ink-light text-aws-font-color-white-light transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
-      >
+        }`}>
         <div className="p-6">
-          <div className="flex items-center mb-8">
-            <img src={iconImage} alt="RAPID Logo" className="h-16 w-16 mr-3" />
-            <h1 className="text-2xl font-bold">RAPID</h1>
+          <div className="mb-8 flex items-center">
+            <img src={iconImage} alt="RAPID Logo" className="mr-3 h-16 w-16" />
+            <h1 className="text-2xl font-bold">{t("common.appName")}</h1>
           </div>
 
           <nav>
@@ -64,30 +75,67 @@ export default function Sidebar() {
               <li className="mb-1">
                 <Link
                   to="/checklist"
-                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
+                  className={`flex items-center rounded-md px-4 py-3 transition-colors ${
                     isActive("/checklist")
                       ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
                       : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
                   }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <HiCheck className="h-5 w-5 mr-3" />
-                  チェックリスト
+                  onClick={() => setIsOpen(false)}>
+                  <HiCheck className="mr-3 h-5 w-5" />
+                  {t("sidebar.checklist")}
                 </Link>
               </li>
               <li className="mb-1">
                 <Link
                   to="/review"
-                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
+                  className={`flex items-center rounded-md px-4 py-3 transition-colors ${
                     isActive("/review")
                       ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
                       : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
                   }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <HiDocumentText className="h-5 w-5 mr-3" />
-                  審査
+                  onClick={() => setIsOpen(false)}>
+                  <HiDocumentText className="mr-3 h-5 w-5" />
+                  {t("sidebar.review")}
                 </Link>
+              </li>
+
+              {/* プロンプト管理メニュー */}
+              <li className="mb-1">
+                <button
+                  className={`flex w-full items-center rounded-md px-4 py-3 transition-colors ${
+                    isActive("/prompt-templates")
+                      ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
+                      : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
+                  }`}
+                  onClick={togglePromptMenu}>
+                  <HiAnnotation className="mr-3 h-5 w-5" />
+                  {t("sidebar.settings")}
+                  <span className="ml-auto">
+                    {isPromptMenuOpen ? (
+                      <HiChevronDown className="h-4 w-4" />
+                    ) : (
+                      <HiChevronRight className="h-4 w-4" />
+                    )}
+                  </span>
+                </button>
+
+                {/* サブメニュー */}
+                {isPromptMenuOpen && (
+                  <ul className="ml-6 mt-1 space-y-1">
+                    <li>
+                      <Link
+                        to="/prompt-templates/checklist"
+                        className={`mt-2 flex items-center rounded-md px-4 py-2 transition-colors ${
+                          isActive("/prompt-templates/checklist")
+                            ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
+                            : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
+                        }`}
+                        onClick={() => setIsOpen(false)}>
+                        {t("sidebar.checklistPrompt")}
+                      </Link>
+                    </li>
+                  </ul>
+                )}
               </li>
             </ul>
           </nav>
@@ -96,22 +144,23 @@ export default function Sidebar() {
             {/* ユーザーメニュー */}
             {user && (
               <div className="border-t border-aws-font-color-white-light border-opacity-20 pt-4">
-                <div className="flex items-center mb-2">
-                  <HiUser className="h-5 w-5 mr-2" />
-                  <span className="text-sm truncate">
+                <div className="mb-2 flex items-center">
+                  <HiUser className="mr-2 h-5 w-5" />
+                  <span className="truncate text-sm">
                     {user.username || user.email}
                   </span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center w-full px-4 py-2 text-sm rounded-md hover:bg-aws-sea-blue-hover-light transition-colors"
-                >
-                  <HiLogout className="h-4 w-4 mr-2" />
-                  ログアウト
+                  className="flex w-full items-center rounded-md px-4 py-2 text-sm transition-colors hover:bg-aws-sea-blue-hover-light">
+                  <HiLogout className="mr-2 h-4 w-4" />
+                  {t("common.logout")}
                 </button>
+
+                {/* 言語切り替えボタン */}
+                <LanguageSwitcher />
               </div>
             )}
-            {/* バージョン表示を削除 */}
           </div>
         </div>
       </div>
@@ -119,9 +168,8 @@ export default function Sidebar() {
       {/* モバイル表示時のオーバーレイ */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={toggleSidebar}
-        ></div>
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+          onClick={toggleSidebar}></div>
       )}
     </>
   );

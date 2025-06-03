@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Button from "../../../components/Button";
 import PageHeader from "../../../components/PageHeader";
 import FormTextField from "../../../components/FormTextField";
@@ -20,6 +21,7 @@ import { REVIEW_FILE_TYPE } from "../types";
 
 export const CreateReviewPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedChecklist, setSelectedChecklist] =
     useState<CheckListSet | null>(null);
@@ -94,7 +96,7 @@ export const CreateReviewPage: React.FC = () => {
     if (fileType === REVIEW_FILE_TYPE.PDF && newFiles.length > 1) {
       setErrors((prev) => ({
         ...prev,
-        files: "PDF モードでは1つのファイルのみアップロードできます",
+        files: t('review.pdfLimitError'),
       }));
       return;
     }
@@ -102,7 +104,7 @@ export const CreateReviewPage: React.FC = () => {
     if (fileType === REVIEW_FILE_TYPE.IMAGE && newFiles.length > 20) {
       setErrors((prev) => ({
         ...prev,
-        files: "画像モードでは最大20枚までアップロードできます",
+        files: t('review.imageLimitError'),
       }));
       return;
     }
@@ -130,7 +132,7 @@ export const CreateReviewPage: React.FC = () => {
           const fileName = file.name;
           const nameWithoutExtension =
             fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-          setJobName(`${nameWithoutExtension}の審査`);
+          setJobName(`${nameWithoutExtension}${t('review.jobNameSuffix')}`);
         }
       } else {
         // 画像ファイルの場合は複数アップロード
@@ -141,7 +143,7 @@ export const CreateReviewPage: React.FC = () => {
           const fileName = newFiles[0].name;
           const nameWithoutExtension =
             fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-          setJobName(`${nameWithoutExtension}の審査`);
+          setJobName(`${nameWithoutExtension}${t('review.jobNameSuffix')}`);
         }
       }
 
@@ -153,7 +155,7 @@ export const CreateReviewPage: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error("ファイルアップロードエラー:", error);
+      console.error(t('review.fileUploadError'), error);
     }
   };
 
@@ -179,7 +181,7 @@ export const CreateReviewPage: React.FC = () => {
     if (newSelectedFiles.length === 0) {
       setErrors((prev) => ({
         ...prev,
-        files: "少なくとも1つのファイルを選択してください",
+        files: t('review.fileRequired'),
       }));
     }
   };
@@ -197,11 +199,11 @@ export const CreateReviewPage: React.FC = () => {
     };
 
     if (!jobName.trim()) {
-      newErrors.name = "ジョブ名は必須です";
+      newErrors.name = t('review.nameRequired');
     }
 
     if (!uploadedDocuments?.length) {
-      newErrors.files = "少なくとも1つのファイルを選択してください";
+      newErrors.files = t('review.fileRequired');
     }
 
     setErrors(newErrors);
@@ -236,7 +238,7 @@ export const CreateReviewPage: React.FC = () => {
       // 作成成功後、一覧ページに遷移
       navigate("/review", { replace: true });
     } catch (error) {
-      console.error("審査ジョブ作成エラー:", error);
+      console.error(t('review.createError'), error);
     }
   };
 
@@ -246,11 +248,11 @@ export const CreateReviewPage: React.FC = () => {
   return (
     <div>
       <PageHeader
-        title="新規審査ジョブ作成"
-        description="新しい審査ジョブを作成し、ドキュメントとチェックリストを比較します"
+        title={t('review.createTitle')}
+        description={t('review.createDescription')}
         backLink={{
           to: "/review",
-          label: "審査ジョブ一覧に戻る",
+          label: t('review.backToList'),
         }}
       />
 
@@ -261,7 +263,7 @@ export const CreateReviewPage: React.FC = () => {
         >
           <div className="flex items-center">
             <HiExclamationCircle className="h-6 w-6 mr-2" />
-            <strong className="font-medium">エラー: </strong>
+            <strong className="font-medium">{t('common.error')}: </strong>
             <span className="ml-2">{displayError.message}</span>
           </div>
         </div>
@@ -272,29 +274,29 @@ export const CreateReviewPage: React.FC = () => {
           <FormTextField
             id="jobName"
             name="jobName"
-            label="ジョブ名"
+            label={t('review.jobName')}
             value={jobName}
             onChange={handleInputChange}
-            placeholder="審査ジョブの名前を入力"
+            placeholder={t('review.jobNamePlaceholder')}
             required
             error={errors.name}
           />
 
           <div className="mb-6">
             <label className="block text-aws-squid-ink-light dark:text-aws-font-color-white-dark font-medium mb-2">
-              ファイルタイプ <span className="text-red">*</span>
+              {t('review.fileType')} <span className="text-red">*</span>
             </label>
             <SegmentedControl
               name="fileType"
               options={[
                 {
                   value: REVIEW_FILE_TYPE.PDF,
-                  label: "PDF ファイル (1ファイル)",
+                  label: t('review.pdfFile'),
                   icon: <HiDocumentText />,
                 },
                 {
                   value: REVIEW_FILE_TYPE.IMAGE,
-                  label: "画像ファイル (最大20枚)",
+                  label: t('review.imageFiles'),
                   icon: <HiPhotograph />,
                 },
               ]}
@@ -307,7 +309,7 @@ export const CreateReviewPage: React.FC = () => {
             {/* 左側: ファイルアップロード */}
             <div className="lg:col-span-3">
               <FormFileUpload
-                label="審査対象ファイル"
+                label={t('review.targetFiles')}
                 files={selectedFiles}
                 onFilesChange={handleFilesChange}
                 required
@@ -332,7 +334,7 @@ export const CreateReviewPage: React.FC = () => {
                 </div>
               ) : checkListSetsError ? (
                 <div className="text-red p-4 border border-red rounded-md">
-                  チェックリストの読み込みに失敗しました
+                  {t('checklist.loadError')}
                 </div>
               ) : (
                 <ChecklistSelector
@@ -346,7 +348,7 @@ export const CreateReviewPage: React.FC = () => {
 
           <div className="flex justify-end space-x-3 mt-8">
             <Button variant="outline" to="/review">
-              キャンセル
+              {t('common.cancel')}
             </Button>
             <Button
               variant="primary"
@@ -358,10 +360,10 @@ export const CreateReviewPage: React.FC = () => {
                   <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
                     <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white"></div>
                   </div>
-                  処理中...
+                  {t('common.processing')}
                 </>
               ) : (
-                "比較実施"
+                t('review.compare')
               )}
             </Button>
           </div>

@@ -9,6 +9,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model PromptTemplate {
+  id          String   @id @map("template_id") @db.VarChar(26)
+  userId      String   @map("user_id") @db.VarChar(50)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  prompt      String   @db.Text
+  type        String   @db.VarChar(50) // "checklist", "review" など
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([userId, name, type])
+  @@index([userId, type])
+  @@map("prompt_templates")
+}
+
 model CheckListSet {
   id          String              @id @map("check_list_set_id") @db.VarChar(26)
   name        String              @db.VarChar(255)
@@ -101,6 +116,7 @@ model ReviewResult {
   result           String?   @db.VarChar(20)
   confidenceScore  Float?    @map("confidence_score")
   explanation      String?   @db.Text
+  shortExplanation String?   @map("short_explanation") @db.VarChar(80)
   extractedText    String?   @map("extracted_text") @db.Text
   userOverride     Boolean   @default(false) @map("user_override")
   userComment      String?   @map("user_comment") @db.Text

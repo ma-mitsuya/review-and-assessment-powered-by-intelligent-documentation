@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ReviewJob } from '../types';
 
 interface ReviewJobItemProps {
@@ -7,6 +8,8 @@ interface ReviewJobItemProps {
 }
 
 export const ReviewJobItem: React.FC<ReviewJobItemProps> = ({ job, onClick }) => {
+  const { t, i18n } = useTranslation();
+
   // ステータスに応じたバッジの色を設定
   const getStatusBadgeClass = (status: ReviewJob['status']) => {
     switch (status) {
@@ -23,26 +26,10 @@ export const ReviewJobItem: React.FC<ReviewJobItemProps> = ({ job, onClick }) =>
     }
   };
 
-  // ステータスの日本語表示
-  const getStatusText = (status: ReviewJob['status']) => {
-    switch (status) {
-      case 'completed':
-        return '完了';
-      case 'processing':
-        return '処理中';
-      case 'pending':
-        return '待機中';
-      case 'failed':
-        return '失敗';
-      default:
-        return status;
-    }
-  };
-
   // 日付のフォーマット
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ja-JP', {
+    return new Intl.DateTimeFormat(i18n.language, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -59,25 +46,25 @@ export const ReviewJobItem: React.FC<ReviewJobItemProps> = ({ job, onClick }) =>
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-lg font-medium text-aws-squid-ink-light dark:text-aws-font-color-white-dark">{job.name}</h3>
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-          {getStatusText(job.status)}
+          {t(`status.${job.status}`)}
         </span>
       </div>
       
       <div className="grid grid-cols-2 gap-2 text-sm text-aws-font-color-gray">
         <div>
           <p className="mb-1">
-            <span className="font-medium">ドキュメント:</span> {job.documentName}
+            <span className="font-medium">{t('review.documents')}:</span> {job.documentName}
           </p>
           <p>
-            <span className="font-medium">チェックリスト:</span> {job.checklistName}
+            <span className="font-medium">{t('review.checklist')}:</span> {job.checklistName}
           </p>
         </div>
         <div className="text-right">
           <p className="mb-1">
-            <span className="font-medium">作成日時:</span> {formatDate(job.createdAt)}
+            <span className="font-medium">{t('review.createdAt')}:</span> {formatDate(job.createdAt)}
           </p>
           <p>
-            <span className="font-medium">更新日時:</span> {formatDate(job.updatedAt)}
+            <span className="font-medium">{t('review.updatedAt', 'Updated At')}:</span> {formatDate(job.updatedAt)}
           </p>
         </div>
       </div>

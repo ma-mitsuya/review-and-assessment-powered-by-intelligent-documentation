@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckListSet } from '../../../features/checklist/types';
 
 interface ChecklistSelectorProps {
@@ -12,14 +13,16 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
   selectedChecklistId,
   onSelectChecklist,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-white dark:bg-aws-squid-ink-dark rounded-md shadow-sm border border-light-gray overflow-hidden">
       <div className="p-4 border-b border-light-gray">
         <h3 className="text-lg font-medium text-aws-squid-ink-light dark:text-aws-font-color-white-dark">
-          チェックリスト選択
+          {t('review.checklistSelection')}
         </h3>
         <p className="text-sm text-aws-font-color-gray mt-1">
-          審査に使用するチェックリストを選択してください
+          {t('review.selectChecklistPrompt')}
         </p>
       </div>
 
@@ -52,7 +55,7 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
                   {checklist.description}
                 </p>
                 <p className="text-xs text-aws-font-color-gray mt-1">
-                  ステータス: {checklist.processingStatus}
+                  {t('review.status')}: {checklist.processingStatus}
                 </p>
               </label>
             </div>
@@ -62,7 +65,7 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
 
       {checklists.length === 0 && (
         <div className="p-4 text-center text-aws-font-color-gray">
-          利用可能なチェックリストがありません
+          {t('review.noChecklistsAvailable')}
         </div>
       )}
     </div>
