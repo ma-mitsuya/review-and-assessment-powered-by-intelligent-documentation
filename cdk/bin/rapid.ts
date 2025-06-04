@@ -25,11 +25,8 @@ const waf = new FrontendWafStack(app, `RapidFrontendWafStack`, {
     region: "us-east-1",
   },
   envPrefix: "",
-  allowedIpV4AddressRanges: ["0.0.0.0/1", "128.0.0.0/1"],
-  allowedIpV6AddressRanges: [
-    "0000:0000:0000:0000:0000:0000:0000:0000/1",
-    "8000:0000:0000:0000:0000:0000:0000:0000/1",
-  ],
+  allowedIpV4AddressRanges: parameters.allowedIpV4AddressRanges,
+  allowedIpV6AddressRanges: parameters.allowedIpV6AddressRanges,
 });
 
 new RapidStack(app, "RapidStack", {
