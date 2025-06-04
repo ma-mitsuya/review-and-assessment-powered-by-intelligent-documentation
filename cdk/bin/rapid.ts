@@ -2,8 +2,19 @@
 import * as cdk from "aws-cdk-lib";
 import { RapidStack } from "../lib/rapid-stack";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
+import {
+  extractContextParameters,
+  resolveParameters,
+} from "../lib/parameter-schema";
 
 const app = new cdk.App();
+
+// コマンドライン引数からパラメータを抽出
+const contextParams = extractContextParameters(app);
+
+// パラメータの解決とバリデーション
+// (parameter.tsのデフォルト値 < parameter.tsのユーザー指定値 < コマンドライン引数の順で優先)
+const parameters = resolveParameters(contextParams);
 
 // WAF for frontend
 // 2025/4: Currently, the WAF for CloudFront needs to be created in the North America region (us-east-1), so the stacks are separated
@@ -31,4 +42,6 @@ new RapidStack(app, "RapidStack", {
   crossRegionReferences: true,
   webAclId: waf.webAclArn.value,
   enableIpV6: waf.ipV6Enabled,
+  // カスタムパラメータを追加
+  parameters: parameters,
 });
