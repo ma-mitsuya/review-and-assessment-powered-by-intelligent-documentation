@@ -1,4 +1,5 @@
 import React from "react";
+import { useAlert } from "../../../hooks/useAlert";
 import { useTranslation } from "react-i18next";
 import {
   HiEye,
@@ -43,26 +44,32 @@ export default function CheckListSetList({
     window.location.href = `/checklist/${item.id}`;
   };
 
+  const { showConfirm, showError, AlertModal } = useAlert();
+
   // チェックリストセットの削除処理
-  const handleDelete = async (
+  const handleDelete = (
     item: CheckListSetListProps["checkListSets"][0],
     e: React.MouseEvent
   ) => {
     // 編集不可の場合は削除できない
     if (item.isEditable === false) {
-      alert(t("checklist.notEditable"));
+      showError(t("checklist.notEditable"));
       return;
     }
 
-    if (confirm(t("checklist.deleteConfirmation", { name: item.name }))) {
-      try {
-        // 削除ロジックは親コンポーネントに委譲
-        await onDelete(item.id, item.name);
-      } catch (error) {
-        console.error("削除に失敗しました", error);
-        alert(t("checklist.deleteError"));
-      }
-    }
+    showConfirm(t("checklist.deleteConfirmation", { name: item.name }), {
+      title: t("common.confirm"),
+      confirmButtonText: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          // 削除ロジックは親コンポーネントに委譲
+          await onDelete(item.id, item.name);
+        } catch (error) {
+          console.error("削除に失敗しました", error);
+          showError(t("checklist.deleteError", { name: item.name }));
+        }
+      },
+    });
   };
 
   // Define columns
@@ -135,16 +142,19 @@ export default function CheckListSetList({
   ];
 
   return (
-    <Table
-      items={checkListSets}
-      columns={columns}
-      actions={actions}
-      isLoading={isLoading}
-      error={error}
-      emptyMessage={t("checklist.noChecklists")}
-      keyExtractor={(item) => item.id}
-      onRowClick={handleRowClick}
-      rowClickable={true}
-    />
+    <>
+      <Table
+        items={checkListSets}
+        columns={columns}
+        actions={actions}
+        isLoading={isLoading}
+        error={error}
+        emptyMessage={t("checklist.noChecklists")}
+        keyExtractor={(item) => item.id}
+        onRowClick={handleRowClick}
+        rowClickable={true}
+      />
+      <AlertModal />
+    </>
   );
 }

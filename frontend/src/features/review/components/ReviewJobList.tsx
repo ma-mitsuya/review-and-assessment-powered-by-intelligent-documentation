@@ -1,4 +1,5 @@
 import React from "react";
+import { useAlert } from "../../../hooks/useAlert";
 import { useTranslation } from "react-i18next";
 import { ReviewJobSummary, REVIEW_JOB_STATUS } from "../types";
 import { HiEye, HiTrash } from "react-icons/hi";
@@ -20,27 +21,33 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const handleDelete = async (job: ReviewJobSummary, e: React.MouseEvent) => {
+  const { showConfirm, showError, AlertModal } = useAlert();
+
+  const handleDelete = (job: ReviewJobSummary, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (confirm(t("review.deleteConfirmation"))) {
-      try {
-        // This would use the deleteReviewJob function from useDeleteReviewJob hook
-        // Since we're refactoring the component, assuming that hook will be used by the parent
-        // and passed down as a prop in a future update
-        await fetch(`/api/review-jobs/${job.id}`, {
-          method: "DELETE",
-        });
+    showConfirm(t("review.deleteConfirmation", { name: job.name }), {
+      title: t("common.confirm"),
+      confirmButtonText: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          // This would use the deleteReviewJob function from useDeleteReviewJob hook
+          // Since we're refactoring the component, assuming that hook will be used by the parent
+          // and passed down as a prop in a future update
+          await fetch(`/api/review-jobs/${job.id}`, {
+            method: "DELETE",
+          });
 
-        // 削除後にデータを再取得
-        if (revalidate) {
-          revalidate();
+          // 削除後にデータを再取得
+          if (revalidate) {
+            revalidate();
+          }
+        } catch (error) {
+          showError(t("review.deleteError", { name: job.name }));
+          console.error(error);
         }
-      } catch (error) {
-        alert(t("review.deleteError"));
-        console.error(error);
-      }
-    }
+      },
+    });
   };
 
   // 日付のフォーマット
@@ -145,16 +152,19 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({
   };
 
   return (
-    <Table
-      items={jobs}
-      columns={columns}
-      actions={actions}
-      isLoading={isLoading}
-      emptyMessage={t("review.noJobs")}
-      keyExtractor={(item) => item.id}
-      onRowClick={handleRowClick}
-      rowClickable={true}
-    />
+    <>
+      <Table
+        items={jobs}
+        columns={columns}
+        actions={actions}
+        isLoading={isLoading}
+        emptyMessage={t("review.noJobs")}
+        keyExtractor={(item) => item.id}
+        onRowClick={handleRowClick}
+        rowClickable={true}
+      />
+      <AlertModal />
+    </>
   );
 };
 

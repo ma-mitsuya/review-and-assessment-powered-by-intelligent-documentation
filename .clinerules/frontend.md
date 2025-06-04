@@ -26,6 +26,36 @@
 - When implementing, always attempt to use components under frontend/src/components
   - e.g., when using buttons. If insufficient, create inherited buttons under respective features/components
   - Especially avoid overusing the <button> tag. Always use components
+- For alerts and confirmations:
+  - Native `alert()` and `confirm()` methods are prohibited
+  - Always use `useAlert` hook and `AlertModal` component
+  - Usage example:
+
+    ```tsx
+    const { showAlert, showConfirm, showSuccess, showError, AlertModal } =
+      useAlert();
+
+    // Show alerts
+    showAlert("Information message");
+    showSuccess("Operation completed successfully");
+    showError("An error occurred");
+
+    // Show confirmation dialog
+    showConfirm("Are you sure you want to delete this item?", {
+      title: "Confirm Deletion",
+      confirmButtonText: "Delete",
+      onConfirm: () => handleDelete(),
+      onCancel: () => console.log("Cancelled"),
+    });
+
+    // Don't forget to include the AlertModal component in your render
+    return (
+      <div>
+        {/* Your component content */}
+        <AlertModal />
+      </div>
+    );
+    ```
 
 ## Icons
 

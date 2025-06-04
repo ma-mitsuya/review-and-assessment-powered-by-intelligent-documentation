@@ -8,6 +8,7 @@ import {
   useDeletePromptTemplate,
 } from "../hooks/usePromptTemplateMutations";
 import Modal from "../../../components/Modal";
+import { useAlert } from "../../../hooks/useAlert";
 import { Toast } from "../../../components/Toast";
 import { HiCheck, HiPlus } from "react-icons/hi";
 import Button from "../../../components/Button";
@@ -28,7 +29,6 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState<
     PromptTemplate | undefined
   >(undefined);
@@ -48,9 +48,21 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
     setIsEditorOpen(true);
   };
 
+  const { showConfirm, showSuccess, showError, AlertModal } = useAlert();
+
   const handleDelete = (template: PromptTemplate) => {
     setCurrentTemplate(template);
-    setIsDeleteModalOpen(true);
+
+    showConfirm(
+      `テンプレート「${template.name}」を削除してもよろしいですか？ この操作は元に戻せません。`,
+      {
+        title: "テンプレートの削除",
+        confirmButtonText: "削除",
+        onConfirm: async () => {
+          await handleConfirmDelete(template);
+        },
+      }
+    );
   };
 
   const handleSave = async (data: UpdatePromptTemplateRequest) => {
@@ -94,25 +106,15 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!currentTemplate) return;
-
+  const handleConfirmDelete = async (template: PromptTemplate) => {
     setIsSubmitting(true);
     try {
-      await deleteTemplate(currentTemplate.id);
+      await deleteTemplate(template.id);
       await refetch();
-      setToast({
-        id: `delete-${new Date().getTime()}`,
-        message: "テンプレートを削除しました",
-        type: "success",
-      });
-      setIsDeleteModalOpen(false);
+      showSuccess("テンプレートを削除しました");
     } catch (error) {
-      setToast({
-        id: `delete-error-${new Date().getTime()}`,
-        message: "削除中にエラーが発生しました",
-        type: "error",
-      });
+      showError("削除中にエラーが発生しました");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -168,35 +170,7 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
         </Modal>
       )}
 
-      {/* 削除確認モーダル */}
-      {isDeleteModalOpen && (
-        <Modal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          title="テンプレートの削除">
-          <div className="space-y-4">
-            <p>
-              テンプレート「{currentTemplate?.name}
-              」を削除してもよろしいですか？ この操作は元に戻せません。
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                className="rounded-md border border-light-gray bg-aws-paper-light px-4 py-2 text-sm font-medium text-aws-font-color-light shadow-sm hover:bg-light-gray focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light focus:ring-offset-2 dark:border-dark-gray dark:bg-aws-paper-dark dark:text-aws-font-color-dark dark:hover:bg-dark-gray"
-                onClick={() => setIsDeleteModalOpen(false)}>
-                キャンセル
-              </button>
-              <button
-                type="button"
-                className="rounded-md border border-transparent bg-aws-sea-blue-light px-4 py-2 text-sm font-medium text-aws-font-color-white-light shadow-sm hover:bg-aws-sea-blue-hover-light focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light focus:ring-offset-2 dark:bg-aws-sea-blue-dark dark:hover:bg-aws-sea-blue-hover-dark"
-                onClick={handleConfirmDelete}
-                disabled={isSubmitting}>
-                {isSubmitting ? "削除中..." : "削除"}
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <AlertModal />
 
       {/* トースト通知 */}
       {toast && (
