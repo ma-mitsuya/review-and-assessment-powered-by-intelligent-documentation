@@ -24,11 +24,7 @@ export class RapidStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RapidStackProps) {
     super(scope, id, props);
 
-    // カスタムパラメータを取得
-    const dummyParameter = props.parameters.dummyParameter;
-
-    // 例: タグとして追加（デモンストレーション用）
-    cdk.Tags.of(this).add("DummyParameter", dummyParameter);
+    // VPC等のリソースを作成
 
     const prefix = cdk.Stack.of(this).region;
 

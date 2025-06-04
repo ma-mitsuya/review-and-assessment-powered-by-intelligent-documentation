@@ -9,8 +9,6 @@
 export const parameters = {
   // カスタマイズしたいパラメータのみコメントを外して設定
   // ---------------------------------------------------
-  dummyParameter: "parameter.ts-からの値",
-
   // WAF IP制限の設定
   // アクセスを許可するIPアドレス範囲を指定します
   // デフォルト値は全てのIPアドレスを許可します
@@ -23,7 +21,6 @@ export const parameters = {
   // allowedIpV6AddressRanges: [
   //   "2001:db8::/32"    // IPv6アドレス範囲例
   // ],
-
   // Cognito認証関連の設定
   // 既存のCognitoリソースをインポートして使用する場合に設定します
   // 設定しない場合は新しいリソースが作成されます
