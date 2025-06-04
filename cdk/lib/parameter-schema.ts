@@ -54,13 +54,8 @@ export function resolveParameters(
       ...contextParams, // コンテキストパラメータ（コマンドラインから渡された値）
     };
 
-    console.log("User defined parameters:", userParameters);
-    console.log("Context parameters:", contextParams);
-    console.log("Merged parameters (before validation):", mergedParams);
-
     // バリデーションを実行（デフォルト値は自動的に適用される）
     const validatedParams = parameterSchema.parse(mergedParams);
-    console.log("Final validated parameters:", validatedParams);
 
     return validatedParams;
   } catch (error) {
@@ -93,9 +88,7 @@ export function extractContextParameters(app: any): Record<string, any> {
   if (typeof rapidParam === "string") {
     try {
       rapidObject = JSON.parse(rapidParam);
-      console.log("Parsed rapidParam from JSON string:", rapidObject);
     } catch (e) {
-      console.log("rapidParam is not a valid JSON string");
       // 文字列のままにしておく
       rapidObject = rapidParam;
     }
@@ -103,14 +96,12 @@ export function extractContextParameters(app: any): Record<string, any> {
 
   // 'rapid'オブジェクトがある場合はそれを使用
   if (rapidObject && typeof rapidObject === "object") {
-    console.log("Using rapid object:", rapidObject);
     Object.assign(params, rapidObject);
   }
 
   // 個別のパラメータ取得（rapid.paramName形式）
   const dummyParam = app.node.tryGetContext("rapid.dummyParameter");
   if (dummyParam !== undefined) {
-    console.log("Found direct parameter rapid.dummyParameter:", dummyParam);
     params.dummyParameter = dummyParam;
   }
 
@@ -119,10 +110,6 @@ export function extractContextParameters(app: any): Record<string, any> {
     "rapid.allowedIpV4AddressRanges"
   );
   if (allowedIpV4Ranges !== undefined) {
-    console.log(
-      "Found direct parameter rapid.allowedIpV4AddressRanges:",
-      allowedIpV4Ranges
-    );
     params.allowedIpV4AddressRanges = Array.isArray(allowedIpV4Ranges)
       ? allowedIpV4Ranges
       : [allowedIpV4Ranges];
@@ -132,10 +119,6 @@ export function extractContextParameters(app: any): Record<string, any> {
     "rapid.allowedIpV6AddressRanges"
   );
   if (allowedIpV6Ranges !== undefined) {
-    console.log(
-      "Found direct parameter rapid.allowedIpV6AddressRanges:",
-      allowedIpV6Ranges
-    );
     params.allowedIpV6AddressRanges = Array.isArray(allowedIpV6Ranges)
       ? allowedIpV6Ranges
       : [allowedIpV6Ranges];
@@ -144,10 +127,6 @@ export function extractContextParameters(app: any): Record<string, any> {
   // Cognito関連パラメータの取得
   const cognitoUserPoolId = app.node.tryGetContext("rapid.cognitoUserPoolId");
   if (cognitoUserPoolId !== undefined) {
-    console.log(
-      "Found direct parameter rapid.cognitoUserPoolId:",
-      cognitoUserPoolId
-    );
     params.cognitoUserPoolId = cognitoUserPoolId;
   }
 
@@ -155,10 +134,6 @@ export function extractContextParameters(app: any): Record<string, any> {
     "rapid.cognitoUserPoolClientId"
   );
   if (cognitoUserPoolClientId !== undefined) {
-    console.log(
-      "Found direct parameter rapid.cognitoUserPoolClientId:",
-      cognitoUserPoolClientId
-    );
     params.cognitoUserPoolClientId = cognitoUserPoolClientId;
   }
 
@@ -166,14 +141,8 @@ export function extractContextParameters(app: any): Record<string, any> {
     "rapid.cognitoDomainPrefix"
   );
   if (cognitoDomainPrefix !== undefined) {
-    console.log(
-      "Found direct parameter rapid.cognitoDomainPrefix:",
-      cognitoDomainPrefix
-    );
     params.cognitoDomainPrefix = cognitoDomainPrefix;
   }
-
-  console.log("Extracted context parameters:", params);
 
   return params;
 }

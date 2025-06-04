@@ -95,7 +95,7 @@ export class ReviewProcessor extends Construct {
       maxConcurrency: maxConcurrency, // Use the parameter to control concurrency
       itemsPath: sfn.JsonPath.stringAt("$.prepareResult.Payload.checkItems"),
       resultPath: "$.processedItems",
-      parameters: {
+      itemSelector: {
         "reviewJobId.$": "$.reviewJobId",
         "checkId.$": "$$.Map.Item.Value.checkId",
         "reviewResultId.$": "$$.Map.Item.Value.reviewResultId",
@@ -130,7 +130,7 @@ export class ReviewProcessor extends Construct {
       backoffRate: 2,
     });
 
-    processItemsMap.iterator(processReviewItemTask);
+    processItemsMap.itemProcessor(processReviewItemTask);
 
     // 審査結果を集計するLambda
     const finalizeReviewTask = new tasks.LambdaInvoke(this, "FinalizeReview", {
