@@ -28,6 +28,13 @@ const parameterSchema = z.object({
   // 例: newParameter: z.string().default("default"),
   // 例: isEnabled: z.boolean().default(false),
   // 例: count: z.number().int().min(0).max(100).default(10),
+
+  // Cognito認証関連のパラメータ
+  cognitoUserPoolId: z.string().optional(),
+
+  cognitoUserPoolClientId: z.string().optional(),
+
+  cognitoDomainPrefix: z.string().optional(),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -132,6 +139,38 @@ export function extractContextParameters(app: any): Record<string, any> {
     params.allowedIpV6AddressRanges = Array.isArray(allowedIpV6Ranges)
       ? allowedIpV6Ranges
       : [allowedIpV6Ranges];
+  }
+
+  // Cognito関連パラメータの取得
+  const cognitoUserPoolId = app.node.tryGetContext("rapid.cognitoUserPoolId");
+  if (cognitoUserPoolId !== undefined) {
+    console.log(
+      "Found direct parameter rapid.cognitoUserPoolId:",
+      cognitoUserPoolId
+    );
+    params.cognitoUserPoolId = cognitoUserPoolId;
+  }
+
+  const cognitoUserPoolClientId = app.node.tryGetContext(
+    "rapid.cognitoUserPoolClientId"
+  );
+  if (cognitoUserPoolClientId !== undefined) {
+    console.log(
+      "Found direct parameter rapid.cognitoUserPoolClientId:",
+      cognitoUserPoolClientId
+    );
+    params.cognitoUserPoolClientId = cognitoUserPoolClientId;
+  }
+
+  const cognitoDomainPrefix = app.node.tryGetContext(
+    "rapid.cognitoDomainPrefix"
+  );
+  if (cognitoDomainPrefix !== undefined) {
+    console.log(
+      "Found direct parameter rapid.cognitoDomainPrefix:",
+      cognitoDomainPrefix
+    );
+    params.cognitoDomainPrefix = cognitoDomainPrefix;
   }
 
   console.log("Extracted context parameters:", params);

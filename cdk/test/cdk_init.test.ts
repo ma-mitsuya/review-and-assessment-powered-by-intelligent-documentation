@@ -1,17 +1,158 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as CdkInit from '../lib/cdk_init-stack';
+import * as cdk from "aws-cdk-lib";
+import { Template, Match } from "aws-cdk-lib/assertions";
+import { Auth } from "../lib/constructs/auth";
+import { RapidStack } from "../lib/rapid-stack";
+import { resolveParameters } from "../lib/parameter-schema";
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/cdk_init-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new CdkInit.CdkInitStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
+describe("Cognito Import Tests", () => {
+  test("Auth construct creates new Cognito resources when no import parameters", () => {
+    // GIVEN
+    const app = new cdk.App();
+    const stack = new cdk.Stack(app, "TestStack");
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+    // WHEN
+    new Auth(stack, "TestAuth", {});
+
+    // THEN
+    const template = Template.fromStack(stack);
+
+    // Should create a new UserPool
+    template.resourceCountIs("AWS::Cognito::UserPool", 1);
+
+    // Should create a new UserPoolClient
+    template.resourceCountIs("AWS::Cognito::UserPoolClient", 1);
+  });
+
+  test("Auth construct imports existing UserPool when ID is provided", () => {
+    // GIVEN
+    const app = new cdk.App();
+    const stack = new cdk.Stack(app, "TestStack");
+    const userPoolId = "ap-northeast-1_testUserPoolId";
+
+    // WHEN
+    new Auth(stack, "TestAuth", {
+      cognitoUserPoolId: userPoolId,
+    });
+
+    // THEN
+    const template = Template.fromStack(stack);
+
+    // Should NOT create a new UserPool (because we're importing)
+    template.resourceCountIs("AWS::Cognito::UserPool", 0);
+
+    // Should still create a new UserPoolClient (because we didn't provide a client ID)
+    template.resourceCountIs("AWS::Cognito::UserPoolClient", 1);
+
+    // Should have a string UserPoolId (rather than a Ref when creating new resources)
+    template.hasResourceProperties("AWS::Cognito::UserPoolClient", {
+      UserPoolId: userPoolId,
+    });
+  });
+
+  test("Auth construct imports both UserPool and Client when both IDs are provided", () => {
+    // GIVEN
+    const app = new cdk.App();
+    const stack = new cdk.Stack(app, "TestStack");
+    const userPoolId = "ap-northeast-1_testUserPoolId";
+    const userPoolClientId = "testUserPoolClientId";
+
+    // WHEN
+    new Auth(stack, "TestAuth", {
+      cognitoUserPoolId: userPoolId,
+      cognitoUserPoolClientId: userPoolClientId,
+    });
+
+    // THEN
+    const template = Template.fromStack(stack);
+
+    // Should NOT create any new Cognito resources (because we're importing both)
+    template.resourceCountIs("AWS::Cognito::UserPool", 0);
+    template.resourceCountIs("AWS::Cognito::UserPoolClient", 0);
+  });
+
+  test("Auth construct creates domain when domain prefix is provided", () => {
+    // GIVEN
+    const app = new cdk.App();
+    const stack = new cdk.Stack(app, "TestStack");
+    const domainPrefix = "test-domain";
+
+    // WHEN
+    new Auth(stack, "TestAuth", {
+      cognitoDomainPrefix: domainPrefix,
+    });
+
+    // THEN
+    const template = Template.fromStack(stack);
+
+    // Should create a UserPoolDomain
+    template.resourceCountIs("AWS::Cognito::UserPoolDomain", 1);
+
+    // Domain should use the provided prefix
+    template.hasResourceProperties("AWS::Cognito::UserPoolDomain", {
+      Domain: domainPrefix,
+    });
+  });
+});
+
+describe("Parameter Handling Tests", () => {
+  test("Auth construct receives Cognito parameters properly", () => {
+    // GIVEN
+    const app = new cdk.App();
+    const stack = new cdk.Stack(app, "TestStack");
+    const userPoolId = "ap-northeast-1_testUserPoolId";
+    const userPoolClientId = "testUserPoolClientId";
+    const domainPrefix = "test-domain";
+
+    const contextParams = {
+      cognitoUserPoolId: userPoolId,
+      cognitoUserPoolClientId: userPoolClientId,
+      cognitoDomainPrefix: domainPrefix,
+    };
+
+    // Create Auth construct with all three parameters
+    const auth = new Auth(stack, "TestAuth", {
+      cognitoUserPoolId: userPoolId,
+      cognitoUserPoolClientId: userPoolClientId,
+      cognitoDomainPrefix: domainPrefix,
+    });
+
+    // THEN
+    const template = Template.fromStack(stack);
+
+    // Should NOT create any new Cognito resources (because we're importing both)
+    template.resourceCountIs("AWS::Cognito::UserPool", 0);
+    template.resourceCountIs("AWS::Cognito::UserPoolClient", 0);
+
+    // Should create a UserPoolDomain - No, it should NOT create one because
+    // we're importing a user pool and the domain prefix only works with created user pools
+    template.resourceCountIs("AWS::Cognito::UserPoolDomain", 0);
+
+    // Debug the output values to understand what's being generated
+    const outputs = template.findOutputs("*");
+    console.log("All template outputs:", JSON.stringify(outputs, null, 2));
+
+    // Check for the existence of an output with our user pool ID
+    const userPoolIdOutput = Object.values(outputs).some(
+      (output) =>
+        output.Value &&
+        (output.Value === userPoolId ||
+          (typeof output.Value === "string" &&
+            output.Value.includes(userPoolId)))
+    );
+
+    console.log("Found UserPool ID in outputs:", userPoolIdOutput);
+    expect(userPoolIdOutput).toBe(true);
+
+    // Check for the existence of an output with our user pool client ID
+    const clientIdOutput = Object.values(outputs).some(
+      (output) =>
+        output.Value &&
+        (output.Value === userPoolClientId ||
+          (typeof output.Value === "string" &&
+            output.Value.includes(userPoolClientId)))
+    );
+
+    console.log("Found UserPool Client ID in outputs:", clientIdOutput);
+    expect(clientIdOutput).toBe(true);
+  });
 });
