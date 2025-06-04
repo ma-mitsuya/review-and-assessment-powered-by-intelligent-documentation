@@ -6,12 +6,6 @@ import { parameters as userParameters } from "./parameter";
  * ここにはバリデーションルールとデフォルト値を設定します。
  */
 const parameterSchema = z.object({
-  // ダミーのstring型パラメータ
-  dummyParameter: z
-    .string()
-    .min(1, "dummyParameter must not be empty")
-    .default("default-value"),
-
   // WAF IPアドレス制限のパラメータ
   allowedIpV4AddressRanges: z
     .array(z.string())
@@ -97,12 +91,6 @@ export function extractContextParameters(app: any): Record<string, any> {
   // 'rapid'オブジェクトがある場合はそれを使用
   if (rapidObject && typeof rapidObject === "object") {
     Object.assign(params, rapidObject);
-  }
-
-  // 個別のパラメータ取得（rapid.paramName形式）
-  const dummyParam = app.node.tryGetContext("rapid.dummyParameter");
-  if (dummyParam !== undefined) {
-    params.dummyParameter = dummyParam;
   }
 
   // WAF IPアドレス制限パラメータの取得
