@@ -23,6 +23,7 @@
   "dependencies": {
     "aws-cdk-lib": "2.181.1",
     "constructs": "^10.0.0",
-    "deploy-time-build": "^0.3.30"
+    "deploy-time-build": "^0.3.30",
+    "zod": "^3.25.50"
   }
 }
