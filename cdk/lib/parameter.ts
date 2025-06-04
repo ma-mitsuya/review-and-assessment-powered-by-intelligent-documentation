@@ -23,4 +23,12 @@ export const parameters = {
   // allowedIpV6AddressRanges: [
   //   "2001:db8::/32"    // IPv6アドレス範囲例
   // ],
+
+  // Cognito認証関連の設定
+  // 既存のCognitoリソースをインポートして使用する場合に設定します
+  // 設定しない場合は新しいリソースが作成されます
+  // ---------------------------------------------------
+  // cognitoUserPoolId: "ap-northeast-1_xxxxxxxxx", // 既存のCognito User Pool ID
+  // cognitoUserPoolClientId: "1example23456789", // 既存のCognito User Pool Client ID
+  // cognitoDomainPrefix: "myapp-login", // Cognitoドメインのプレフィックス
 };

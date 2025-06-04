@@ -121,8 +121,12 @@ export class RapidStack extends cdk.Stack {
       databaseConnection: database.connection,
     });
 
-    // Auth構成の作成
-    const auth = new Auth(this, "Auth", {});
+    // Auth構成の作成（Cognitoのカスタムパラメータを個別に渡す）
+    const auth = new Auth(this, "Auth", {
+      cognitoUserPoolId: props.parameters.cognitoUserPoolId,
+      cognitoUserPoolClientId: props.parameters.cognitoUserPoolClientId,
+      cognitoDomainPrefix: props.parameters.cognitoDomainPrefix,
+    });
 
     // API Gatewayとそれに紐づくLambda関数の作成
     const api = new Api(this, "Api", {
