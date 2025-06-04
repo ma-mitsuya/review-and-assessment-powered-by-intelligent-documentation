@@ -218,6 +218,7 @@ export const ReviewResultDomain = (() => {
       result: REVIEW_RESULT;
       confidenceScore: number;
       explanation: string;
+      shortExplanation: string;
       usedImageIndexes: number[];
       imageBuffers: Array<{
         documentId: string;
@@ -234,6 +235,7 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
+        shortExplanation,
         usedImageIndexes,
         imageBuffers,
         boundingBoxes = [],
@@ -281,6 +283,7 @@ export const ReviewResultDomain = (() => {
         result,
         confidenceScore,
         explanation,
+        shortExplanation,
         sourceReferences,
         userOverride: false,
         updatedAt: new Date(),

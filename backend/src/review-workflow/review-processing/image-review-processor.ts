@@ -40,6 +40,7 @@ Example 1: For a check item "Multiple documents should have signatures" with 5 i
   "result": "pass",
   "confidence": 0.92,
   "explanation": "提供された5枚の画像のうち、0番目と2番目の画像に署名が確認できます。0番目の画像には契約書の署名、2番目の画像には同意書の署名があります。",
+  "shortExplanation": "0番目と2番目の画像に契約書と同意書の署名が確認できるため合格",
   "usedImageIndexes": [0, 2],
   "boundingBoxes": [
     {
@@ -60,6 +61,7 @@ Example 2: For a check item "ID card should include photo and expiration date" w
   "result": "pass",
   "confidence": 0.95,
   "explanation": "身分証明書には顔写真と有効期限の両方が含まれています。有効期限: 2028年5月31日",
+  "shortExplanation": "身分証明書に顔写真と有効期限（2028年5月31日）が確認できるため合格",
   "usedImageIndexes": [0],
   "boundingBoxes": [
     {
@@ -77,10 +79,14 @@ Example 2: For a check item "ID card should include photo and expiration date" w
 
 It is strictly forbidden to output anything other than JSON. Do not use markdown syntax (like \`\`\`json), return only pure JSON.
 
+shortExplanationは、判断結果の簡潔な要約を80文字以内で記載してください。
+例: "契約書に署名と捺印が確認できるため合格" や "物件面積の記載がないため不合格" など
+
 {
   "result": "pass" or "fail",
   "confidence": A number between 0 and 1 (confidence level),
   "explanation": "Explanation of the judgment in Japanese",
+  "shortExplanation": "Short summary of judgment (within 80 characters) in Japanese",
   "usedImageIndexes": [Indexes of images used for judgment (e.g., [0, 2] means the first and third images were used)],
   "boundingBoxes": [
     {
@@ -302,6 +308,7 @@ ${prompt}
       result: reviewData.result,
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
+      shortExplanation: reviewData.shortExplanation,
       usedImageIndexes: reviewData.usedImageIndexes,
       imageBuffers,
       boundingBoxes: reviewData.boundingBoxes || [],
