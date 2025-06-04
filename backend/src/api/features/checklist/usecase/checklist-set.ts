@@ -106,9 +106,58 @@ export const duplicateChecklistSet = async (params: {
     parentId: item.parentId ? idMapping.get(item.parentId) : undefined,
   }));
 
-  // 7. 新しいチェックリスト項目を保存
+  // 7. 新しいチェックリスト項目を階層順に保存
   if (newItems.length > 0) {
-    await repo.bulkStoreCheckListItems({ items: newItems });
+    // 階層レベルごとにグループ化
+    const itemsByLevel = new Map<number, (typeof newItems)[0][]>();
+
+    // 最初に親IDがnullのアイテム（最上位）を設定
+    const rootItems = newItems.filter((item) => !item.parentId);
+    itemsByLevel.set(0, rootItems);
+
+    // 処理済みの親IDを追跡
+    let processedIds = new Set(rootItems.map((item) => item.id));
+
+    // 残りのアイテム
+    let remainingItems = newItems.filter((item) => item.parentId);
+    let currentLevel = 0;
+
+    // 残りのアイテムがなくなるか、処理できなくなるまで繰り返し
+    while (remainingItems.length > 0) {
+      currentLevel++;
+
+      // 親IDが既に処理されたアイテムだけを選択
+      const currentLevelItems = remainingItems.filter(
+        (item) => item.parentId && processedIds.has(item.parentId)
+      );
+
+      // 処理できるアイテムがなくなったら中断
+      if (currentLevelItems.length === 0) {
+        console.error(`[Warning] Possible circular reference detected in checklist items.
+          Unable to process ${remainingItems.length} items with parent references.`);
+        break;
+      }
+
+      // このレベルのアイテムを設定
+      itemsByLevel.set(currentLevel, currentLevelItems);
+
+      // 処理済みIDを更新
+      currentLevelItems.forEach((item) => processedIds.add(item.id));
+
+      // 残りのアイテムを更新
+      remainingItems = remainingItems.filter(
+        (item) => !currentLevelItems.includes(item)
+      );
+    }
+
+    // レベル順に保存
+    for (let level = 0; level <= currentLevel; level++) {
+      const levelItems = itemsByLevel.get(level) || [];
+      if (levelItems.length > 0) {
+        // このレベルのアイテムをバルク保存
+        await repo.bulkStoreCheckListItems({ items: levelItems });
+      }
+    }
   }
 };
 

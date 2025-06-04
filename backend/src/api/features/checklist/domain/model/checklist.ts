@@ -91,7 +91,14 @@ export const CheckListSetDomain = {
       name: newName || `${source.name} (コピー)`,
       description:
         newDescription !== undefined ? newDescription : source.description,
-      documents: [], // 複製時にはドキュメントは含めない
+      documents: source.documents.map((doc) => ({
+        id: ulid(),
+        filename: doc.filename,
+        s3Key: doc.s3Key,
+        fileType: doc.fileType,
+        uploadDate: new Date(),
+        status: CHECK_LIST_STATUS.COMPLETED, // 複製時は完了状態に設定
+      })),
     };
   },
 };
