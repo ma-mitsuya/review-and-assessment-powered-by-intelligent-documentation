@@ -124,7 +124,6 @@ export class Auth extends Construct {
     userPool: UserPool;
     client: UserPoolClient;
   } {
-    console.log("Creating new Cognito User Pool");
     const userPool = new UserPool(this, "UserPool", {
       passwordPolicy: {
         requireUppercase: true,
