@@ -4,9 +4,13 @@
 
 CDK デプロイ時に以下のパラメータをカスタマイズできます：
 
-| パラメータ名   | 説明                            | デフォルト値    |
-| -------------- | ------------------------------- | --------------- |
-| dummyParameter | ダミーパラメータ (例として実装) | "default-value" |
+| パラメータ名             | 説明                                    | デフォルト値                              |
+| ------------------------ | --------------------------------------- | ----------------------------------------- |
+| dummyParameter           | ダミーパラメータ (例として実装)         | "default-value"                           |
+| allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲 | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
+| allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲 | ["0000::/1", "8000::/1"] (すべて許可)     |
+
+> **注意**: セキュリティ強化のため、フロントエンドへのアクセスを必要な IP アドレス範囲のみに制限することを強く推奨します。デフォルト設定ではすべての IP アドレスからのアクセスが許可されています。
 
 ### パラメータ指定方法
 
@@ -20,6 +24,17 @@ export const parameters = {
   // カスタマイズしたいパラメータのみコメントを外して設定
   // ---------------------------------------------------
   dummyParameter: "カスタム値",
+
+  // WAF IP制限の設定例
+  // セキュリティのため、必要なIPアドレス範囲のみに制限することを推奨
+  allowedIpV4AddressRanges: [
+    "192.168.0.0/16", // 内部ネットワーク例
+    "203.0.113.0/24", // 特定のパブリックIP範囲例
+  ],
+
+  allowedIpV6AddressRanges: [
+    "2001:db8::/32", // IPv6アドレス範囲例
+  ],
 };
 ```
 
@@ -39,6 +54,19 @@ cdk deploy --context rapid.dummyParameter="custom-value"
 
 ```bash
 cdk deploy --context rapid='{"dummyParameter":"custom-value"}'
+```
+
+##### WAF IP 制限の設定例
+
+```bash
+# IPv4アドレス範囲のみ制限
+cdk deploy --context rapid.allowedIpV4AddressRanges='["192.168.0.0/16", "203.0.113.0/24"]'
+
+# IPv6アドレス範囲のみ制限
+cdk deploy --context rapid.allowedIpV6AddressRanges='["2001:db8::/32"]'
+
+# 両方を制限
+cdk deploy --context rapid='{"allowedIpV4AddressRanges":["192.168.0.0/16"],"allowedIpV6AddressRanges":["2001:db8::/32"]}'
 ```
 
 ##### 複数パラメータの設定例

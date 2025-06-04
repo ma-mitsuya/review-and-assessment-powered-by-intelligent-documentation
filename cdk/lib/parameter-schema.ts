@@ -12,6 +12,18 @@ const parameterSchema = z.object({
     .min(1, "dummyParameter must not be empty")
     .default("default-value"),
 
+  // WAF IPアドレス制限のパラメータ
+  allowedIpV4AddressRanges: z
+    .array(z.string())
+    .default(["0.0.0.0/1", "128.0.0.0/1"]), // デフォルトはすべてのIPv4を許可
+
+  allowedIpV6AddressRanges: z
+    .array(z.string())
+    .default([
+      "0000:0000:0000:0000:0000:0000:0000:0000/1",
+      "8000:0000:0000:0000:0000:0000:0000:0000/1",
+    ]), // デフォルトはすべてのIPv6を許可
+
   // 新しいパラメータを追加する場合はここに定義します
   // 例: newParameter: z.string().default("default"),
   // 例: isEnabled: z.boolean().default(false),
@@ -88,11 +100,38 @@ export function extractContextParameters(app: any): Record<string, any> {
     Object.assign(params, rapidObject);
   }
 
-  // 個別のパラメータ取得（rapid.dummyParameter形式）
+  // 個別のパラメータ取得（rapid.paramName形式）
   const dummyParam = app.node.tryGetContext("rapid.dummyParameter");
   if (dummyParam !== undefined) {
     console.log("Found direct parameter rapid.dummyParameter:", dummyParam);
     params.dummyParameter = dummyParam;
+  }
+
+  // WAF IPアドレス制限パラメータの取得
+  const allowedIpV4Ranges = app.node.tryGetContext(
+    "rapid.allowedIpV4AddressRanges"
+  );
+  if (allowedIpV4Ranges !== undefined) {
+    console.log(
+      "Found direct parameter rapid.allowedIpV4AddressRanges:",
+      allowedIpV4Ranges
+    );
+    params.allowedIpV4AddressRanges = Array.isArray(allowedIpV4Ranges)
+      ? allowedIpV4Ranges
+      : [allowedIpV4Ranges];
+  }
+
+  const allowedIpV6Ranges = app.node.tryGetContext(
+    "rapid.allowedIpV6AddressRanges"
+  );
+  if (allowedIpV6Ranges !== undefined) {
+    console.log(
+      "Found direct parameter rapid.allowedIpV6AddressRanges:",
+      allowedIpV6Ranges
+    );
+    params.allowedIpV6AddressRanges = Array.isArray(allowedIpV6Ranges)
+      ? allowedIpV6Ranges
+      : [allowedIpV6Ranges];
   }
 
   console.log("Extracted context parameters:", params);
