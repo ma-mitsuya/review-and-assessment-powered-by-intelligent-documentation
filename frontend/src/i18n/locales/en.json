@@ -178,5 +178,15 @@
   "language": {
     "ja": "Japanese",
     "en": "English"
+  },
+  "table": {
+    "actions": "Actions"
+  },
+  "promptTemplate": {
+    "name": "Name",
+    "type": "Type",
+    "description": "Description",
+    "updatedAt": "Last Updated",
+    "noTemplates": "No templates available. Please create a new one."
   }
 }
