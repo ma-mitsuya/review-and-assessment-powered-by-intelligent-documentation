@@ -178,5 +178,15 @@
   "language": {
     "ja": "日本語",
     "en": "English"
+  },
+  "table": {
+    "actions": "操作"
+  },
+  "promptTemplate": {
+    "name": "名前",
+    "type": "タイプ",
+    "description": "説明",
+    "updatedAt": "最終更新",
+    "noTemplates": "テンプレートがありません。新規作成してください。"
   }
 }
