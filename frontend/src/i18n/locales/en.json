@@ -107,7 +107,6 @@
     "createError": "Failed to create checklist set",
     "fileUploadError": "Failed to upload file",
     "name": "Name",
-    "description": "Description",
     "namePlaceholder": "Checklist set name",
     "descriptionPlaceholder": "Checklist set description",
     "status": "Status",

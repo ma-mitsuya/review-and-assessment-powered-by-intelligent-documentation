@@ -8,101 +8,158 @@ import {
   makePrismaReviewJobRepository,
   makePrismaReviewResultRepository,
 } from "../../api/features/review/domain/repository";
+import { makePrismaUserPreferenceRepository } from "../../api/features/user-preference/domain/repository";
 import {
   REVIEW_FILE_TYPE,
   ReviewResultDomain,
 } from "../../api/features/review/domain/model/review";
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
 import { processImageReviewItem } from "./image-review-processor";
+import { getLanguageName, DEFAULT_LANGUAGE } from "../../utils/language";
 
-// 使用するモデルIDを定義
+// Define model ID
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
-// 審査プロンプト
-const REVIEW_PROMPT = `
-あなたはドキュメントの審査を行うAIアシスタントです。
-以下のチェック項目に基づいて、提供された書類を審査してください。
+// Helper function to get the review prompt based on language
+const getReviewPrompt = (language: string) => {
+  const languageName = getLanguageName(language);
 
-チェック項目: {checkName}
-説明: {checkDescription}
+  return `
+You are an AI assistant that reviews documents.
+Please review the provided document based on the following check item.
 
-書類の内容:
+Check item: {checkName}
+Description: {checkDescription}
+
+Document content:
 {documentContent}
 
-このチェック項目に対して、書類が適合しているかどうかを判断し、以下の形式でJSON形式で回答してください。
-JSON「以外」の文字列を出力することは厳禁です。マークダウンの記法（\`\`\`json など）は使用せず、純粋なJSONのみを返してください。
+## IMPORTANT OUTPUT LANGUAGE REQUIREMENT
+YOU MUST GENERATE THE ENTIRE OUTPUT IN ${languageName}.
+THIS IS A STRICT REQUIREMENT. ALL TEXT INCLUDING ALL JSON FIELD VALUES MUST BE IN ${languageName}.
+
+Determine whether the document complies with this check item and respond in JSON format as follows.
+It is strictly forbidden to output anything other than JSON. Do not use markdown syntax (like \`\`\`json), return only pure JSON.
 
 {
-  "result": "pass" または "fail",
-  "confidence": 0から1の間の数値（信頼度）,
-  "explanation": "判断理由の説明",
-  "shortExplanation": "判断の要約（80文字以内）",
-  "extractedText": "関連する抽出テキスト",
-  "pageNumber": 抽出テキストが記載されているページ番号（1から始まる整数）
+  "result": "pass" or "fail",
+  "confidence": A number between 0 and 1 (confidence level),
+  "explanation": "Explanation of the judgment (IN ${languageName})",
+  "shortExplanation": "Short summary of judgment (within 80 characters) (IN ${languageName})",
+  "extractedText": "Relevant extracted text (IN ${languageName})",
+  "pageNumber": Page number where the extracted text is found (integer starting from 1)
 }
 
-信頼度スコアの例:
-- 高い信頼度 (0.9-1.0): 書類に明確な記載があり、チェック項目との適合性が明らかな場合
-- 中程度の信頼度 (0.7-0.89): 書類に関連する記載はあるが、完全に明確ではない場合
-- 低い信頼度 (0.5-0.69): 書類の記載が曖昧で、判断に不確実性がある場合
+Examples of confidence scores:
+- High confidence (0.9-1.0): When the document contains clear information and the compliance with the check item is obvious
+- Medium confidence (0.7-0.89): When the document contains relevant information but it's not completely clear
+- Low confidence (0.5-0.69): When the document contains ambiguous information and there is uncertainty in the judgment
 
-shortExplanationは、判断結果の簡潔な要約を80文字以内で記載してください。
-例: "契約書に署名と捺印が確認できるため合格" や "物件面積の記載がないため不合格" など
+The shortExplanation should be a concise summary of the judgment within 80 characters.
+For example: "Pass because signatures and seals are confirmed on the contract" or "Fail because property area is not mentioned"
 
-出力例1 (高い信頼度でパス):
+Example response (note: the examples below are in English, but YOUR RESPONSE MUST BE IN ${languageName}):
+
+Example 1 (high confidence pass):
 {
   "result": "pass",
   "confidence": 0.95,
-  "explanation": "契約書第3条に契約者の氏名、住所、連絡先が明確に記載されています。すべての必要情報が含まれており、正確です。",
-  "shortExplanation": "契約書第3条に契約者情報が明確に記載されているため合格",
-  "extractedText": "第3条（契約者情報）契約者：山田太郎、住所：東京都千代田区...",
+  "explanation": "The contract clearly states the contractor's name, address, and contact information in Article 3. All required information is present and accurate.",
+  "shortExplanation": "Pass because contractor information is clearly stated in Article 3 of the contract",
+  "extractedText": "Article 3 (Contractor Information) Contractor: John Smith, Address: 123 Main St...",
   "pageNumber": 2
 }
 
-出力例2 (中程度の信頼度で失敗):
+Example 2 (medium confidence fail):
 {
   "result": "fail",
   "confidence": 0.82,
-  "explanation": "契約書に物件の所在地は記載されていますが、面積の記載が見当たりません。チェック項目では面積の記載が必要とされています。",
-  "shortExplanation": "物件所在地はあるが面積の記載がないため不合格",
-  "extractedText": "物件所在地：東京都新宿区西新宿1-1-1",
+  "explanation": "While the property location is mentioned in the contract, there is no mention of the property area. The check item requires the area to be specified.",
+  "shortExplanation": "Fail because property area is not mentioned despite having property location",
+  "extractedText": "Property location: 1-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo",
   "pageNumber": 1
 }
 
-出力例3 (低い信頼度でパス):
+Example 3 (low confidence pass):
 {
   "result": "pass",
   "confidence": 0.65,
-  "explanation": "契約書に支払条件の記載はありますが、具体的な支払日の記載が曖昧です。ただし最低限の条件は満たしていると判断します。",
-  "shortExplanation": "支払条件の記載はあるが具体的な支払日が曖昧、最低条件は満たす",
-  "extractedText": "代金は契約締結後、速やかに支払うものとする。",
+  "explanation": "The contract mentions payment terms, but the specific payment date is ambiguous. However, it meets the minimum requirements.",
+  "shortExplanation": "Pass as payment terms exist though payment date is ambiguous",
+  "extractedText": "Payment shall be made promptly after contract conclusion.",
   "pageNumber": 3
 }
+
+REMEMBER: YOUR ENTIRE RESPONSE INCLUDING ALL JSON FIELD VALUES MUST BE IN ${languageName}.
 `;
+};
 
 /**
- * 審査項目処理パラメータ
+ * Review item processing parameters
  */
 interface ProcessReviewItemParams {
   reviewJobId: string;
   checkId: string;
   reviewResultId: string;
+  userId?: string; // Optional user ID for language preference
 }
 
 /**
- * 審査項目を処理する
- * @param params 処理パラメータ
- * @returns 処理結果
+ * Process a review item
+ * @param params Processing parameters
+ * @returns Processing result
  */
 export async function processReviewItem(
   params: ProcessReviewItemParams
 ): Promise<any> {
-  const { reviewJobId, checkId, reviewResultId } = params;
+  const { reviewJobId, checkId, reviewResultId, userId } = params;
   const reviewJobRepository = await makePrismaReviewJobRepository();
 
-  // ジョブに関連するドキュメント情報を取得
+  // Get user preference for language if userId is provided
+  let userLanguage = DEFAULT_LANGUAGE;
+  if (userId) {
+    try {
+      console.log(
+        `[DEBUG REVIEW] Attempting to get language preference for user ${userId}`
+      );
+      const userPreferenceRepository =
+        await makePrismaUserPreferenceRepository();
+      console.log(
+        `[DEBUG REVIEW] Repository created, calling getUserPreference...`
+      );
+      const userPreference =
+        await userPreferenceRepository.getUserPreference(userId);
+      console.log(
+        `[DEBUG REVIEW] User preference retrieved:`,
+        JSON.stringify(userPreference, null, 2)
+      );
+
+      if (userPreference && userPreference.language) {
+        userLanguage = userPreference.language;
+        console.log(
+          `[DEBUG REVIEW] Setting user language from preference: ${userLanguage}`
+        );
+      } else {
+        console.log(
+          `[DEBUG REVIEW] No language preference found in user data, using default: ${DEFAULT_LANGUAGE}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `[DEBUG REVIEW] Failed to fetch user language preference:`,
+        error
+      );
+      // Continue with default language
+    }
+  } else {
+    console.log(
+      `[DEBUG REVIEW] No userId provided, using default language: ${DEFAULT_LANGUAGE}`
+    );
+  }
+
+  // Get document information related to the job
   const jobDetail = await reviewJobRepository.findReviewJobById({
     reviewJobId,
   });
@@ -111,8 +168,8 @@ export async function processReviewItem(
     throw new Error(`No documents found for review job ${reviewJobId}`);
   }
 
-  // ドキュメントタイプによって処理を分岐
-  // 同じタイプのドキュメントをグループ化
+  // Branch processing based on document type
+  // Group documents of the same type
   const imageDocuments = jobDetail.documents.filter(
     (doc) => doc.fileType === REVIEW_FILE_TYPE.IMAGE
   );
@@ -120,21 +177,29 @@ export async function processReviewItem(
     (doc) => doc.fileType === REVIEW_FILE_TYPE.PDF
   );
 
-  // 画像ドキュメントがある場合
+  // If there are image documents
   if (imageDocuments.length > 0) {
+    console.log(
+      `[DEBUG REVIEW] Processing image documents with userId: ${userId}`
+    );
     return processImageReviewItem({
       reviewJobId: params.reviewJobId,
       documents: imageDocuments,
       checkId: params.checkId,
       reviewResultId: params.reviewResultId,
+      userId: params.userId,
     });
-    // PDFドキュメントがある場合
+    // If there are PDF documents
   } else if (pdfDocuments.length > 0) {
+    console.log(
+      `[DEBUG REVIEW] Processing PDF documents with userId: ${userId}`
+    );
     return processPdfReviewItem({
       reviewJobId,
       documents: pdfDocuments,
       checkId,
       reviewResultId,
+      userId,
     });
   } else {
     throw new Error(
@@ -146,9 +211,9 @@ export async function processReviewItem(
 import { createHash } from "crypto";
 
 /**
- * ファイル名をBedrockの要件に合わせてサニタイズする
- * @param filename サニタイズするファイル名
- * @returns サニタイズされたファイル名
+ * Sanitize filename to meet Bedrock requirements
+ * @param filename Filename to sanitize
+ * @returns Sanitized filename
  */
 function sanitizeFileNameForBedrock(filename: string): string {
   const parts = filename.split(".");
@@ -168,9 +233,9 @@ function sanitizeFileNameForBedrock(filename: string): string {
 }
 
 /**
- * PDF 審査項目を処理する
- * @param params 処理パラメータ
- * @returns 処理結果
+ * Process a PDF review item
+ * @param params Processing parameters
+ * @returns Processing result
  */
 async function processPdfReviewItem(params: {
   reviewJobId: string;
@@ -182,24 +247,67 @@ async function processPdfReviewItem(params: {
   }>;
   checkId: string;
   reviewResultId: string;
+  userId?: string; // Optional user ID for language preference
 }): Promise<any> {
-  const { reviewJobId, documents, checkId, reviewResultId } = params;
+  const { reviewJobId, documents, checkId, reviewResultId, userId } = params;
   const reviewResultRepository = await makePrismaReviewResultRepository();
   const checkRepository = await makePrismaCheckRepository();
 
+  // Get user preference for language if userId is provided
+  let userLanguage = DEFAULT_LANGUAGE;
+  if (userId) {
+    try {
+      console.log(
+        `[DEBUG PDF] Attempting to get language preference for user ${userId}`
+      );
+      const userPreferenceRepository =
+        await makePrismaUserPreferenceRepository();
+      console.log(
+        `[DEBUG PDF] Repository created, calling getUserPreference...`
+      );
+      const userPreference =
+        await userPreferenceRepository.getUserPreference(userId);
+      console.log(
+        `[DEBUG PDF] User preference retrieved:`,
+        JSON.stringify(userPreference, null, 2)
+      );
+
+      if (userPreference && userPreference.language) {
+        userLanguage = userPreference.language;
+        console.log(
+          `[DEBUG PDF] Setting user language from preference: ${userLanguage}`
+        );
+      } else {
+        console.log(
+          `[DEBUG PDF] No language preference found in user data, using default: ${DEFAULT_LANGUAGE}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `[DEBUG PDF] Failed to fetch user language preference:`,
+        error
+      );
+      // Continue with default language
+    }
+  } else {
+    console.log(
+      `[DEBUG PDF] No userId provided, using default language: ${DEFAULT_LANGUAGE}`
+    );
+  }
+
   try {
-    // チェックリスト項目の取得
+    // Get checklist item
     const checkList = await checkRepository.findCheckListItemById(checkId);
 
     if (!checkList) {
       throw new Error(`Check list item not found: ${checkId}`);
     }
 
-    // S3からドキュメントを取得
+    // Get documents from S3
     const s3Client = new S3Client({});
     const bucketName = process.env.DOCUMENT_BUCKET || "";
 
-    // 複数のPDFをロード
+    // Load multiple PDFs
     const pdfContents = await Promise.all(
       documents.map(async (document) => {
         const s3Key = document.s3Path;
@@ -234,18 +342,25 @@ async function processPdfReviewItem(params: {
       })
     );
 
-    // プロンプトの準備
-    const prompt = REVIEW_PROMPT.replace("{checkName}", checkList.name).replace(
-      "{checkDescription}",
-      checkList.description || "説明なし"
+    // Prepare prompt based on user language
+    console.log(
+      `[DEBUG PDF] Processing review item ${reviewResultId} for check ${checkId} with userId: ${userId}, user language: ${userLanguage}`
     );
+    const reviewPrompt = getReviewPrompt(userLanguage);
+    const prompt = reviewPrompt
+      .replace("{checkName}", checkList.name)
+      .replace(
+        "{checkDescription}",
+        checkList.description ||
+          (userLanguage === "ja" ? "説明なし" : "No description")
+      );
 
-    // Bedrockを使用して審査
+    // Use Bedrock for review
     const bedrockClient = new BedrockRuntimeClient({
       region: BEDROCK_REGION,
     });
 
-    // 複数のPDFをコンテンツとして追加
+    // Add multiple PDFs as content
     const pdfContentsForBedrock = pdfContents.map((pdf) => ({
       document: {
         name: sanitizeFileNameForBedrock(pdf.filename),
@@ -271,7 +386,7 @@ async function processPdfReviewItem(params: {
       })
     );
 
-    // レスポンスからテキストを抽出
+    // Extract text from response
     let llmResponse = "";
     if (response.output?.message?.content) {
       response.output.message.content.forEach((block) => {
@@ -281,25 +396,25 @@ async function processPdfReviewItem(params: {
       });
     }
 
-    // キャッシュメトリクスのログ出力
+    // Log cache metrics
     const usage = response.usage as TokenUsage;
     const cacheReadTokens = usage?.cacheReadInputTokens || 0;
     const cacheWriteTokens = usage?.cacheWriteInputTokens || 0;
     const inputTokens = usage?.inputTokens || 0;
     const latencyMs = response.metrics?.latencyMs || 0;
 
-    let cacheStatus = "未使用";
+    let cacheStatus = "unused";
     if (cacheReadTokens > 0) {
-      cacheStatus = "ヒット";
+      cacheStatus = "hit";
     } else if (cacheWriteTokens > 0) {
-      cacheStatus = "作成";
+      cacheStatus = "created";
     }
 
     console.log(
-      `[プロンプトキャッシュ] 状態: ${cacheStatus}, 読取: ${cacheReadTokens}, 書込: ${cacheWriteTokens}, 入力: ${inputTokens}, レイテンシー: ${latencyMs}ms, 審査項目ID: ${checkId}`
+      `[Prompt Cache] Status: ${cacheStatus}, Read: ${cacheReadTokens}, Write: ${cacheWriteTokens}, Input: ${inputTokens}, Latency: ${latencyMs}ms, Check item ID: ${checkId}`
     );
 
-    // JSONレスポンスを抽出
+    // Extract JSON response
     const jsonMatch = llmResponse.match(/\{[\s\S]*\}/);
     let reviewData;
 
@@ -307,18 +422,18 @@ async function processPdfReviewItem(params: {
       try {
         reviewData = JSON.parse(jsonMatch[0]);
       } catch (error) {
-        // JSONパースに失敗した場合、リトライ
-        console.error("JSONパースに失敗しました。リトライします。");
+        // If JSON parsing fails, retry
+        console.error("JSON parsing failed. Retrying...");
 
-        // リトライ用のプロンプト
+        // Retry prompt
         const retryPrompt = `
 ${prompt}
 
-前回の応答をJSONとして解析できませんでした。必ず有効なJSONオブジェクトのみを返してください。
-マークダウンの記法（\`\`\`json など）は使用せず、純粋なJSONのみを返してください。
+The previous response could not be parsed as JSON. Please return only a valid JSON object.
+Do not use markdown syntax (like \`\`\`json), return only pure JSON.
 `;
 
-        // リトライ時も複数のPDFをコンテンツとして追加
+        // Add multiple PDFs as content for retry as well
         const retryResponse = await bedrockClient.send(
           new ConverseCommand({
             modelId: MODEL_ID,
@@ -334,7 +449,7 @@ ${prompt}
           })
         );
 
-        // リトライレスポンスからテキストを抽出
+        // Extract text from retry response
         let retryLlmResponse = "";
         if (retryResponse.output?.message?.content) {
           retryResponse.output.message.content.forEach((block) => {
@@ -344,36 +459,36 @@ ${prompt}
           });
         }
 
-        // リトライ時のキャッシュメトリクスのログ出力
+        // Log cache metrics for retry
         const retryUsage = retryResponse.usage as TokenUsage;
         const retryCacheReadTokens = retryUsage?.cacheReadInputTokens || 0;
         const retryCacheWriteTokens = retryUsage?.cacheWriteInputTokens || 0;
         const retryInputTokens = retryUsage?.inputTokens || 0;
         const retryLatencyMs = retryResponse.metrics?.latencyMs || 0;
 
-        let retryCacheStatus = "未使用";
+        let retryCacheStatus = "unused";
         if (retryCacheReadTokens > 0) {
-          retryCacheStatus = "ヒット";
+          retryCacheStatus = "hit";
         } else if (retryCacheWriteTokens > 0) {
-          retryCacheStatus = "作成";
+          retryCacheStatus = "created";
         }
 
         console.log(
-          `[プロンプトキャッシュ(リトライ)] 状態: ${retryCacheStatus}, 読取: ${retryCacheReadTokens}, 書込: ${retryCacheWriteTokens}, 入力: ${retryInputTokens}, レイテンシー: ${retryLatencyMs}ms, 審査項目ID: ${checkId}`
+          `[Prompt Cache (Retry)] Status: ${retryCacheStatus}, Read: ${retryCacheReadTokens}, Write: ${retryCacheWriteTokens}, Input: ${retryInputTokens}, Latency: ${retryLatencyMs}ms, Check item ID: ${checkId}`
         );
 
         const retryJsonMatch = retryLlmResponse.match(/\{[\s\S]*\}/);
         if (!retryJsonMatch) {
-          throw new Error("リトライ後もJSONレスポンスを抽出できませんでした。");
+          throw new Error("Failed to extract JSON response even after retry.");
         }
 
         reviewData = JSON.parse(retryJsonMatch[0]);
       }
     } else {
-      throw new Error("JSONレスポンスを抽出できませんでした。");
+      throw new Error("Failed to extract JSON response.");
     }
 
-    // 審査結果を更新
+    // Update review results
     const current = await reviewResultRepository.findDetailedReviewResultById({
       resultId: reviewResultId,
     });

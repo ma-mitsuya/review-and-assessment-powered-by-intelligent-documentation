@@ -8,7 +8,7 @@ import {
   makePrismaPromptTemplateRepository,
 } from "../domain/repository";
 import { NotFoundError } from "../../../core/errors";
-import { CHECKLIST_EXTRACTION_PROMPT } from "../../../../checklist-workflow/document-processing/llm-processing";
+import { getChecklistExtractionPrompt } from "../../../../checklist-workflow/document-processing/llm-processing";
 
 export const getPromptTemplates = async (params: {
   userId: string;
@@ -100,29 +100,55 @@ export const getChecklistPromptForProcessing = async (params: {
     repo?: PromptTemplateRepository;
   };
 }): Promise<string> => {
-  // テンプレートIDが指定されていない場合はデフォルトプロンプトを返す
+  // If templateId is not specified, return the default prompt
+  // Use the user's language if available, otherwise use default ('en')
+  const userLanguage = params.userId
+    ? await getUserLanguage(params.userId)
+    : "en";
+
   if (!params.templateId) {
     console.info(
       "No templateId provided, using default checklist extraction prompt"
     );
-    return CHECKLIST_EXTRACTION_PROMPT;
+    return getChecklistExtractionPrompt(userLanguage);
   }
 
   const repo =
     params.deps?.repo || (await makePrismaPromptTemplateRepository());
 
   try {
-    // テンプレートIDが指定されている場合はそのテンプレートを取得
+    // Get the template if templateId is specified
     const template = await repo.getPromptTemplateById(params.templateId);
     if (template.type !== PromptTemplateType.CHECKLIST) {
       console.warn(
         `Template ${params.templateId} is not a checklist template, using default`
       );
-      return CHECKLIST_EXTRACTION_PROMPT;
+      return getChecklistExtractionPrompt(userLanguage);
     }
     return template.prompt;
   } catch (error) {
     console.error(`Error fetching prompt template: ${error}`);
-    return CHECKLIST_EXTRACTION_PROMPT;
+    return getChecklistExtractionPrompt(userLanguage);
+  }
+};
+
+// Helper function to get the user's language preference
+const getUserLanguage = async (userId: string): Promise<string> => {
+  try {
+    const { makePrismaUserPreferenceRepository } = await import(
+      "../../user-preference/domain/repository"
+    );
+    const userPreferenceRepository = await makePrismaUserPreferenceRepository();
+    const userPreference =
+      await userPreferenceRepository.getUserPreference(userId);
+
+    if (userPreference && userPreference.language) {
+      return userPreference.language;
+    }
+
+    return "en"; // Default to English if no preference is found
+  } catch (error) {
+    console.error("Failed to fetch user language preference:", error);
+    return "en"; // Default to English on error
   }
 };

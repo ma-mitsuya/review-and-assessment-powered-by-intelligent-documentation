@@ -37,6 +37,7 @@ async function handleProcessReviewItem(event: any) {
     reviewJobId: event.reviewJobId,
     checkId: event.checkId,
     reviewResultId: event.reviewResultId,
+    userId: event.userId,
   });
 }
 

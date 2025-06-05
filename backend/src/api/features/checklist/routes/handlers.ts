@@ -55,6 +55,7 @@ export const createChecklistSetHandler = async (
 ): Promise<void> => {
   await createChecklistSet({
     req: request.body,
+    userId: request.user?.sub,
   });
 
   reply.code(200).send({

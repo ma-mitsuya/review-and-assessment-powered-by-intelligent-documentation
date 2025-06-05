@@ -107,7 +107,6 @@
     "createError": "チェックリストセットの作成に失敗しました",
     "fileUploadError": "ファイルのアップロードに失敗しました",
     "name": "名前",
-    "description": "説明",
     "namePlaceholder": "チェックリストセットの名前",
     "descriptionPlaceholder": "チェックリストセットの説明",
     "status": "ステータス",
