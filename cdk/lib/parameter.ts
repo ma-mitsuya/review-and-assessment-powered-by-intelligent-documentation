@@ -28,4 +28,5 @@ export const parameters = {
   // cognitoUserPoolId: "ap-northeast-1_xxxxxxxxx", // 既存のCognito User Pool ID
   // cognitoUserPoolClientId: "1example23456789", // 既存のCognito User Pool Client ID
   // cognitoDomainPrefix: "myapp-login", // Cognitoドメインのプレフィックス
+  // cognitoSelfSignUpEnabled: false, // Cognito User Poolのセルフサインアップを無効化（セキュリティ強化のため推奨）
 };

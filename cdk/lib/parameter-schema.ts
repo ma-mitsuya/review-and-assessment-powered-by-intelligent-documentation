@@ -29,6 +29,11 @@ const parameterSchema = z.object({
   cognitoUserPoolClientId: z.string().optional(),
 
   cognitoDomainPrefix: z.string().optional(),
+
+  cognitoSelfSignUpEnabled: z
+    .boolean()
+    .default(true)
+    .describe("Cognito User Poolのセルフサインアップを有効にするかどうか"),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -130,6 +135,15 @@ export function extractContextParameters(app: any): Record<string, any> {
   );
   if (cognitoDomainPrefix !== undefined) {
     params.cognitoDomainPrefix = cognitoDomainPrefix;
+  }
+
+  // セルフサインアップ有効/無効設定の取得
+  const cognitoSelfSignUpEnabled = app.node.tryGetContext(
+    "rapid.cognitoSelfSignUpEnabled"
+  );
+  if (cognitoSelfSignUpEnabled !== undefined) {
+    params.cognitoSelfSignUpEnabled =
+      cognitoSelfSignUpEnabled === "true" || cognitoSelfSignUpEnabled === true;
   }
 
   return params;

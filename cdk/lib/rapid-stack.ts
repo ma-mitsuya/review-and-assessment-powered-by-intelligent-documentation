@@ -122,6 +122,7 @@ export class RapidStack extends cdk.Stack {
       cognitoUserPoolId: props.parameters.cognitoUserPoolId,
       cognitoUserPoolClientId: props.parameters.cognitoUserPoolClientId,
       cognitoDomainPrefix: props.parameters.cognitoDomainPrefix,
+      cognitoSelfSignUpEnabled: props.parameters.cognitoSelfSignUpEnabled,
     });
 
     // API Gatewayとそれに紐づくLambda関数の作成
