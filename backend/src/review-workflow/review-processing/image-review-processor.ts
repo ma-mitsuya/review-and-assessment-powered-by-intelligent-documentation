@@ -8,24 +8,33 @@ import {
   makePrismaReviewJobRepository,
   makePrismaReviewResultRepository,
 } from "../../api/features/review/domain/repository";
+import { makePrismaUserPreferenceRepository } from "../../api/features/user-preference/domain/repository";
 import {
   REVIEW_JOB_STATUS,
   ReviewResultDomain,
 } from "../../api/features/review/domain/model/review";
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
+import { getLanguageName, DEFAULT_LANGUAGE } from "../../utils/language";
 
-// 使用するモデル ID を定義
-const MODEL_ID = "us.amazon.nova-premier-v1:0"; // Amazon Nova Premier クロスリージョン推論プロファイル
+// Define model ID
+const MODEL_ID = "us.amazon.nova-premier-v1:0"; // Amazon Nova Premier cross-region inference profile
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
-// 審査プロンプト (画像用)
-const IMAGE_REVIEW_PROMPT = `
+// Helper function to get the image review prompt based on language
+const getImageReviewPrompt = (language: string) => {
+  const languageName = getLanguageName(language);
+
+  return `
 You are an AI assistant who reviews documents.
 Please review the provided image based on the following check items.
 
 Check item: {checkName}
 Description: {checkDescription}
+
+## IMPORTANT OUTPUT LANGUAGE REQUIREMENT
+YOU MUST GENERATE THE ENTIRE OUTPUT IN ${languageName}.
+THIS IS A STRICT REQUIREMENT. ALL TEXT INCLUDING ALL JSON FIELD VALUES MUST BE IN ${languageName}.
 
 Review the content of the image and determine whether it complies with this check item.
 If multiple images are provided, each image can be referenced with a zero-based index (0th, 1st, etc.).
@@ -35,22 +44,24 @@ Coordinates should be specified in the format [x1, y1, x2, y2], with values rang
 
 Here are examples of responses:
 
+Example response (note: the examples below are in English, but YOUR RESPONSE MUST BE IN ${languageName}):
+
 Example 1: For a check item "Multiple documents should have signatures" with 5 images provided
 {
   "result": "pass",
   "confidence": 0.92,
-  "explanation": "提供された5枚の画像のうち、0番目と2番目の画像に署名が確認できます。0番目の画像には契約書の署名、2番目の画像には同意書の署名があります。",
-  "shortExplanation": "0番目と2番目の画像に契約書と同意書の署名が確認できるため合格",
+  "explanation": "Out of the 5 provided images, signatures can be confirmed in the 0th and 2nd images. The 0th image has a contract signature, and the 2nd image has a consent form signature.",
+  "shortExplanation": "Pass because contract and consent form signatures are confirmed in the 0th and 2nd images",
   "usedImageIndexes": [0, 2],
   "boundingBoxes": [
     {
       "imageIndex": 0,
-      "label": "契約書署名",
+      "label": "Contract signature",
       "coordinates": [750, 800, 950, 850]
     },
     {
       "imageIndex": 2,
-      "label": "同意書署名",
+      "label": "Consent form signature",
       "coordinates": [500, 700, 700, 750]
     }
   ]
@@ -60,18 +71,18 @@ Example 2: For a check item "ID card should include photo and expiration date" w
 {
   "result": "pass",
   "confidence": 0.95,
-  "explanation": "身分証明書には顔写真と有効期限の両方が含まれています。有効期限: 2028年5月31日",
-  "shortExplanation": "身分証明書に顔写真と有効期限（2028年5月31日）が確認できるため合格",
+  "explanation": "The ID card includes both a photo and an expiration date. Expiration date: May 31, 2028",
+  "shortExplanation": "Pass because the ID card contains both a photo and expiration date (May 31, 2028)",
   "usedImageIndexes": [0],
   "boundingBoxes": [
     {
       "imageIndex": 0,
-      "label": "顔写真",
+      "label": "Photo",
       "coordinates": [100, 150, 300, 350]
     },
     {
       "imageIndex": 0,
-      "label": "有効期限",
+      "label": "Expiration date",
       "coordinates": [400, 500, 600, 530]
     }
   ]
@@ -79,27 +90,30 @@ Example 2: For a check item "ID card should include photo and expiration date" w
 
 It is strictly forbidden to output anything other than JSON. Do not use markdown syntax (like \`\`\`json), return only pure JSON.
 
-shortExplanationは、判断結果の簡潔な要約を80文字以内で記載してください。
-例: "契約書に署名と捺印が確認できるため合格" や "物件面積の記載がないため不合格" など
+The shortExplanation should be a concise summary of the judgment within 80 characters.
+For example: "Pass because signatures and seals are confirmed on the contract" or "Fail because property area is not mentioned"
 
 {
   "result": "pass" or "fail",
   "confidence": A number between 0 and 1 (confidence level),
-  "explanation": "Explanation of the judgment in Japanese",
-  "shortExplanation": "Short summary of judgment (within 80 characters) in Japanese",
+  "explanation": "Explanation of the judgment (IN ${languageName})",
+  "shortExplanation": "Short summary of judgment (within 80 characters) (IN ${languageName})",
   "usedImageIndexes": [Indexes of images used for judgment (e.g., [0, 2] means the first and third images were used)],
   "boundingBoxes": [
     {
       "imageIndex": Image index,
-      "label": "Label of detected object in Japanese",
+      "label": "Label of detected object (IN ${languageName})",
       "coordinates": [x1, y1, x2, y2]
     }
   ]
 }
+
+REMEMBER: YOUR ENTIRE RESPONSE INCLUDING ALL JSON FIELD VALUES MUST BE IN ${languageName}.
 `;
+};
 
 /**
- * 画像審査項目処理パラメータ
+ * Image review item processing parameters
  */
 interface ProcessImageReviewItemParams {
   reviewJobId: string;
@@ -111,33 +125,73 @@ interface ProcessImageReviewItemParams {
   }>;
   checkId: string;
   reviewResultId: string;
+  userId?: string; // Optional user ID for language preference
 }
 
 /**
- * 画像審査項目を処理する
- * @param params 処理パラメータ
- * @returns 処理結果
+ * Process an image review item
+ * @param params Processing parameters
+ * @returns Processing result
  */
 export async function processImageReviewItem(
   params: ProcessImageReviewItemParams
 ): Promise<any> {
-  const { reviewJobId, documents, checkId, reviewResultId } = params;
+  const { reviewJobId, documents, checkId, reviewResultId, userId } = params;
   const reviewResultRepository = await makePrismaReviewResultRepository();
   const checkRepository = await makePrismaCheckRepository();
 
+  // Get user preference for language if userId is provided
+  let userLanguage = DEFAULT_LANGUAGE;
+  if (userId) {
+    try {
+      console.log(
+        `[DEBUG IMAGE] Attempting to get language preference for user ${userId}`
+      );
+      const userPreferenceRepository =
+        await makePrismaUserPreferenceRepository();
+      const userPreference =
+        await userPreferenceRepository.getUserPreference(userId);
+      console.log(
+        `[DEBUG IMAGE] User preference retrieved:`,
+        JSON.stringify(userPreference, null, 2)
+      );
+
+      if (userPreference && userPreference.language) {
+        userLanguage = userPreference.language;
+        console.log(
+          `[DEBUG IMAGE] Setting user language from preference: ${userLanguage}`
+        );
+      } else {
+        console.log(
+          `[DEBUG IMAGE] No language preference found in user data, using default: ${DEFAULT_LANGUAGE}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `[DEBUG IMAGE] Failed to fetch user language preference:`,
+        error
+      );
+      // Continue with default language
+    }
+  } else {
+    console.log(
+      `[DEBUG IMAGE] No userId provided, using default language: ${DEFAULT_LANGUAGE}`
+    );
+  }
+
   try {
-    // チェックリスト項目の取得
+    // Get checklist item
     const checkList = await checkRepository.findCheckListItemById(checkId);
 
     if (!checkList) {
       throw new Error(`Check list item not found: ${checkId}`);
     }
 
-    // S3から画像ファイルを取得
+    // Get image files from S3
     const s3Client = new S3Client({});
     const bucketName = process.env.DOCUMENT_BUCKET || "";
 
-    // 最大20枚までの画像を取得
+    // Get up to 20 images
     const imageBuffers = await Promise.all(
       documents.slice(0, 20).map(async (doc) => {
         const { Body } = await s3Client.send(
@@ -159,21 +213,28 @@ export async function processImageReviewItem(
       })
     );
 
-    // プロンプトの準備
-    const prompt = IMAGE_REVIEW_PROMPT.replace(
-      "{checkName}",
-      checkList.name
-    ).replace("{checkDescription}", checkList.description || "説明なし");
+    // Prepare prompt based on user language
+    console.log(
+      `[DEBUG IMAGE] Processing check item ${checkId} for review result ${reviewResultId} with userId: ${userId}, user language: ${userLanguage}`
+    );
+    const imageReviewPrompt = getImageReviewPrompt(userLanguage);
+    const prompt = imageReviewPrompt
+      .replace("{checkName}", checkList.name)
+      .replace(
+        "{checkDescription}",
+        checkList.description ||
+          (userLanguage === "ja" ? "説明なし" : "No description")
+      );
 
-    // Bedrockを使用して審査
+    // Use Bedrock for review
     const bedrockClient = new BedrockRuntimeClient({
       region: BEDROCK_REGION,
     });
 
-    // メッセージの構築
+    // Build message
     const messageContent: any[] = [{ text: prompt }];
 
-    // 画像をメッセージに追加
+    // Add images to message
     imageBuffers.forEach((img) => {
       const fileExtension = img.filename.split(".").pop()?.toLowerCase();
       const format = fileExtension === "png" ? "png" : "jpeg";
@@ -205,7 +266,7 @@ export async function processImageReviewItem(
       })
     );
 
-    // レスポンスからテキストを抽出
+    // Extract text from response
     let llmResponse = "";
     if (response.output?.message?.content) {
       response.output.message.content.forEach((block) => {
@@ -215,16 +276,16 @@ export async function processImageReviewItem(
       });
     }
 
-    // キャッシュメトリクスのログ出力
+    // Log cache metrics
     const usage = response.usage as TokenUsage;
     const inputTokens = usage?.inputTokens || 0;
     const latencyMs = response.metrics?.latencyMs || 0;
 
     console.log(
-      `[画像審査] 入力トークン: ${inputTokens}, レイテンシー: ${latencyMs}ms, 審査項目ID: ${checkId}`
+      `[Image Review] Input tokens: ${inputTokens}, Latency: ${latencyMs}ms, Check item ID: ${checkId}`
     );
 
-    // JSONレスポンスを抽出
+    // Extract JSON response
     const jsonMatch = llmResponse.match(/\{[\s\S]*\}/);
     let reviewData;
 
@@ -232,10 +293,10 @@ export async function processImageReviewItem(
       try {
         reviewData = JSON.parse(jsonMatch[0]);
       } catch (error) {
-        // JSONパースに失敗した場合、リトライ
-        console.error("JSONパースに失敗しました。リトライします。");
+        // If JSON parsing fails, retry
+        console.error("JSON parsing failed. Retrying...");
 
-        // リトライ用のプロンプト
+        // Retry prompt
         const retryPrompt = `
 ${prompt}
 
@@ -243,10 +304,10 @@ ${prompt}
 マークダウンの記法（\`\`\`json など）は使用せず、純粋な JSON のみを返してください。
 `;
 
-        // リトライメッセージの構築
+        // Build retry message
         const retryMessageContent: any[] = [{ text: retryPrompt }];
 
-        // 画像をリトライメッセージに追加
+        // Add images to retry message
         imageBuffers.forEach((img) => {
           const fileExtension = img.filename.split(".").pop()?.toLowerCase();
           const format = fileExtension === "png" ? "png" : "jpeg";
@@ -278,7 +339,7 @@ ${prompt}
           })
         );
 
-        // リトライレスポンスからテキストを抽出
+        // Extract text from retry response
         let retryLlmResponse = "";
         if (retryResponse.output?.message?.content) {
           retryResponse.output.message.content.forEach((block) => {
@@ -290,16 +351,16 @@ ${prompt}
 
         const retryJsonMatch = retryLlmResponse.match(/\{[\s\S]*\}/);
         if (!retryJsonMatch) {
-          throw new Error("リトライ後もJSONレスポンスを抽出できませんでした。");
+          throw new Error("Failed to extract JSON response even after retry.");
         }
 
         reviewData = JSON.parse(retryJsonMatch[0]);
       }
     } else {
-      throw new Error("JSONレスポンスを抽出できませんでした。");
+      throw new Error("Failed to extract JSON response.");
     }
 
-    // 審査結果を更新
+    // Update review results
     const current = await reviewResultRepository.findDetailedReviewResultById({
       resultId: reviewResultId,
     });
@@ -329,7 +390,7 @@ ${prompt}
       error
     );
 
-    // エラー発生時は審査結果のステータスを失敗に更新
+    // Update review job status to failed when error occurs
     const reviewJobRepository = await makePrismaReviewJobRepository();
     await reviewJobRepository.updateJobStatus({
       reviewJobId,

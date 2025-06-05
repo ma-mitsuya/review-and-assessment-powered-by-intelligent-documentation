@@ -124,9 +124,10 @@ export const createReviewJob = async (params: {
     );
   }
 
-  // Invoke the state machine with file type information
+  // Invoke the state machine with file type information and userId for language preferences
   await startStateMachineExecution(stateMachineArn, {
     reviewJobId: reviewJob.id,
+    userId: params.requestBody.userId,
   });
 };
 

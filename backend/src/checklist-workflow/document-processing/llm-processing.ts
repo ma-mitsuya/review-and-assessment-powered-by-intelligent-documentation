@@ -1,5 +1,5 @@
 /**
- * LLMを使用したチェックリスト抽出処理
+ * Checklist extraction processing using LLM
  */
 import {
   S3Client,
@@ -10,88 +10,141 @@ import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
+import { makePrismaUserPreferenceRepository } from "../../api/features/user-preference/domain/repository";
 import {
   getChecklistPageKey,
   getChecklistLlmOcrTextKey,
 } from "../common/storage-paths";
 import { ParsedChecklistItem, ProcessWithLLMResult } from "../common/types";
+import { getLanguageName, DEFAULT_LANGUAGE } from "../../utils/language";
 import { ulid } from "ulid";
 
-// 使用するモデルIDを定義
+// Define model ID
 const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 
-export const CHECKLIST_EXTRACTION_PROMPT = `
-あなたは技術文書、法律文書、表や図面から「チェックリスト」を抽出して構造化するAIアシスタントです。
+// Helper function to get the checklist extraction prompt based on language
+export const getChecklistExtractionPrompt = (language: string) => {
+  const languageName = getLanguageName(language);
 
-## 概要
-非構造化データから、チェックリスト項目を抽出し、階層構造も含めて構造化してください。
+  return `
+You are an AI assistant that extracts and structures "checklists" from technical documents, legal documents, tables, and diagrams.
 
-## 出力形式
-厳密なJSON配列形式で出力してください。マークダウンの記法（\`\`\`json など）は使用せず、純粋なJSON配列のみを返してください。
+## Overview
+Extract checklist items from unstructured data and structure them including their hierarchical relationships.
 
-重要: 必ず配列形式（[ ]で囲まれた形式）で出力してください。オブジェクト（{ }）ではなく配列を返してください。
+## IMPORTANT OUTPUT LANGUAGE REQUIREMENT
+YOU MUST GENERATE THE ENTIRE OUTPUT IN ${languageName}.
+THIS IS A STRICT REQUIREMENT. ALL TEXT INCLUDING JSON FIELD VALUES MUST BE IN ${languageName}.
 
-各チェックリスト項目は以下のフィールドを含みます：
+## Output Format
+Output in strict JSON array format. Do not use markdown syntax (like \`\`\`json), return only a pure JSON array.
 
-- name: チェック項目の名前
-- description: チェック内容の詳細説明
-- parent_id: 親項目の番号（最上位項目はnull）
+Important: Always output in array format (enclosed in [ ]). Return an array, not an object ({ }).
 
-## 抽出ルール
-1. 単純なチェック項目とフローチャート型項目を識別してください
-2. 階層構造は親子関係で表現してください（parent_id）
-3. すべてのチェック項目を漏れなく抽出してください
-4. 重複は排除し、整理してください
-5. parent_id は数値で表現してください（0開始、最上位項目はnull）
+Each checklist item should include the following fields:
 
-## 例：正しい出力形式（配列）
+- name: The name of the check item (IN ${languageName})
+- description: Detailed explanation of the check content (IN ${languageName})
+- parent_id: The number of the parent item (null for top-level items)
+
+## Extraction Rules
+1. Identify simple check items and flowchart-type items
+2. Express hierarchical structure through parent-child relationships (parent_id)
+3. Extract all check items without omissions
+4. Eliminate and organize duplicates
+5. Express parent_id as a number (starting from 0, null for top-level items)
+
+## Example Output Format (Array)
+Example response (note: the example below is in English, but YOUR RESPONSE MUST BE IN ${languageName}):
+
 [
   {
-    "name": "契約当事者の記載",
-    "description": "契約書に両当事者の正式名称が正確に記載されているか",
+    "name": "Contract party description",
+    "description": "Whether both parties' official names are accurately described in the contract",
     "parent_id": 0
   },
   {
-    "name": "特定された資産があるか",
-    "description": "特定された資産があるか、当該判断においては、サプライヤーが使用期間全体を通じて資産を代替する実質上の能力を有するか考慮する",
+    "name": "Identified asset exists",
+    "description": "Whether there is an identified asset, considering whether the supplier has the substantive ability to substitute the asset throughout the period of use",
     "parent_id": null
   }
 ]
 
-## 注意事項
-- 文書から抽出可能なすべての情報を含めてください
-- 階層構造を正確に反映させてください
-- 出力は厳密なJSON配列のみとし、説明文やマークダウン記法（\`\`\`json のようなコードブロック）は含めないでください
-- 入力された文書の言語と同じ言語で出力してください
-- parent_id は必ず数値（または最上位項目の場合はnull）で表現してください
-- 必ず配列形式で出力してください。オブジェクトではなく配列を返してください
+## Notes
+- Include all information that can be extracted from the document
+- Accurately reflect the hierarchical structure
+- Output only strict JSON arrays, without explanatory text or markdown syntax (such as \`\`\`json code blocks)
+- ALWAYS OUTPUT IN ${languageName} including all field values
+- Always express parent_id as a number (or null for top-level items)
+- Always output in array format. Return an array, not an object.
 
-入力された文書から上記の形式でチェックリストを抽出し、JSON配列として返してください。
+REMEMBER: YOUR ENTIRE RESPONSE INCLUDING ALL JSON FIELD VALUES MUST BE IN ${languageName}.
+
+Extract checklists from the input document in the format above and return as a JSON array.
 `;
+};
 
 export interface ProcessWithLLMParams {
   documentId: string;
   pageNumber: number;
+  userId?: string; // Optional user ID for language preference
 }
 
 /**
- * LLMを使用してチェックリストを抽出する
- * @param params LLM処理パラメータ
- * @returns 処理結果
+ * Extract checklists using LLM
+ * @param params LLM processing parameters
+ * @returns Processing result
  */
 export async function processWithLLM({
   documentId,
   pageNumber,
+  userId,
 }: ProcessWithLLMParams): Promise<ProcessWithLLMResult> {
   const s3Client = new S3Client({});
   const bedrockClient = new BedrockRuntimeClient({ region: BEDROCK_REGION });
   const bucketName = process.env.DOCUMENT_BUCKET || "";
 
-  // PDFページを取得
+  // Get user preference for language if userId is provided
+  let userLanguage = DEFAULT_LANGUAGE;
+  if (userId) {
+    try {
+      console.log(
+        `[DEBUG] Attempting to get language preference for user ${userId}`
+      );
+      const userPreferenceRepository =
+        await makePrismaUserPreferenceRepository();
+      const userPreference =
+        await userPreferenceRepository.getUserPreference(userId);
+      console.log(
+        `[DEBUG] User preference retrieved:`,
+        JSON.stringify(userPreference, null, 2)
+      );
+
+      if (userPreference && userPreference.language) {
+        userLanguage = userPreference.language;
+        console.log(
+          `[DEBUG] Setting user language from preference: ${userLanguage}`
+        );
+      } else {
+        console.log(
+          `[DEBUG] No language preference found in user data, using default: ${DEFAULT_LANGUAGE}`
+        );
+      }
+    } catch (error) {
+      console.error(`[DEBUG] Failed to fetch user language preference:`, error);
+      // Continue with default language
+    }
+  } else {
+    console.log(
+      `[DEBUG] No userId provided, using default language: ${DEFAULT_LANGUAGE}`
+    );
+  }
+
+  // Get PDF page
   const pageKey = getChecklistPageKey(documentId, pageNumber, "pdf");
-  console.log(`PDFページを取得: ${pageKey}`);
+  console.log(`Getting PDF page: ${pageKey}`);
   const { Body } = await s3Client.send(
     new GetObjectCommand({
       Bucket: bucketName,
@@ -100,17 +153,23 @@ export async function processWithLLM({
   );
 
   if (!Body) {
-    throw new Error(`ページが見つかりません: ${pageKey}`);
+    throw new Error(`Page not found: ${pageKey}`);
   }
 
-  // PDFをバイト配列として取得
-  console.log(`PDFをバイト配列として取得: ${pageKey}`);
+  // Get PDF as byte array
+  console.log(`Getting PDF as byte array: ${pageKey}`);
   const pdfBytes = await Body.transformToByteArray();
-  console.log(`PDFのバイト配列を取得: ${pdfBytes.length} bytes`);
+  console.log(`PDF byte array acquired: ${pdfBytes.length} bytes`);
 
   console.log(
-    `LLMにチェックリスト抽出をリクエスト: ${documentId}, ページ番号: ${pageNumber}`
+    `Requesting checklist extraction from LLM: ${documentId}, page number: ${pageNumber}`
   );
+
+  // Get the appropriate prompt based on user language
+  console.log(
+    `[DEBUG] Final language used for checklist extraction: ${userLanguage}`
+  );
+  const checklistExtractionPrompt = getChecklistExtractionPrompt(userLanguage);
   const response = await bedrockClient.send(
     new ConverseCommand({
       modelId: MODEL_ID,
@@ -118,13 +177,13 @@ export async function processWithLLM({
         {
           role: "user",
           content: [
-            { text: CHECKLIST_EXTRACTION_PROMPT },
+            { text: checklistExtractionPrompt },
             {
               document: {
                 name: "ChecklistDocument",
                 format: "pdf",
                 source: {
-                  bytes: pdfBytes, // 実際のPDFバイナリデータ
+                  bytes: pdfBytes, // Actual PDF binary data
                 },
               },
             },
@@ -134,14 +193,14 @@ export async function processWithLLM({
       // additionalModelRequestFields: {
       //   thinking: {
       //     type: "enabled",
-      //     budget_tokens: 4000, // 推論に使用する最大トークン数
+      //     budget_tokens: 4000, // Maximum tokens for inference
       //   },
       // },
     })
   );
 
-  // レスポンスからテキストを抽出
-  console.log(`LLMからの応答を処理中...`);
+  // Extract text from response
+  console.log(`Processing response from LLM...`);
   const outputMessage = response.output?.message;
   let llmResponse = "";
   if (outputMessage && outputMessage.content) {
@@ -157,7 +216,7 @@ export async function processWithLLM({
     // LLMの出力をJSONとしてパース
     checklistItems = JSON.parse(llmResponse);
     console.log(
-      `LLMの応答をJSONとしてパースしました: ${JSON.stringify(checklistItems, null, 2)}`
+      `Parsed LLM response as JSON: ${JSON.stringify(checklistItems, null, 2)}`
     );
 
     // パース直後に各項目にIDを割り当て
@@ -167,10 +226,10 @@ export async function processWithLLM({
     }));
   } catch (error) {
     console.error(
-      `JSONパースに失敗しました: ${error}\nLLMの応答: ${llmResponse}`
+      `JSON parsing failed: ${error}\nLLM response: ${llmResponse}`
     );
-    console.error("リトライ処理を開始します。");
-    // JSONパースに失敗した場合、エラーメッセージをBedrockに送ってリトライ
+    console.error("Starting retry process.");
+    // If JSON parsing fails, send error message to Bedrock for retry
     const errorMessage = error instanceof Error ? error.message : String(error);
     const retryResponse = await bedrockClient.send(
       new ConverseCommand({
@@ -180,7 +239,7 @@ export async function processWithLLM({
             role: "user",
             content: [
               {
-                text: `${CHECKLIST_EXTRACTION_PROMPT}\n\n前回の出力はJSONとしてパースできませんでした。エラー: ${errorMessage}\n\n厳密なJSON配列形式で出力してください。\n\nこれはPDFファイルのページ${pageNumber}です。チェックリストを抽出してください。`,
+                text: `${checklistExtractionPrompt}\n\nThe previous output could not be parsed as JSON. Error: ${errorMessage}\n\nPlease output in strict JSON array format.\n\nThis is page ${pageNumber} of the PDF file. Please extract the checklist.`,
               },
               {
                 document: {
@@ -203,7 +262,7 @@ export async function processWithLLM({
       })
     );
 
-    // リトライレスポンスからテキストを抽出
+    // Extract text from retry response
     const retryOutputMessage = retryResponse.output?.message;
     let retryLlmResponse = "";
     if (retryOutputMessage && retryOutputMessage.content) {
@@ -232,13 +291,13 @@ export async function processWithLLM({
       });
     } catch (error) {
       console.error(
-        `リトライ後もJSONパースに失敗しました: ${error}\nLLMの応答: ${retryLlmResponse}`
+        `JSON parsing failed even after retry: ${error}\nLLM response: ${retryLlmResponse}`
       );
-      throw new Error("LLMからの応答が無効です。");
+      throw new Error("Invalid response from LLM.");
     }
   }
 
-  console.log(`LLMからの応答: ${JSON.stringify(checklistItems, null, 2)}`);
+  console.log(`Response from LLM: ${JSON.stringify(checklistItems, null, 2)}`);
 
   const updatedChecklist = convertToUlid(checklistItems);
 

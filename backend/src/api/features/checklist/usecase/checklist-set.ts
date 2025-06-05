@@ -18,6 +18,7 @@ import { startStateMachineExecution } from "../../../core/sfn";
 
 export const createChecklistSet = async (params: {
   req: CreateChecklistSetRequest;
+  userId?: string;
   deps?: {
     repo?: CheckRepository;
   };
@@ -49,6 +50,7 @@ export const createChecklistSet = async (params: {
     documentId: doc.documentId,
     fileName: doc.filename,
     checkListSetId: checkListSet.id,
+    userId: params.userId,
   });
 };
 

@@ -44,6 +44,7 @@ async function handleProcessWithLLM(event: any) {
   return await processWithLLM({
     documentId: event.documentId,
     pageNumber: event.pageNumber,
+    userId: event.userId,
   });
 }
 

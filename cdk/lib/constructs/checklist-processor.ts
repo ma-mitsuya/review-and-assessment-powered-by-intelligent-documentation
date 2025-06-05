@@ -168,6 +168,7 @@ export class ChecklistProcessor extends Construct {
         action: "processWithLLM",
         documentId: sfn.JsonPath.stringAt("$.documentId"),
         pageNumber: sfn.JsonPath.stringAt("$.pageNumber"),
+        userId: sfn.JsonPath.stringAt("$.userId"), // Pass userId from the input (was $$.Execution.Input.userId)
       }),
       payloadResponseOnly: true,
       outputPath: "$",
@@ -228,6 +229,7 @@ export class ChecklistProcessor extends Construct {
         documentId: sfn.JsonPath.stringAt(
           "$.processingResult.Payload.documentId"
         ),
+        userId: sfn.JsonPath.stringAt("$.userId"), // Pass userId from the input
       },
       // resultSelector は Map の結果に対して適用されるので、ここでは不要です
     });

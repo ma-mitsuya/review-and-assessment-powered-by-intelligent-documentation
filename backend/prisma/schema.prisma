@@ -9,6 +9,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model UserPreference {
+  id        String   @id @map("preference_id") @db.VarChar(26)
+  userId    String   @map("user_id") @db.VarChar(50)
+  language  String   @default("en") @db.VarChar(10)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([userId])
+  @@map("user_preferences")
+}
+
 model PromptTemplate {
   id          String   @id @map("template_id") @db.VarChar(26)
   userId      String   @map("user_id") @db.VarChar(50)

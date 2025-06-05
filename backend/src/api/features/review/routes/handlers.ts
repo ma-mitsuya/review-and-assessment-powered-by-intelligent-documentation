@@ -111,7 +111,10 @@ export const createReviewJobHandler = async (
   reply: FastifyReply
 ): Promise<void> => {
   await createReviewJob({
-    requestBody: request.body,
+    requestBody: {
+      ...request.body,
+      userId: request.user?.sub,
+    },
   });
   reply.code(201).send({
     success: true,

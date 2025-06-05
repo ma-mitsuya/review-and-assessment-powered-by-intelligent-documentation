@@ -113,6 +113,7 @@ export class ReviewProcessor extends Construct {
           reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
           checkId: sfn.JsonPath.stringAt("$.checkId"),
           reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
+          userId: sfn.JsonPath.stringAt("$$.Execution.Input.userId"),
         }),
         resultPath: "$.itemResult",
       }
