@@ -5,6 +5,7 @@ import { ReviewJobSummary, REVIEW_JOB_STATUS } from "../types";
 import { HiEye, HiTrash } from "react-icons/hi";
 import Table, { TableColumn, TableAction } from "../../../components/Table";
 import StatusBadge from "../../../components/StatusBadge";
+import { useDeleteReviewJob } from "../hooks/useReviewJobMutations";
 
 interface ReviewJobListProps {
   jobs: ReviewJobSummary[];
@@ -23,6 +24,8 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({
 
   const { showConfirm, showError, AlertModal } = useAlert();
 
+  const { deleteReviewJob } = useDeleteReviewJob();
+
   const handleDelete = (job: ReviewJobSummary, e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -31,12 +34,7 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({
       confirmButtonText: t("common.delete"),
       onConfirm: async () => {
         try {
-          // This would use the deleteReviewJob function from useDeleteReviewJob hook
-          // Since we're refactoring the component, assuming that hook will be used by the parent
-          // and passed down as a prop in a future update
-          await fetch(`/api/review-jobs/${job.id}`, {
-            method: "DELETE",
-          });
+          await deleteReviewJob(job.id);
 
           // 削除後にデータを再取得
           if (revalidate) {
