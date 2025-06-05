@@ -2,7 +2,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useChecklistSetDetail } from "../hooks/useCheckListSetQueries";
-import { useDeleteChecklistSet, useDuplicateChecklistSet } from "../hooks/useCheckListSetMutations";
+import {
+  useDeleteChecklistSet,
+  useDuplicateChecklistSet,
+} from "../hooks/useCheckListSetMutations";
+import { useAlert } from "../../../hooks/useAlert";
 import CheckListItemAddModal from "../components/CheckListItemAddModal";
 import CheckListItemTree from "../components/CheckListItemTree";
 import DuplicateChecklistModal from "../components/DuplicateChecklistModal";
@@ -37,34 +41,38 @@ export function CheckListSetDetailPage() {
     status: deleteStatus,
     error: deleteError,
   } = useDeleteChecklistSet();
-  const {
-    duplicateChecklistSet,
-    status: duplicateStatus,
-  } = useDuplicateChecklistSet();
+  const { duplicateChecklistSet, status: duplicateStatus } =
+    useDuplicateChecklistSet();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const { refetch: refetchRoot } = useChecklistItems(id || null);
 
+  const { showConfirm, AlertModal } = useAlert();
+
   const handleDelete = async () => {
     if (!id) return;
 
-    if (confirm(t('checklist.deleteConfirmation', { name: `#${id}` }))) {
-      try {
-        await deleteChecklistSet(id);
-        addToast(t('checklist.deleteConfirm', { name: `#${id}` }), "success");
-        navigate("/checklist", { replace: true });
-      } catch (error) {
-        console.error(t('common.error'), error);
-        addToast(t('checklist.deleteError'), "error");
-      }
-    }
+    showConfirm(t("checklist.deleteConfirmation", { name: `#${id}` }), {
+      title: t("common.confirm"),
+      confirmButtonText: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          await deleteChecklistSet(id);
+          addToast(t("checklist.deleteConfirm", { name: `#${id}` }), "success");
+          navigate("/checklist", { replace: true });
+        } catch (error) {
+          console.error(t("common.error"), error);
+          addToast(t("checklist.deleteError"), "error");
+        }
+      },
+    });
   };
 
   const handleDuplicateClick = () => {
     if (checklistSet) {
-      setNewName(`${checklistSet.name} (${t('common.duplicate')})`);
+      setNewName(`${checklistSet.name} (${t("common.duplicate")})`);
       setNewDescription(checklistSet.description);
       setIsDuplicateModalOpen(true);
     }
@@ -78,13 +86,13 @@ export function CheckListSetDetailPage() {
         name,
         description,
       });
-      addToast(t('checklist.duplicateSuccess'), "success");
+      addToast(t("checklist.duplicateSuccess"), "success");
       setIsDuplicateModalOpen(false);
       // チェックリスト一覧を更新
       mutate(getChecklistSetsKey());
     } catch (error) {
-      console.error(t('common.error'), error);
-      addToast(t('checklist.duplicateError'), "error");
+      console.error(t("common.error"), error);
+      addToast(t("checklist.duplicateError"), "error");
     }
   };
 
@@ -99,8 +107,8 @@ export function CheckListSetDetailPage() {
         role="alert">
         <div className="flex items-center">
           <HiExclamation className="mr-2 h-6 w-6" />
-          <strong className="font-medium">{t('common.error')}: </strong>
-          <span className="ml-2">{t('checklist.fetchError')}</span>
+          <strong className="font-medium">{t("common.error")}: </strong>
+          <span className="ml-2">{t("checklist.fetchError")}</span>
         </div>
       </div>
     );
@@ -110,13 +118,15 @@ export function CheckListSetDetailPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <Breadcrumb to="/checklist" label={t('checklist.backToList')} />
+          <Breadcrumb to="/checklist" label={t("checklist.backToList")} />
           <h1 className="flex items-center text-3xl font-bold text-aws-squid-ink-light">
-            {checklistSet ? checklistSet.name : t('checklist.checklistWithId', { id })}
+            {checklistSet
+              ? checklistSet.name
+              : t("checklist.checklistWithId", { id })}
             {checklistSet && !checklistSet.isEditable && (
               <div
                 className="text-gray-500 ml-2"
-                title={t('checklist.notEditableTitle')}>
+                title={t("checklist.notEditableTitle")}>
                 <HiLockClosed className="h-5 w-5" />
               </div>
             )}
@@ -133,7 +143,8 @@ export function CheckListSetDetailPage() {
             checklistSet.documents.length > 0 && (
               <div className="mt-2">
                 <p className="text-aws-font-color-gray">
-                  {t('checklist.document')}: {checklistSet.documents[0].filename}
+                  {t("checklist.document")}:{" "}
+                  {checklistSet.documents[0].filename}
                 </p>
               </div>
             )}
@@ -143,9 +154,9 @@ export function CheckListSetDetailPage() {
           <Button
             variant="secondary"
             onClick={handleDuplicateClick}
-            disabled={duplicateStatus === 'loading'}
+            disabled={duplicateStatus === "loading"}
             icon={<HiDuplicate className="h-5 w-5" />}>
-            {t('common.duplicate') || "複製"}
+            {t("common.duplicate")}
           </Button>
 
           {/* 削除ボタン - 編集可能な場合のみ表示 */}
@@ -154,7 +165,7 @@ export function CheckListSetDetailPage() {
               variant="danger"
               onClick={handleDelete}
               icon={<HiTrash className="h-5 w-5" />}>
-              {t('common.delete')}
+              {t("common.delete")}
             </Button>
           )}
         </div>
@@ -163,7 +174,10 @@ export function CheckListSetDetailPage() {
       {/* エラー詳細表示 */}
       {checklistSet && checklistSet.hasError && checklistSet.errorSummary && (
         <div className="mb-6">
-          <ErrorAlert title={t('common.processingError')} message={checklistSet.errorSummary} />
+          <ErrorAlert
+            title={t("common.processingError")}
+            message={checklistSet.errorSummary}
+          />
         </div>
       )}
 
@@ -174,10 +188,8 @@ export function CheckListSetDetailPage() {
             role="alert">
             <div className="flex items-center">
               <HiExclamation className="mr-2 h-6 w-6" />
-              <strong className="font-medium">{t('common.error')}: </strong>
-              <span className="ml-2">
-                {t('checklist.itemsFetchError')}
-              </span>
+              <strong className="font-medium">{t("common.error")}: </strong>
+              <span className="ml-2">{t("checklist.itemsFetchError")}</span>
             </div>
           </div>
         ) : !id ? (
@@ -186,7 +198,7 @@ export function CheckListSetDetailPage() {
             role="alert">
             <div className="flex items-center">
               <HiInformationCircle className="mr-2 h-6 w-6" />
-              <span>{t('checklist.noItems')}</span>
+              <span>{t("checklist.noItems")}</span>
             </div>
           </div>
         ) : (
@@ -203,7 +215,7 @@ export function CheckListSetDetailPage() {
               className={
                 !checklistSet.isEditable ? "cursor-not-allowed opacity-50" : ""
               }>
-              {t('checklist.addRootItem')}
+              {t("checklist.addRootItem")}
             </Button>
           </div>
         )}
@@ -218,7 +230,7 @@ export function CheckListSetDetailPage() {
           onSuccess={() => {
             if (id) {
               refetchRoot();
-              addToast(t('checklist.itemAddSuccess'), "success");
+              addToast(t("checklist.itemAddSuccess"), "success");
             }
           }}
         />
@@ -232,9 +244,10 @@ export function CheckListSetDetailPage() {
           onConfirm={handleDuplicateConfirm}
           initialName={newName}
           initialDescription={newDescription}
-          isLoading={duplicateStatus === 'loading'}
+          isLoading={duplicateStatus === "loading"}
         />
       )}
+      <AlertModal />
     </div>
   );
 }

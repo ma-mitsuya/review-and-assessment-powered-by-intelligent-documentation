@@ -136,13 +136,17 @@ export const ReviewJobList: React.FC<ReviewJobListProps> = ({
         e.stopPropagation();
         window.location.href = `/review/${job.id}`;
       },
-      className: "text-aws-font-color-blue hover:text-aws-sea-blue-light",
+      variant: "primary",
+      outline: true,
+      className: "transition-all duration-200",
     },
     {
       icon: <HiTrash className="mr-1 h-4 w-4" />,
       label: t("common.delete"),
       onClick: handleDelete,
-      className: "text-red hover:text-light-red",
+      variant: "danger",
+      outline: true,
+      className: "transition-all duration-200",
     },
   ];
 

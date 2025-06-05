@@ -80,11 +80,10 @@ export default function CheckListItemEditModal({
       isOpen={isOpen}
       onClose={onClose}
       title="チェックリスト項目の編集"
-      size="md"
-    >
+      size="md">
       <form onSubmit={handleSubmit}>
         {error && (
-          <div className="mb-4 p-3 bg-red/10 border border-red rounded-md text-red">
+          <div className="mb-4 rounded-md border border-red bg-red/10 p-3 text-red">
             {error}
           </div>
         )}
@@ -92,8 +91,7 @@ export default function CheckListItemEditModal({
         <div className="mb-6">
           <label
             htmlFor="name"
-            className="block text-aws-squid-ink-light font-medium mb-2"
-          >
+            className="mb-2 block font-medium text-aws-squid-ink-light">
             名前 <span className="text-red">*</span>
           </label>
           <input
@@ -102,22 +100,21 @@ export default function CheckListItemEditModal({
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
+            className={`w-full rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
               !formData.name.trim() ? "border-red" : "border-light-gray"
             }`}
             placeholder="チェック項目の名前"
             required
           />
           {!formData.name.trim() && (
-            <p className="mt-1 text-red text-sm">名前は必須です</p>
+            <p className="mt-1 text-sm text-red">名前は必須です</p>
           )}
         </div>
 
         <div className="mb-6">
           <label
             htmlFor="description"
-            className="block text-aws-squid-ink-light font-medium mb-2"
-          >
+            className="mb-2 block font-medium text-aws-squid-ink-light">
             説明
           </label>
           <textarea
@@ -126,15 +123,15 @@ export default function CheckListItemEditModal({
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
+            className="w-full rounded-md border border-light-gray px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
             placeholder="チェック項目の説明"
           />
         </div>
 
         {/* TODO: フロー形式の編集機能は将来的に実装予定 */}
 
-        <div className="flex justify-end space-x-3 mt-6">
-          <Button variant="outline" onClick={onClose} type="button">
+        <div className="mt-6 flex justify-end space-x-3">
+          <Button outline onClick={onClose} type="button">
             キャンセル
           </Button>
           <Button variant="primary" type="submit" disabled={isSubmitting}>

@@ -124,20 +124,26 @@ export default function CheckListSetList({
       onClick: (item) => {
         window.location.href = `/checklist/${item.id}`;
       },
-      className: "text-aws-font-color-blue hover:text-aws-sea-blue-light",
+      variant: "primary",
+      outline: true,
+      className: "transition-all duration-200",
     },
     {
       icon: <HiDuplicate className="mr-1 h-4 w-4" />,
       label: t("common.duplicate"),
       onClick: (item) => onDuplicate(item.id, item.name),
-      className: "text-aws-font-color-blue hover:text-aws-sea-blue-light",
+      variant: "secondary",
+      outline: true,
+      className: "transition-all duration-200",
     },
     {
       icon: <HiTrash className="mr-1 h-4 w-4" />,
       label: t("common.delete"),
       onClick: handleDelete,
       disabled: (item) => !item.isEditable,
-      className: "text-red hover:text-light-red",
+      variant: "danger",
+      outline: true,
+      className: "transition-all duration-200",
     },
   ];
 

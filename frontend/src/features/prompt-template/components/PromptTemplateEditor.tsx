@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FormTextField } from "../../../components/FormTextField";
 import { FormTextArea } from "../../../components/FormTextArea";
 import { Button } from "../../../components/Button";
@@ -24,6 +25,7 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
   onCancel,
   isSubmitting,
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(template?.name || "");
   const [description, setDescription] = useState(template?.description || "");
   const [prompt, setPrompt] = useState(
@@ -68,7 +70,7 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
         <FormTextField
           id="template-name"
           name="name"
-          label="テンプレート名"
+          label={t("promptTemplate.templateName")}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -80,7 +82,7 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
         <FormTextField
           id="template-description"
           name="description"
-          label="説明"
+          label={t("promptTemplate.description")}
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);
@@ -93,16 +95,16 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
             <label
               htmlFor="template-prompt"
               className="block text-sm font-medium text-aws-font-color-light dark:text-aws-font-color-dark">
-              プロンプト
+              {t("promptTemplate.prompt")}
             </label>
             {type === PromptTemplateType.CHECKLIST && (
               <Button
                 type="button"
-                variant="secondary"
+                outline
                 size="sm"
                 onClick={handleReset}
                 disabled={isSubmitting}>
-                デフォルトに戻す
+                {t("promptTemplate.resetToDefault")}
               </Button>
             )}
           </div>
@@ -125,16 +127,16 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
       <div className="flex justify-end space-x-3">
         <Button
           type="button"
-          variant="secondary"
+          outline
           onClick={onCancel}
           disabled={isSubmitting}>
-          キャンセル
+          {t("common.cancel")}
         </Button>
         <Button
           type="submit"
           variant="primary"
           disabled={!isDirty || isSubmitting || !name || !prompt}>
-          {isSubmitting ? "保存中..." : "保存"}
+          {isSubmitting ? t("common.processing") : t("common.save")}
         </Button>
       </div>
     </form>

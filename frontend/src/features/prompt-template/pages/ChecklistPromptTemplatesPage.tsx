@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PromptTemplateList } from "../components/PromptTemplateList";
 import { PromptTemplateEditor } from "../components/PromptTemplateEditor";
 import { usePromptTemplates } from "../hooks/usePromptTemplateQueries";
@@ -19,6 +20,7 @@ import {
 } from "../types";
 
 export const ChecklistPromptTemplatesPage: React.FC = () => {
+  const { t } = useTranslation();
   const { templates, isLoading, refetch } = usePromptTemplates(
     PromptTemplateType.CHECKLIST
   );
@@ -54,10 +56,10 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
     setCurrentTemplate(template);
 
     showConfirm(
-      `テンプレート「${template.name}」を削除してもよろしいですか？ この操作は元に戻せません。`,
+      t("promptTemplate.deleteConfirmation", { name: template.name }),
       {
-        title: "テンプレートの削除",
-        confirmButtonText: "削除",
+        title: t("promptTemplate.deleteTitle"),
+        confirmButtonText: t("common.delete"),
         onConfirm: async () => {
           await handleConfirmDelete(template);
         },
@@ -73,7 +75,7 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
         await refetch();
         setToast({
           id: `update-${new Date().getTime()}`,
-          message: "テンプレートを更新しました",
+          message: t("promptTemplate.updateSuccess"),
           type: "success",
         });
       } else {
@@ -86,11 +88,11 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
           });
           await refetch();
         } else {
-          throw new Error("Name and prompt are required");
+          throw new Error(t("promptTemplate.requiredFieldsError"));
         }
         setToast({
           id: `create-${new Date().getTime()}`,
-          message: "テンプレートを作成しました",
+          message: t("promptTemplate.createSuccess"),
           type: "success",
         });
       }
@@ -98,7 +100,7 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
     } catch (error) {
       setToast({
         id: `error-${new Date().getTime()}`,
-        message: "エラーが発生しました",
+        message: t("common.error"),
         type: "error",
       });
     } finally {
@@ -111,9 +113,9 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
     try {
       await deleteTemplate(template.id);
       await refetch();
-      showSuccess("テンプレートを削除しました");
+      showSuccess(t("promptTemplate.deleteSuccess"));
     } catch (error) {
-      showError("削除中にエラーが発生しました");
+      showError(t("promptTemplate.deleteError"));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -127,18 +129,18 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
           <div className="flex items-center">
             <HiCheck className="mr-2 h-8 w-8 text-aws-font-color-light dark:text-aws-font-color-dark" />
             <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">
-              チェックリストプロンプト管理
+              {t("promptTemplate.checklistPromptManagement")}
             </h1>
           </div>
           <p className="mt-2 text-aws-font-color-gray">
-            チェックリスト生成に使用するプロンプトテンプレートを管理します
+            {t("promptTemplate.checklistPromptDescription")}
           </p>
         </div>
         <Button
           variant="primary"
           onClick={handleCreateNew}
           icon={<HiPlus className="h-5 w-5" />}>
-          新規作成
+          {t("common.create")}
         </Button>
       </div>
 
@@ -157,7 +159,9 @@ export const ChecklistPromptTemplatesPage: React.FC = () => {
           isOpen={isEditorOpen}
           onClose={() => setIsEditorOpen(false)}
           title={
-            currentTemplate ? "テンプレートを編集" : "新規テンプレート作成"
+            currentTemplate
+              ? t("promptTemplate.editTemplate")
+              : t("promptTemplate.createNewTemplate")
           }
           size="lg">
           <PromptTemplateEditor

@@ -25,7 +25,11 @@
     "processingError": "処理エラー",
     "showAdvancedSettings": "詳細設定を表示",
     "hideAdvancedSettings": "詳細設定を隠す",
-    "duplicate": "複製"
+    "duplicate": "複製",
+    "information": "お知らせ",
+    "ok": "OK",
+    "warning": "警告",
+    "confirmation": "確認"
   },
   "sidebar": {
     "checklist": "チェックリスト",
@@ -117,7 +121,11 @@
     "document": "ドキュメント",
     "duplicateSuccess": "チェックリストを複製しました",
     "duplicateError": "チェックリストの複製に失敗しました",
-    "duplicateTitle": "チェックリストを複製"
+    "duplicateTitle": "チェックリストを複製",
+    "itemNamePlaceholder": "チェック項目の名前",
+    "itemDescriptionPlaceholder": "チェック項目の説明",
+    "add": "追加",
+    "itemAddError": "チェックリスト項目の保存に失敗しました"
   },
   "review": {
     "title": "審査ジョブ一覧",
@@ -178,7 +186,18 @@
     "collapse": "折りたたむ",
     "showAll": "すべて表示",
     "userComment": "ユーザーコメント",
-    "overrideResult": "結果を上書き"
+    "overrideResult": "結果を上書き",
+    "filterAll": "すべて",
+    "showDetails": "詳細を表示",
+    "hideDetails": "詳細を隠す",
+    "itemDescription": "項目の説明",
+    "judgmentResult": "判定結果",
+    "commentPlaceholder": "上書きの理由や補足情報を入力してください",
+    "noExplanation": "判断結果がありません",
+    "comparisonReady": "比較準備完了",
+    "selectFilesAndChecklist": "ファイルとチェックリストを選択",
+    "canRunComparison": "ドキュメントとチェックリストの比較を実行できます",
+    "selectBothToCompare": "比較を実行するには両方を選択してください"
   },
   "fileUploader": {
     "dropFiles": "ファイルをドロップしてください",
@@ -212,6 +231,20 @@
     "type": "タイプ",
     "description": "説明",
     "updatedAt": "最終更新",
-    "noTemplates": "テンプレートがありません。新規作成してください。"
+    "noTemplates": "テンプレートがありません。新規作成してください。",
+    "checklistPromptManagement": "チェックリストプロンプト管理",
+    "checklistPromptDescription": "チェックリスト生成に使用するプロンプトテンプレートを管理します",
+    "deleteConfirmation": "テンプレート「{{name}}」を削除してもよろしいですか？ この操作は元に戻せません。",
+    "deleteTitle": "テンプレートの削除",
+    "updateSuccess": "テンプレートを更新しました",
+    "requiredFieldsError": "名前とプロンプトは必須です",
+    "createSuccess": "テンプレートを作成しました",
+    "deleteSuccess": "テンプレートを削除しました",
+    "deleteError": "削除中にエラーが発生しました",
+    "editTemplate": "テンプレートを編集",
+    "createNewTemplate": "新規テンプレート作成",
+    "templateName": "テンプレート名",
+    "prompt": "プロンプト",
+    "resetToDefault": "デフォルトに戻す"
   }
 }

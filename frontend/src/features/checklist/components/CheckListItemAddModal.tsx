@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCreateCheckListItem } from "../hooks/useCheckListItemMutations";
 import { useToast } from "../../../contexts/ToastContext";
 import Button from "../../../components/Button";
@@ -30,6 +31,7 @@ export default function CheckListItemAddModal({
     name: "",
   });
 
+  const { t } = useTranslation();
   const { addToast } = useToast();
 
   // コンポーネントのトップレベルでフックを呼び出す
@@ -64,7 +66,7 @@ export default function CheckListItemAddModal({
     };
 
     if (!formData.name.trim()) {
-      newErrors.name = "名前は必須です";
+      newErrors.name = t("checklist.nameRequired");
     }
 
     setErrors(newErrors);
@@ -97,12 +99,12 @@ export default function CheckListItemAddModal({
         error instanceof Error &&
         error.message.includes("LINKED_REVIEW_JOBS")
       ) {
+        addToast(t("checklist.notEditable"), "error");
+      } else {
         addToast(
-          "このチェックリストセットは審査ジョブに紐づいているため編集できません",
+          t("checklist.itemAddError", "Failed to save checklist item"),
           "error"
         );
-      } else {
-        addToast("チェックリスト項目の保存に失敗しました", "error");
       }
     } finally {
       setIsSubmitting(false);
@@ -112,28 +114,27 @@ export default function CheckListItemAddModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-aws-squid-ink-light">
-            チェックリスト項目の追加
+            {t("checklist.addItem")}
           </h2>
           <Button
             variant="text"
             size="sm"
             icon={<HiX className="h-6 w-6" />}
-            onClick={onClose}
-            aria-label="閉じる"
-          />
+            onClick={onClose}>
+            <span className="sr-only">{t("common.close")}</span>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block text-aws-squid-ink-light font-medium mb-2"
-            >
-              名前 <span className="text-red">*</span>
+              className="mb-2 block font-medium text-aws-squid-ink-light">
+              {t("checklist.name")} <span className="text-red">*</span>
             </label>
             <input
               type="text"
@@ -141,22 +142,24 @@ export default function CheckListItemAddModal({
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
+              className={`w-full rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light ${
                 errors.name ? "border-red" : "border-light-gray"
               }`}
-              placeholder="チェック項目の名前"
+              placeholder={t(
+                "checklist.itemNamePlaceholder",
+                "Checklist item name"
+              )}
             />
             {errors.name && (
-              <p className="mt-1 text-red text-sm">{errors.name}</p>
+              <p className="mt-1 text-sm text-red">{errors.name}</p>
             )}
           </div>
 
           <div className="mb-4">
             <label
               htmlFor="description"
-              className="block text-aws-squid-ink-light font-medium mb-2"
-            >
-              説明
+              className="mb-2 block font-medium text-aws-squid-ink-light">
+              {t("checklist.description")}
             </label>
             <textarea
               id="description"
@@ -164,17 +167,22 @@ export default function CheckListItemAddModal({
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-              placeholder="チェック項目の説明"
+              className="w-full rounded-md border border-light-gray px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
+              placeholder={t(
+                "checklist.itemDescriptionPlaceholder",
+                "Checklist item description"
+              )}
             />
           </div>
 
-          <div className="flex justify-end space-x-3 mt-6">
-            <Button variant="outline" onClick={onClose}>
-              キャンセル
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button outline onClick={onClose}>
+              {t("common.cancel")}
             </Button>
             <Button variant="primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "追加中..." : "追加"}
+              {isSubmitting
+                ? t("common.processing")
+                : t("checklist.add", "Add")}
             </Button>
           </div>
         </form>

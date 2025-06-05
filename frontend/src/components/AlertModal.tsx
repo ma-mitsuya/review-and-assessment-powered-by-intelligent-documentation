@@ -113,7 +113,7 @@ export default function AlertModal({
 
       <div className="mt-4 flex justify-end space-x-2">
         {type === "confirm" && (
-          <Button variant="outline" onClick={handleCancel}>
+          <Button outline onClick={handleCancel}>
             {cancelButtonText || t("common.cancel")}
           </Button>
         )}

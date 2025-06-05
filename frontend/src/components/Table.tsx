@@ -20,6 +20,7 @@ export interface TableAction<T> {
   disabled?: (item: T) => boolean;
   show?: (item: T) => boolean;
   variant?: "primary" | "secondary" | "danger" | "text";
+  outline?: boolean;
   className?: string;
 }
 
@@ -146,7 +147,7 @@ export function Table<T>({
                   ))}
                   {actions && actions.length > 0 && (
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-end space-x-3">
                         {actions
                           .filter((action) =>
                             action.show ? action.show(item) : true
@@ -163,7 +164,12 @@ export function Table<T>({
                                   e.stopPropagation();
                                   action.onClick(item, e);
                                 }}
-                                variant={action.variant || "text"}
+                                variant={action.variant || "primary"}
+                                outline={
+                                  action.outline !== undefined
+                                    ? action.outline
+                                    : true
+                                }
                                 size="sm"
                                 icon={action.icon}
                                 disabled={isDisabled}
