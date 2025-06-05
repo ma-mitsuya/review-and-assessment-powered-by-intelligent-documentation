@@ -32,18 +32,19 @@ function App() {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             shouldRetryOnError: true,
-          }}
-        >
+          }}>
           <ToastProvider>
             <BrowserRouter
               future={{
                 v7_startTransition: true,
                 v7_relativeSplatPath: true,
-              }}
-            >
+              }}>
               <Routes>
                 {/* ルートパスへのアクセスをチェックリストページにリダイレクト */}
-                <Route path="/" element={<Navigate to="/checklist" replace />} />
+                <Route
+                  path="/"
+                  element={<Navigate to="/checklist" replace />}
+                />
 
                 {/* 保護されたルート */}
                 <Route
@@ -52,11 +53,13 @@ function App() {
                     <ProtectedRoute>
                       <Layout />
                     </ProtectedRoute>
-                  }
-                >
+                  }>
                   {/* チェックリスト関連のルート */}
                   <Route path="checklist" element={<CheckListPage />} />
-                  <Route path="checklist/new" element={<CreateChecklistPage />} />
+                  <Route
+                    path="checklist/new"
+                    element={<CreateChecklistPage />}
+                  />
                   <Route
                     path="checklist/:id"
                     element={<CheckListSetDetailPage />}
@@ -68,7 +71,10 @@ function App() {
                   <Route path="review/:id" element={<ReviewDetailPage />} />
 
                   {/* プロンプトテンプレート関連のルート */}
-                  <Route path="prompt-templates/checklist" element={<ChecklistPromptTemplatesPage />} />
+                  <Route
+                    path="prompt-templates/checklist"
+                    element={<ChecklistPromptTemplatesPage />}
+                  />
 
                   {/* その他のルート */}
                   <Route path="documents" element={<ReviewListPage />} />

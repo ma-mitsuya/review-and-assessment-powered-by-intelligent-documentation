@@ -27,12 +27,20 @@ export const Toast: React.FC<ToastProps> = ({
   const [isLeaving, setIsLeaving] = useState(false);
   const { t } = useTranslation();
 
-  // トーストのスタイル
+  // トーストのスタイル - 白背景に左側のカラーバー
   const toastStyles = {
-    success: "bg-aws-lab text-aws-squid-ink-light border-l-4 border-green-700",
-    error: "bg-light-red text-red border-l-4 border-red",
-    warning: "bg-light-yellow text-yellow border-l-4 border-yellow",
-    info: "bg-aws-mist text-aws-sea-blue-light border-l-4 border-aws-sea-blue-light",
+    success: "bg-white text-aws-squid-ink-light border-l-4 border-aws-lab",
+    error: "bg-white text-red border-l-4 border-red",
+    warning: "bg-white text-yellow border-l-4 border-yellow",
+    info: "bg-white text-aws-sea-blue-light border-l-4 border-aws-sea-blue-light",
+  };
+
+  // アイコンの色
+  const iconColors = {
+    success: "text-aws-lab",
+    error: "text-red",
+    warning: "text-yellow",
+    info: "text-aws-sea-blue-light",
   };
 
   // アイコン
@@ -69,7 +77,7 @@ export const Toast: React.FC<ToastProps> = ({
   return (
     <div
       className={`
-        flex items-center p-4 mb-3 rounded-md shadow-lg max-w-sm w-80
+        flex items-center p-3 mb-3 rounded-md shadow-md max-w-sm w-80
         transform transition-all duration-300 ease-in-out
         ${toastStyles[type]}
         ${isVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"}
@@ -77,15 +85,15 @@ export const Toast: React.FC<ToastProps> = ({
       `}
       role="alert"
     >
-      <div className="mr-3 flex-shrink-0">{icons[type]}</div>
-      <div className="text-sm font-medium">{message}</div>
+      <div className={`mr-3 flex-shrink-0 ${iconColors[type]}`}>{icons[type]}</div>
+      <div className="text-sm font-medium text-aws-squid-ink-light">{message}</div>
       <button
         type="button"
-        className="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-black/10 focus:outline-none"
+        className="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-light-gray/50 focus:outline-none"
         onClick={handleClose}
         aria-label={t('common.close')}
       >
-        <HiX className="w-4 h-4" />
+        <HiX className="w-4 h-4 text-gray" />
       </button>
     </div>
   );
