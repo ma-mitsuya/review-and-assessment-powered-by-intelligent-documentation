@@ -27,6 +27,12 @@ export interface AuthProps {
    * Cognitoドメインのプレフィックス
    */
   cognitoDomainPrefix?: string;
+
+  /**
+   * Cognito User Poolのセルフサインアップを有効にするかどうか
+   * @default true
+   */
+  cognitoSelfSignUpEnabled?: boolean;
 }
 
 export class Auth extends Construct {
@@ -45,7 +51,8 @@ export class Auth extends Construct {
     // UserPool & UserPoolClient の初期化
     const resources = this.initializeResources(
       importUserPoolId,
-      importUserPoolClientId
+      importUserPoolClientId,
+      props?.cognitoSelfSignUpEnabled
     );
     this.userPool = resources.userPool;
     this.client = resources.client;
@@ -65,7 +72,8 @@ export class Auth extends Construct {
    */
   private initializeResources(
     importUserPoolId?: string,
-    importUserPoolClientId?: string
+    importUserPoolClientId?: string,
+    selfSignUpEnabled?: boolean
   ): {
     userPool: UserPool | IUserPool;
     client: UserPoolClient | IUserPoolClient;
@@ -76,7 +84,7 @@ export class Auth extends Construct {
         importUserPoolClientId
       );
     } else {
-      return this.createNewResources();
+      return this.createNewResources(selfSignUpEnabled);
     }
   }
 
@@ -120,7 +128,7 @@ export class Auth extends Construct {
   /**
    * 新しいCognitoリソースを作成する
    */
-  private createNewResources(): {
+  private createNewResources(selfSignUpEnabled?: boolean): {
     userPool: UserPool;
     client: UserPoolClient;
   } {
@@ -131,7 +139,7 @@ export class Auth extends Construct {
         requireDigits: true,
         minLength: 8,
       },
-      selfSignUpEnabled: true,
+      selfSignUpEnabled: selfSignUpEnabled ?? true,
       signInAliases: {
         username: false,
         email: true,

@@ -95,6 +95,22 @@ cdk-synth:
       - cdk/cdk.out/
     expire_in: 1 hour
   needs: []
+
+# CDK テスト実行
+cdk-test:
+  stage: build
+  image: node:22
+  script:
+    - cd cdk
+    - npm ci
+    - npm run build
+    - NODE_OPTIONS="--max-old-space-size=4096" npm test
+  rules:
+    - changes:
+        - cdk/**/*
+  needs: []
+  variables:
+    NODE_OPTIONS: "--max-old-space-size=4096"
 # # バックエンドの Docker ビルド確認
 # backend-docker-build:
 #   stage: docker
