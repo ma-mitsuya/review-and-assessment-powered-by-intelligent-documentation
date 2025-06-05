@@ -25,7 +25,11 @@
     "processingError": "Processing Error",
     "showAdvancedSettings": "Show Advanced Settings",
     "hideAdvancedSettings": "Hide Advanced Settings",
-    "duplicate": "Duplicate"
+    "duplicate": "Duplicate",
+    "information": "Information",
+    "ok": "OK",
+    "warning": "Warning",
+    "confirmation": "Confirmation"
   },
   "sidebar": {
     "checklist": "Checklist",
@@ -117,7 +121,11 @@
     "document": "Document",
     "duplicateSuccess": "Checklist has been duplicated",
     "duplicateError": "Failed to duplicate checklist",
-    "duplicateTitle": "Duplicate Checklist"
+    "duplicateTitle": "Duplicate Checklist",
+    "itemNamePlaceholder": "Checklist item name",
+    "itemDescriptionPlaceholder": "Checklist item description",
+    "add": "Add",
+    "itemAddError": "Failed to save checklist item"
   },
   "review": {
     "title": "Review Jobs",
@@ -178,7 +186,18 @@
     "collapse": "Collapse",
     "showAll": "Show All",
     "userComment": "User Comment",
-    "overrideResult": "Override Result"
+    "overrideResult": "Override Result",
+    "filterAll": "All",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "itemDescription": "Item Description",
+    "judgmentResult": "Judgment Result",
+    "commentPlaceholder": "Enter the reason for the override or additional information",
+    "noExplanation": "No judgment results available",
+    "comparisonReady": "Comparison Ready",
+    "selectFilesAndChecklist": "Select Files and Checklist",
+    "canRunComparison": "You can run comparison of documents and checklist",
+    "selectBothToCompare": "Select both to run comparison"
   },
   "fileUploader": {
     "dropFiles": "Drop files here",
@@ -212,6 +231,20 @@
     "type": "Type",
     "description": "Description",
     "updatedAt": "Last Updated",
-    "noTemplates": "No templates available. Please create a new one."
+    "noTemplates": "No templates available. Please create a new one.",
+    "checklistPromptManagement": "Checklist Prompt Management",
+    "checklistPromptDescription": "Manage prompt templates used for checklist generation",
+    "deleteConfirmation": "Are you sure you want to delete template \"{{name}}\"? This action cannot be undone.",
+    "deleteTitle": "Delete Template",
+    "updateSuccess": "Template updated successfully",
+    "requiredFieldsError": "Name and prompt are required",
+    "createSuccess": "Template created successfully",
+    "deleteSuccess": "Template deleted successfully",
+    "deleteError": "An error occurred while deleting",
+    "editTemplate": "Edit Template",
+    "createNewTemplate": "Create New Template",
+    "templateName": "Template Name",
+    "prompt": "Prompt",
+    "resetToDefault": "Reset to Default"
   }
 }

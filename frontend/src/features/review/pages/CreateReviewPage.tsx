@@ -96,7 +96,7 @@ export const CreateReviewPage: React.FC = () => {
     if (fileType === REVIEW_FILE_TYPE.PDF && newFiles.length > 1) {
       setErrors((prev) => ({
         ...prev,
-        files: t('review.pdfLimitError'),
+        files: t("review.pdfLimitError"),
       }));
       return;
     }
@@ -104,7 +104,7 @@ export const CreateReviewPage: React.FC = () => {
     if (fileType === REVIEW_FILE_TYPE.IMAGE && newFiles.length > 20) {
       setErrors((prev) => ({
         ...prev,
-        files: t('review.imageLimitError'),
+        files: t("review.imageLimitError"),
       }));
       return;
     }
@@ -132,7 +132,7 @@ export const CreateReviewPage: React.FC = () => {
           const fileName = file.name;
           const nameWithoutExtension =
             fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-          setJobName(`${nameWithoutExtension}${t('review.jobNameSuffix')}`);
+          setJobName(`${nameWithoutExtension}${t("review.jobNameSuffix")}`);
         }
       } else {
         // 画像ファイルの場合は複数アップロード
@@ -143,7 +143,7 @@ export const CreateReviewPage: React.FC = () => {
           const fileName = newFiles[0].name;
           const nameWithoutExtension =
             fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-          setJobName(`${nameWithoutExtension}${t('review.jobNameSuffix')}`);
+          setJobName(`${nameWithoutExtension}${t("review.jobNameSuffix")}`);
         }
       }
 
@@ -155,7 +155,7 @@ export const CreateReviewPage: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error(t('review.fileUploadError'), error);
+      console.error(t("review.fileUploadError"), error);
     }
   };
 
@@ -181,7 +181,7 @@ export const CreateReviewPage: React.FC = () => {
     if (newSelectedFiles.length === 0) {
       setErrors((prev) => ({
         ...prev,
-        files: t('review.fileRequired'),
+        files: t("review.fileRequired"),
       }));
     }
   };
@@ -199,11 +199,11 @@ export const CreateReviewPage: React.FC = () => {
     };
 
     if (!jobName.trim()) {
-      newErrors.name = t('review.nameRequired');
+      newErrors.name = t("review.nameRequired");
     }
 
     if (!uploadedDocuments?.length) {
-      newErrors.files = t('review.fileRequired');
+      newErrors.files = t("review.fileRequired");
     }
 
     setErrors(newErrors);
@@ -218,7 +218,7 @@ export const CreateReviewPage: React.FC = () => {
 
     try {
       // すべてのドキュメントを同じ構造で扱う
-      const documents = uploadedDocuments.map(doc => ({
+      const documents = uploadedDocuments.map((doc) => ({
         id: doc.documentId,
         filename: doc.filename,
         s3Key: doc.s3Key,
@@ -238,7 +238,7 @@ export const CreateReviewPage: React.FC = () => {
       // 作成成功後、一覧ページに遷移
       navigate("/review", { replace: true });
     } catch (error) {
-      console.error(t('review.createError'), error);
+      console.error(t("review.createError"), error);
     }
   };
 
@@ -248,55 +248,54 @@ export const CreateReviewPage: React.FC = () => {
   return (
     <div>
       <PageHeader
-        title={t('review.createTitle')}
-        description={t('review.createDescription')}
+        title={t("review.createTitle")}
+        description={t("review.createDescription")}
         backLink={{
           to: "/review",
-          label: t('review.backToList'),
+          label: t("review.backToList"),
         }}
       />
 
       {displayError && (
         <div
-          className="bg-light-red border border-red text-red px-6 py-4 rounded-md shadow-sm mb-6"
-          role="alert"
-        >
+          className="mb-6 rounded-md border border-red bg-light-red px-6 py-4 text-red shadow-sm"
+          role="alert">
           <div className="flex items-center">
-            <HiExclamationCircle className="h-6 w-6 mr-2" />
-            <strong className="font-medium">{t('common.error')}: </strong>
+            <HiExclamationCircle className="mr-2 h-6 w-6" />
+            <strong className="font-medium">{t("common.error")}: </strong>
             <span className="ml-2">{displayError.message}</span>
           </div>
         </div>
       )}
 
-      <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
+      <div className="rounded-lg border border-light-gray bg-white p-6 shadow-md">
         <form onSubmit={handleSubmit}>
           <FormTextField
             id="jobName"
             name="jobName"
-            label={t('review.jobName')}
+            label={t("review.jobName")}
             value={jobName}
             onChange={handleInputChange}
-            placeholder={t('review.jobNamePlaceholder')}
+            placeholder={t("review.jobNamePlaceholder")}
             required
             error={errors.name}
           />
 
           <div className="mb-6">
-            <label className="block text-aws-squid-ink-light dark:text-aws-font-color-white-dark font-medium mb-2">
-              {t('review.fileType')} <span className="text-red">*</span>
+            <label className="mb-2 block font-medium text-aws-squid-ink-light dark:text-aws-font-color-white-dark">
+              {t("review.fileType")} <span className="text-red">*</span>
             </label>
             <SegmentedControl
               name="fileType"
               options={[
                 {
                   value: REVIEW_FILE_TYPE.PDF,
-                  label: t('review.pdfFile'),
+                  label: t("review.pdfFile"),
                   icon: <HiDocumentText />,
                 },
                 {
                   value: REVIEW_FILE_TYPE.IMAGE,
-                  label: t('review.imageFiles'),
+                  label: t("review.imageFiles"),
                   icon: <HiPhotograph />,
                 },
               ]}
@@ -305,11 +304,11 @@ export const CreateReviewPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
             {/* 左側: ファイルアップロード */}
             <div className="lg:col-span-3">
               <FormFileUpload
-                label={t('review.targetFiles')}
+                label={t("review.targetFiles")}
                 files={selectedFiles}
                 onFilesChange={handleFilesChange}
                 required
@@ -322,19 +321,19 @@ export const CreateReviewPage: React.FC = () => {
             </div>
 
             {/* 中央: 比較アイコン */}
-            <div className="lg:col-span-1 flex justify-center items-center py-4">
+            <div className="flex items-center justify-center py-4 lg:col-span-1">
               <ComparisonIndicator isReady={isReady} />
             </div>
 
             {/* 右側: チェックリスト選択 */}
             <div className="lg:col-span-3">
               {isLoadingCheckListSets ? (
-                <div className="flex items-center justify-center h-full p-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                <div className="flex h-full items-center justify-center p-8">
+                  <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2 border-t-2"></div>
                 </div>
               ) : checkListSetsError ? (
-                <div className="text-red p-4 border border-red rounded-md">
-                  {t('checklist.loadError')}
+                <div className="rounded-md border border-red p-4 text-red">
+                  {t("checklist.loadError")}
                 </div>
               ) : (
                 <ChecklistSelector
@@ -346,24 +345,23 @@ export const CreateReviewPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 mt-8">
-            <Button variant="outline" to="/review">
-              {t('common.cancel')}
+          <div className="mt-8 flex justify-end space-x-3">
+            <Button outline to="/review">
+              {t("common.cancel")}
             </Button>
             <Button
               variant="primary"
               type="submit"
-              disabled={!isReady || isSubmitting || isUploading}
-            >
+              disabled={!isReady || isSubmitting || isUploading}>
               {isSubmitting || isUploading ? (
                 <>
-                  <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
-                    <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white"></div>
+                  <div className="-ml-1 mr-2 h-4 w-4 animate-spin text-white">
+                    <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"></div>
                   </div>
-                  {t('common.processing')}
+                  {t("common.processing")}
                 </>
               ) : (
-                t('review.compare')
+                t("review.compare")
               )}
             </Button>
           </div>

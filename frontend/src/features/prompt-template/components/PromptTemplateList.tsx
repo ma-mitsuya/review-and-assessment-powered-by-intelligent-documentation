@@ -71,13 +71,17 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
       icon: <HiPencil className="mr-1 h-4 w-4" />,
       label: t("common.edit", "編集"),
       onClick: onEdit,
-      className: "text-aws-font-color-blue hover:text-aws-sea-blue-light",
+      variant: "primary",
+      outline: true,
+      className: "transition-all duration-200",
     },
     {
       icon: <HiTrash className="mr-1 h-4 w-4" />,
       label: t("common.delete", "削除"),
       onClick: onDelete,
-      className: "text-red hover:text-light-red",
+      variant: "danger",
+      outline: true,
+      className: "transition-all duration-200",
     },
   ];
 

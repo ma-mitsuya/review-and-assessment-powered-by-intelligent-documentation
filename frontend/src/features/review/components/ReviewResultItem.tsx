@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ReviewResultDetailModel,
+  ReviewResultDetail,
   REVIEW_RESULT,
   REVIEW_RESULT_STATUS,
   REVIEW_FILE_TYPE,
@@ -24,7 +24,7 @@ import DocumentPreview from "../../../components/DocumentPreview";
 import ImagePreview from "../../../components/ImagePreview";
 
 interface ReviewResultItemProps {
-  result: ReviewResultDetailModel;
+  result: ReviewResultDetail;
   hasChildren: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -58,53 +58,54 @@ export default function ReviewResultItem({
   // Add style if confidence is below threshold
   const isBelowThreshold =
     result.confidenceScore !== null &&
+    result.confidenceScore !== undefined &&
     result.confidenceScore < confidenceThreshold;
 
   // Determine badge color and text based on result
   const renderStatusBadge = () => {
     if (result.status === REVIEW_RESULT_STATUS.PROCESSING) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-          {t('status.processing')}
+        <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+          {t("status.processing")}
         </span>
       );
     }
 
     if (result.status === REVIEW_RESULT_STATUS.FAILED) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-          {t('status.failed')}
+        <span className="bg-red-100 text-red-800 rounded-full px-2 py-1 text-xs">
+          {t("status.failed")}
         </span>
       );
     }
 
     if (result.status === REVIEW_RESULT_STATUS.PENDING) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-          {t('status.pending')}
+        <span className="bg-yellow-100 text-yellow-800 rounded-full px-2 py-1 text-xs">
+          {t("status.pending")}
         </span>
       );
     }
 
     if (result.result === REVIEW_RESULT.PASS) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-          {t('review.pass', 'Pass')}
+        <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">
+          {t("review.pass", "Pass")}
         </span>
       );
     }
 
     if (result.result === REVIEW_RESULT.FAIL) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-          {t('review.fail', 'Fail')}
+        <span className="bg-red-100 text-red-800 rounded-full px-2 py-1 text-xs">
+          {t("review.fail", "Fail")}
         </span>
       );
     }
 
     return (
-      <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-        {t('common.unknown')}
+      <span className="bg-gray-100 text-gray-800 rounded-full px-2 py-1 text-xs">
+        {t("common.unknown")}
       </span>
     );
   };
@@ -113,8 +114,8 @@ export default function ReviewResultItem({
   const renderUserOverrideBadge = () => {
     if (result.userOverride) {
       return (
-        <span className="px-2 py-1 text-xs rounded-full bg-aws-sea-blue-light bg-opacity-20 text-aws-sea-blue-light ml-2">
-          {t('review.userOverride', 'User Override')}
+        <span className="ml-2 rounded-full bg-aws-sea-blue-light bg-opacity-20 px-2 py-1 text-xs text-aws-sea-blue-light">
+          {t("review.userOverride", "User Override")}
         </span>
       );
     }
@@ -127,7 +128,11 @@ export default function ReviewResultItem({
 
     // Determine color based on confidence score
     const getScoreColor = () => {
-      if (result.confidenceScore >= confidenceThreshold) return "text-aws-lab";
+      if (
+        result.confidenceScore !== undefined &&
+        result.confidenceScore >= confidenceThreshold
+      )
+        return "text-aws-lab";
       return "text-yellow";
     };
 
@@ -135,10 +140,12 @@ export default function ReviewResultItem({
       <span
         className={`text-sm ${getScoreColor()} ${
           isBelowThreshold ? "font-bold" : ""
-        }`}
-      >
-        {t('review.confidence', 'Confidence')}: {Math.round(result.confidenceScore * 100)}%
-        {isBelowThreshold && <span className="ml-1 text-yellow">⚠️</span>}
+        }`}>
+        {t("review.confidence", "Confidence")}:{" "}
+        {result.confidenceScore !== undefined
+          ? Math.round(result.confidenceScore * 100)
+          : 0}
+        %{isBelowThreshold && <span className="ml-1 text-yellow">⚠️</span>}
       </span>
     );
   };
@@ -146,17 +153,18 @@ export default function ReviewResultItem({
   // Fallback if checkList is undefined
   if (!result.checkList) {
     return (
-      <div className="bg-white border border-light-gray rounded-md p-4">
+      <div className="rounded-md border border-light-gray bg-white p-4">
         <div className="text-red">
-          {t('review.dataError', 'Data Error')}: {t('review.noChecklistInfo', 'No checklist information')} (ID: {result.checkId})
+          {t("review.dataError", "Data Error")}:{" "}
+          {t("review.noChecklistInfo", "No checklist information")} (ID:{" "}
+          {result.checkId})
         </div>
         <div className="mt-2">
           <Button
             onClick={() => window.location.reload()}
             variant="secondary"
-            size="sm"
-          >
-            {t('common.retry')}
+            size="sm">
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -167,12 +175,11 @@ export default function ReviewResultItem({
     <>
       <div
         id={`result-item-${result.id}`}
-        className={`bg-white border ${
-          isBelowThreshold ? "border-yellow border-2" : "border-light-gray"
-        } rounded-md p-4 hover:bg-aws-paper-light transition-colors ${
+        className={`border bg-white ${
+          isBelowThreshold ? "border-2 border-yellow" : "border-light-gray"
+        } rounded-md p-4 transition-colors hover:bg-aws-paper-light ${
           isBelowThreshold ? "bg-light-yellow" : ""
-        }`}
-      >
+        }`}>
         <div className="grid grid-cols-[auto_1fr_auto] gap-4">
           {/* Expand/collapse button - 1st column */}
           <div className="pt-1">
@@ -182,8 +189,7 @@ export default function ReviewResultItem({
                 variant="text"
                 size="sm"
                 className="p-0"
-                disabled={isLoadingChildren}
-              >
+                disabled={isLoadingChildren}>
                 {isExpanded ? (
                   isLoadingChildren ? (
                     <Spinner size="sm" />
@@ -210,175 +216,183 @@ export default function ReviewResultItem({
                 </div>
                 {/* 信頼度スコアを上段に表示 */}
                 {!hasChildren && renderConfidenceScore() && (
-                  <div className="ml-3">
-                    {renderConfidenceScore()}
-                  </div>
+                  <div className="ml-3">{renderConfidenceScore()}</div>
                 )}
               </div>
-              
+
               {/* アクションボタンを上段の右側に配置 */}
               <div className="flex items-center space-x-3">
                 <Button
                   onClick={() => setShowDetails(!showDetails)}
-                  variant="outline"
+                  outline
                   size="sm"
                   className="text-aws-font-color-blue"
-                  icon={showDetails ? <HiEyeOff className="h-4 w-4" /> : <HiEye className="h-4 w-4" />}
-                >
-                  {showDetails ? "詳細を隠す" : "詳細を表示"}
+                  icon={
+                    showDetails ? (
+                      <HiEyeOff className="h-4 w-4" />
+                    ) : (
+                      <HiEye className="h-4 w-4" />
+                    )
+                  }>
+                  {showDetails
+                    ? t("review.hideDetails", "Hide Details")
+                    : t("review.showDetails", "Show Details")}
                 </Button>
-                
+
                 {/* 上書きボタンを同じ行に配置 */}
-                {!hasChildren && result.status === REVIEW_RESULT_STATUS.COMPLETED && (
-                  <Button
-                    onClick={() => setIsModalOpen(true)}
-                    variant="outline"
-                    size="sm"
-                    className="text-aws-font-color-blue"
-                    icon={<HiPencil className="h-4 w-4" />}
-                  >
-                    {t('review.overrideResult', 'Override Result')}
-                  </Button>
-                )}
+                {!hasChildren &&
+                  result.status === REVIEW_RESULT_STATUS.COMPLETED && (
+                    <Button
+                      onClick={() => setIsModalOpen(true)}
+                      outline
+                      size="sm"
+                      className="text-aws-font-color-blue"
+                      icon={<HiPencil className="h-4 w-4" />}>
+                      {t("review.overrideResult", "Override Result")}
+                    </Button>
+                  )}
               </div>
             </div>
 
             {/* 短い説明文を表示 */}
             {result.shortExplanation && (
               <div className="mt-1">
-                <p className="text-sm text-aws-font-color-gray">{result.shortExplanation}</p>
+                <p className="text-sm text-aws-font-color-gray">
+                  {result.shortExplanation}
+                </p>
               </div>
             )}
 
             {/* 説明文と抽出テキスト */}
-            {showDetails && (result.explanation ||
-              result.extractedText ||
-              result.userComment || 
-              result.checkList.description) && (
-              <div className="mt-3 grid grid-cols-1 gap-3">
-                {/* 項目の説明 */}
-                {result.checkList.description && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">
-                      項目の説明:
-                    </p>
-                    <p className="text-aws-font-color-gray">
-                      {result.checkList.description}
-                    </p>
-                  </div>
-                )}
-
-                {result.explanation && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">
-                      {t('review.aiDecision', 'AI Decision')}:
-                    </p>
-                    <p className="text-aws-font-color-gray">
-                      {result.explanation}
-                    </p>
-                  </div>
-                )}
-
-                {/* Display extracted text */}
-                {result.extractedText && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm border border-light-gray">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">
-                      {t('review.sourceText', 'Source Text')}:
-                    </p>
-                    <p className="whitespace-pre-wrap text-aws-font-color-gray">
-                      {result.extractedText}
-                    </p>
-                  </div>
-                )}
-
-                {/* Display source documents (list format) */}
-                {sourceReferences.length > 0 && (
-                  <div className="bg-aws-paper-light rounded p-3 text-sm mt-3 border border-light-gray">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">
-                      {t('review.sourceDocuments', 'Source Documents')}:
-                    </p>
-                    <p className="text-sm text-aws-font-color-gray mb-2">
-                      {t('review.sourceList', 'Source List')} ({sourceReferences.length}{t('review.items', 'items')})
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {sourceReferences
-                        .slice(0, visibleReferencesCount)
-                        .map((reference, index) => {
-                          const doc = documents.find(
-                            (d) => d.id === reference.documentId
-                          );
-                          if (!doc) return null;
-
-                          return (
-                            <div
-                              key={`${reference.documentId}-${
-                                reference.pageNumber || index
-                              }`}
-                              className="border border-light-gray rounded p-2"
-                            >
-                              {doc.fileType === REVIEW_FILE_TYPE.PDF ? (
-                                <DocumentPreview
-                                  s3Key={doc.s3Path}
-                                  filename={doc.filename}
-                                  pageNumber={reference.pageNumber}
-                                />
-                              ) : doc.fileType === REVIEW_FILE_TYPE.IMAGE ? (
-                                <ImagePreview
-                                  s3Key={doc.s3Path}
-                                  filename={doc.filename}
-                                  thumbnailHeight={80} // Smaller thumbnail size
-                                  boundingBox={reference.boundingBox} // Pass bounding box info
-                                />
-                              ) : null}
-                            </div>
-                          );
-                        })}
+            {showDetails &&
+              (result.explanation ||
+                result.extractedText ||
+                result.userComment ||
+                result.checkList.description) && (
+                <div className="mt-3 grid grid-cols-1 gap-3">
+                  {/* 項目の説明 */}
+                  {result.checkList.description && (
+                    <div className="rounded border border-light-gray bg-aws-paper-light p-3 text-sm">
+                      <p className="mb-1 font-medium text-aws-squid-ink-light">
+                        {t("review.itemDescription", "Item Description")}:
+                      </p>
+                      <p className="text-aws-font-color-gray">
+                        {result.checkList.description}
+                      </p>
                     </div>
+                  )}
 
-                    {sourceReferences.length > visibleReferencesCount && (
-                      <div className="mt-2 text-center">
-                        <Button
-                          onClick={() =>
-                            setVisibleReferencesCount((prev) =>
-                              prev === sourceReferences.length
-                                ? 5
-                                : sourceReferences.length
-                            )
-                          }
-                          variant="text"
-                          size="sm"
-                          icon={
-                            visibleReferencesCount ===
-                            sourceReferences.length ? (
-                              <HiChevronUp className="h-4 w-4" />
-                            ) : (
-                              <HiChevronDown className="h-4 w-4" />
-                            )
-                          }
-                        >
-                          {visibleReferencesCount === sourceReferences.length
-                            ? t('review.collapse', 'Collapse')
-                            : t('review.showAll', 'Show All')}
-                        </Button>
+                  {result.explanation && (
+                    <div className="rounded border border-light-gray bg-aws-paper-light p-3 text-sm">
+                      <p className="mb-1 font-medium text-aws-squid-ink-light">
+                        {t("review.aiDecision", "AI Decision")}:
+                      </p>
+                      <p className="text-aws-font-color-gray">
+                        {result.explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Display extracted text */}
+                  {result.extractedText && (
+                    <div className="rounded border border-light-gray bg-aws-paper-light p-3 text-sm">
+                      <p className="mb-1 font-medium text-aws-squid-ink-light">
+                        {t("review.sourceText", "Source Text")}:
+                      </p>
+                      <p className="whitespace-pre-wrap text-aws-font-color-gray">
+                        {result.extractedText}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Display source documents (list format) */}
+                  {sourceReferences.length > 0 && (
+                    <div className="mt-3 rounded border border-light-gray bg-aws-paper-light p-3 text-sm">
+                      <p className="mb-1 font-medium text-aws-squid-ink-light">
+                        {t("review.sourceDocuments", "Source Documents")}:
+                      </p>
+                      <p className="mb-2 text-sm text-aws-font-color-gray">
+                        {t("review.sourceList", "Source List")} (
+                        {sourceReferences.length}
+                        {t("review.items", "items")})
+                      </p>
+
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                        {sourceReferences
+                          .slice(0, visibleReferencesCount)
+                          .map((reference: any, index: number) => {
+                            const doc = documents.find(
+                              (d) => d.id === reference.documentId
+                            );
+                            if (!doc) return null;
+
+                            return (
+                              <div
+                                key={`${reference.documentId}-${
+                                  reference.pageNumber || index
+                                }`}
+                                className="rounded border border-light-gray p-2">
+                                {doc.fileType === REVIEW_FILE_TYPE.PDF ? (
+                                  <DocumentPreview
+                                    s3Key={doc.s3Path}
+                                    filename={doc.filename}
+                                    pageNumber={reference.pageNumber}
+                                  />
+                                ) : doc.fileType === REVIEW_FILE_TYPE.IMAGE ? (
+                                  <ImagePreview
+                                    s3Key={doc.s3Path}
+                                    filename={doc.filename}
+                                    thumbnailHeight={80} // Smaller thumbnail size
+                                    boundingBox={reference.boundingBox} // Pass bounding box info
+                                  />
+                                ) : null}
+                              </div>
+                            );
+                          })}
                       </div>
-                    )}
-                  </div>
-                )}
 
-                {/* User comments */}
-                {result.userComment && (
-                  <div className="bg-aws-sea-blue-light bg-opacity-10 rounded p-3 text-sm">
-                    <p className="font-medium text-aws-squid-ink-light mb-1">
-                      {t('review.userComment', 'User Comment')}:
-                    </p>
-                    <p className="text-aws-font-color-gray">
-                      {result.userComment}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+                      {sourceReferences.length > visibleReferencesCount && (
+                        <div className="mt-2 text-center">
+                          <Button
+                            onClick={() =>
+                              setVisibleReferencesCount((prev) =>
+                                prev === sourceReferences.length
+                                  ? 5
+                                  : sourceReferences.length
+                              )
+                            }
+                            variant="text"
+                            size="sm"
+                            icon={
+                              visibleReferencesCount ===
+                              sourceReferences.length ? (
+                                <HiChevronUp className="h-4 w-4" />
+                              ) : (
+                                <HiChevronDown className="h-4 w-4" />
+                              )
+                            }>
+                            {visibleReferencesCount === sourceReferences.length
+                              ? t("review.collapse", "Collapse")
+                              : t("review.showAll", "Show All")}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* User comments */}
+                  {result.userComment && (
+                    <div className="rounded bg-aws-sea-blue-light bg-opacity-10 p-3 text-sm">
+                      <p className="mb-1 font-medium text-aws-squid-ink-light">
+                        {t("review.userComment", "User Comment")}:
+                      </p>
+                      <p className="text-aws-font-color-gray">
+                        {result.userComment}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* Confidence score and override button - 3rd column */}

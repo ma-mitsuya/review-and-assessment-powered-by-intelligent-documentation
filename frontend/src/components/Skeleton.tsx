@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SkeletonProps {
   className?: string;
@@ -17,29 +17,22 @@ interface TableSkeletonProps {
 
 export const TableSkeleton: React.FC<TableSkeletonProps> = ({ rows = 5, columns = 4 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden border border-light-gray">
-      <table className="min-w-full divide-y divide-light-gray">
-        <thead className="bg-aws-paper-light">
-          <tr>
-            {Array(columns).fill(0).map((_, i) => (
-              <th key={i} scope="col" className="px-6 py-4 text-left">
-                <Skeleton className="h-4 w-24" />
-              </th>
+    <div className="overflow-hidden rounded-lg border border-light-gray bg-white shadow-md dark:bg-aws-squid-ink-dark">
+      <div className="overflow-x-auto p-2">
+        <table className="min-w-full divide-y divide-light-gray">
+          <tbody className="divide-y divide-light-gray bg-white dark:bg-aws-squid-ink-dark">
+            {Array(rows).fill(0).map((_, rowIndex) => (
+              <tr key={rowIndex}>
+                {Array(columns).fill(0).map((_, colIndex) => (
+                  <td key={colIndex} className="px-6 py-4">
+                    <Skeleton className={`h-5 ${colIndex === 0 ? 'w-32' : 'w-24'}`} />
+                  </td>
+                ))}
+              </tr>
             ))}
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-light-gray">
-          {Array(rows).fill(0).map((_, rowIndex) => (
-            <tr key={rowIndex}>
-              {Array(columns).fill(0).map((_, colIndex) => (
-                <td key={colIndex} className="px-6 py-4">
-                  <Skeleton className={`h-5 ${colIndex === 0 ? 'w-32' : 'w-24'}`} />
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

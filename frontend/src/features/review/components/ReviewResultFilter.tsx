@@ -1,6 +1,7 @@
 /**
- * 審査結果フィルタリングコンポーネント
+ * Review result filtering component
  */
+import { useTranslation } from "react-i18next";
 import SegmentedControl from "../../../components/SegmentedControl";
 import { HiCheck, HiX, HiViewList } from "react-icons/hi";
 import { FilterType } from "../hooks/useReviewResultQueries";
@@ -14,11 +15,13 @@ export default function ReviewResultFilter({
   filter,
   onChange,
 }: ReviewResultFilterProps) {
+  const { t } = useTranslation();
+
   const filterLabels: Record<FilterType, string> = {
-    all: "すべて",
-    fail: "不合格",
-    pass: "合格",
-    processing: "処理中",
+    all: t("review.filterAll", "All"),
+    fail: t("review.fail"),
+    pass: t("review.pass"),
+    processing: t("status.processing"),
   };
 
   const options = [

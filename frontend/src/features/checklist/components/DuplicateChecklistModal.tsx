@@ -35,16 +35,14 @@ export default function DuplicateChecklistModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t('checklist.duplicateTitle')}
-      size="md"
-    >
+      title={t("checklist.duplicateTitle")}
+      size="md">
       <div className="space-y-4">
         <div>
           <label
             htmlFor="name"
-            className="block text-aws-squid-ink-light font-medium mb-2"
-          >
-            {t('checklist.name')} <span className="text-red">*</span>
+            className="mb-2 block font-medium text-aws-squid-ink-light">
+            {t("checklist.name")} <span className="text-red">*</span>
           </label>
           <input
             type="text"
@@ -52,17 +50,16 @@ export default function DuplicateChecklistModal({
             name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-            placeholder={t('checklist.namePlaceholder')}
+            className="w-full rounded-md border border-light-gray px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
+            placeholder={t("checklist.namePlaceholder")}
           />
         </div>
-        
+
         <div>
           <label
             htmlFor="description"
-            className="block text-aws-squid-ink-light font-medium mb-2"
-          >
-            {t('checklist.description')}
+            className="mb-2 block font-medium text-aws-squid-ink-light">
+            {t("checklist.description")}
           </label>
           <textarea
             id="description"
@@ -70,27 +67,20 @@ export default function DuplicateChecklistModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full px-4 py-2 border border-light-gray rounded-md focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
-            placeholder={t('checklist.descriptionPlaceholder')}
+            className="w-full rounded-md border border-light-gray px-4 py-2 focus:outline-none focus:ring-2 focus:ring-aws-sea-blue-light"
+            placeholder={t("checklist.descriptionPlaceholder")}
           />
         </div>
-        
-        <div className="flex justify-end space-x-3 mt-6">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isLoading}
-          >
-            {t('common.cancel')}
+
+        <div className="mt-6 flex justify-end space-x-3">
+          <Button outline onClick={onClose} disabled={isLoading}>
+            {t("common.cancel")}
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleConfirm}
-            disabled={isLoading || !name.trim()}
-          >
-            {isLoading 
-              ? t('common.processing')
-              : t('common.duplicate')}
+            disabled={isLoading || !name.trim()}>
+            {isLoading ? t("common.processing") : t("common.duplicate")}
           </Button>
         </div>
       </div>

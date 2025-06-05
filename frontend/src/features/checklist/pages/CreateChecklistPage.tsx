@@ -263,7 +263,7 @@ export function CreateChecklistPage() {
           </div>
 
           <div className="mt-4 flex justify-end space-x-3">
-            <Button variant="outline" to="/checklist">
+            <Button outline to="/checklist">
               {t("common.cancel")}
             </Button>
             <Button
