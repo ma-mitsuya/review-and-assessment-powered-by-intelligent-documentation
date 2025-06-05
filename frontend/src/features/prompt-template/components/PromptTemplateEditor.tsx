@@ -8,7 +8,7 @@ import {
   PromptTemplateType,
   UpdatePromptTemplateRequest,
 } from "../types";
-import { DEFAULT_CHECKLIST_PROMPT } from "../constants";
+import { DEFAULT_CHECKLIST_PROMPT, DEFAULT_REVIEW_PROMPT } from "../constants";
 
 interface PromptTemplateEditorProps {
   template?: PromptTemplate;
@@ -30,7 +30,11 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
   const [description, setDescription] = useState(template?.description || "");
   const [prompt, setPrompt] = useState(
     template?.prompt ||
-      (type === PromptTemplateType.CHECKLIST ? DEFAULT_CHECKLIST_PROMPT : "")
+      (type === PromptTemplateType.CHECKLIST
+        ? DEFAULT_CHECKLIST_PROMPT
+        : type === PromptTemplateType.REVIEW
+          ? DEFAULT_REVIEW_PROMPT
+          : "")
   );
   const [isDirty, setIsDirty] = useState(false);
 
@@ -60,6 +64,9 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
   const handleReset = () => {
     if (type === PromptTemplateType.CHECKLIST) {
       setPrompt(DEFAULT_CHECKLIST_PROMPT);
+      setIsDirty(true);
+    } else if (type === PromptTemplateType.REVIEW) {
+      setPrompt(DEFAULT_REVIEW_PROMPT);
       setIsDirty(true);
     }
   };
@@ -97,16 +104,14 @@ export const PromptTemplateEditor: React.FC<PromptTemplateEditorProps> = ({
               className="block text-sm font-medium text-aws-font-color-light dark:text-aws-font-color-dark">
               {t("promptTemplate.prompt")}
             </label>
-            {type === PromptTemplateType.CHECKLIST && (
-              <Button
-                type="button"
-                outline
-                size="sm"
-                onClick={handleReset}
-                disabled={isSubmitting}>
-                {t("promptTemplate.resetToDefault")}
-              </Button>
-            )}
+            <Button
+              type="button"
+              outline
+              size="sm"
+              onClick={handleReset}
+              disabled={isSubmitting}>
+              {t("promptTemplate.resetToDefault")}
+            </Button>
           </div>
           <FormTextArea
             id="template-prompt"

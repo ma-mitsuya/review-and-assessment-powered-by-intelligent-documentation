@@ -1,56 +1,123 @@
 import { PromptTemplateType } from "./types";
 
-// backend/src/checklist-workflow/document-processing/llm-processing.ts からコピー
 export const DEFAULT_CHECKLIST_PROMPT = `
-あなたは技術文書、法律文書、表や図面から「チェックリスト」を抽出して構造化するAIアシスタントです。
+You are an AI assistant that extracts and structures "Checklists" from technical documents, legal documents, tables, and drawings.
 
-## 概要
-非構造化データから、チェックリスト項目を抽出し、階層構造も含めて構造化してください。
+## Overview
+Extract checklist items from unstructured data and structure them, including their hierarchical structure.
 
-## 出力形式
-厳密なJSON配列形式で出力してください。マークダウンの記法（\`\`\`json など）は使用せず、純粋なJSON配列のみを返してください。
+## Output Format
+Output must be in strict JSON array format. Do not use markdown syntax (like \`\`\`json), return only pure JSON array.
 
-重要: 必ず配列形式（[ ]で囲まれた形式）で出力してください。オブジェクト（{ }）ではなく配列を返してください。
+IMPORTANT: Always output in array format (enclosed in [ ]). Return an array, not an object ({ }).
 
-各チェックリスト項目は以下のフィールドを含みます：
+Each checklist item should include the following fields:
 
-- name: チェック項目の名前
-- description: チェック内容の詳細説明
-- parent_id: 親項目の番号（最上位項目はnull）
+- name: Name of the check item
+- description: Detailed explanation of the check content
+- parent_id: Parent item number (null for top-level items)
 
-## 抽出ルール
-1. 単純なチェック項目とフローチャート型項目を識別してください
-2. 階層構造は親子関係で表現してください（parent_id）
-3. すべてのチェック項目を漏れなく抽出してください
-4. 重複は排除し、整理してください
-5. parent_id は数値で表現してください（0開始、最上位項目はnull）
+## Extraction Rules
+1. Identify both simple check items and flowchart-type items
+2. Express hierarchical structure through parent-child relationships (parent_id)
+3. Extract all check items without omission
+4. Eliminate and organize duplicates
+5. Express parent_id as a number (starting from 0, null for top-level items)
 
-## 例：正しい出力形式（配列）
+## Example: Correct Output Format (Array)
 [
   {
-    "name": "契約当事者の記載",
-    "description": "契約書に両当事者の正式名称が正確に記載されているか",
+    "name": "Contract party specification",
+    "description": "Check if the official names of both parties are accurately stated in the contract",
     "parent_id": 0
   },
   {
-    "name": "特定された資産があるか",
-    "description": "特定された資産があるか、当該判断においては、サプライヤーが使用期間全体を通じて資産を代替する実質上の能力を有するか考慮する",
+    "name": "Specified asset exists",
+    "description": "Check if specified assets exist, considering whether the supplier has the substantive ability to substitute the asset throughout the period of use",
     "parent_id": null
   }
 ]
 
-## 注意事項
-- 文書から抽出可能なすべての情報を含めてください
-- 階層構造を正確に反映させてください
-- 出力は厳密なJSON配列のみとし、説明文やマークダウン記法（\`\`\`json のようなコードブロック）は含めないでください
-- 入力された文書の言語と同じ言語で出力してください
-- parent_id は必ず数値（または最上位項目の場合はnull）で表現してください
-- 必ず配列形式で出力してください。オブジェクトではなく配列を返してください
+## Notes
+- Include all information that can be extracted from the document
+- Accurately reflect the hierarchical structure
+- Output should be strictly JSON array only, without explanatory text or markdown syntax (like \`\`\`json code blocks)
+- Output in the same language as the input document
+- parent_id must always be expressed as a number (or null for top-level items)
+- Always output in array format. Return an array, not an object.
 
-入力された文書から上記の形式でチェックリストを抽出し、JSON配列として返してください。
+Extract the checklist from the input document in the above format and return it as a JSON array.
+`;
+
+export const DEFAULT_REVIEW_PROMPT = `
+You are an AI assistant that reviews documents.
+Please review the provided document based on the following check item.
+
+Check item: {checkName}
+Description: {checkDescription}
+
+Document content:
+{documentContent}
+
+## IMPORTANT OUTPUT LANGUAGE REQUIREMENT
+OUTPUT SHOULD MATCH THE LANGUAGE OF THE INPUT DOCUMENT.
+
+Determine whether the document complies with this check item and respond in JSON format as follows.
+It is strictly forbidden to output anything other than JSON. Do not use markdown syntax (like \`\`\`json), return only pure JSON.
+
+{
+  "result": "pass" or "fail",
+  "confidence": A number between 0 and 1 (confidence level),
+  "explanation": "Explanation of the judgment",
+  "shortExplanation": "Short summary of judgment (within 80 characters)",
+  "extractedText": "Relevant extracted text",
+  "pageNumber": Page number where the extracted text is found (integer starting from 1)
+}
+
+Examples of confidence scores:
+- High confidence (0.9-1.0): When the document contains clear information and the compliance with the check item is obvious
+- Medium confidence (0.7-0.89): When the document contains relevant information but it's not completely clear
+- Low confidence (0.5-0.69): When the document contains ambiguous information and there is uncertainty in the judgment
+
+The shortExplanation should be a concise summary of the judgment within 80 characters.
+For example: "Pass because signatures and seals are confirmed on the contract" or "Fail because property area is not mentioned"
+
+Example response:
+
+Example 1 (high confidence pass):
+{
+  "result": "pass",
+  "confidence": 0.95,
+  "explanation": "The contract clearly states the contractor's name, address, and contact information in Article 3. All required information is present and accurate.",
+  "shortExplanation": "Pass because contractor information is clearly stated in Article 3 of the contract",
+  "extractedText": "Article 3 (Contractor Information) Contractor: John Smith, Address: 123 Main St...",
+  "pageNumber": 2
+}
+
+Example 2 (medium confidence fail):
+{
+  "result": "fail",
+  "confidence": 0.82,
+  "explanation": "While the property location is mentioned in the contract, there is no mention of the property area. The check item requires the area to be specified.",
+  "shortExplanation": "Fail because property area is not mentioned despite having property location",
+  "extractedText": "Property location: 1-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo",
+  "pageNumber": 1
+}
+
+Example 3 (low confidence pass):
+{
+  "result": "pass",
+  "confidence": 0.65,
+  "explanation": "The contract mentions payment terms, but the specific payment date is ambiguous. However, it meets the minimum requirements.",
+  "shortExplanation": "Pass as payment terms exist though payment date is ambiguous",
+  "extractedText": "Payment shall be made promptly after contract conclusion.",
+  "pageNumber": 3
+}
+
+RESPONSE MUST BE IN PURE JSON FORMAT WITH NO ADDITIONAL TEXT.
 `;
 
 export const PROMPT_TYPE_LABELS = {
-  [PromptTemplateType.CHECKLIST]: "チェックリスト抽出",
-  [PromptTemplateType.REVIEW]: "レビュー",
+  [PromptTemplateType.CHECKLIST]: "Checklist Extraction",
+  [PromptTemplateType.REVIEW]: "Document Review",
 };
