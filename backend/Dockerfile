@@ -6,7 +6,7 @@ WORKDIR /var/task
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm ci --omit=dev
+RUN npm ci
 COPY . .
 RUN npm run build
 RUN npx prisma generate

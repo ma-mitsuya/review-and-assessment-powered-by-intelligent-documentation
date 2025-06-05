@@ -4,11 +4,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { HiTranslate } from "react-icons/hi";
 import { I18n } from "aws-amplify/utils";
 import { translations } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import "../../ThemeAuth.css";
+import iconImage from "../assets/icon.png";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,12 +18,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
-  const { language, changeLanguage } = useLanguage();
-
-  const toggleLanguage = () => {
-    const newLang = language === "ja" ? "en" : "ja";
-    changeLanguage(newLang);
-  };
+  const { language } = useLanguage();
 
   // Set Amplify UI language based on the current app language
   useEffect(() => {
@@ -42,18 +37,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!isAuthenticated) {
     return (
       <div className="auth-container">
-        {/* Language switcher */}
-        <button
-          onClick={toggleLanguage}
-          className="bg-gray-100 hover:bg-gray-200 absolute right-4 top-4 flex items-center rounded-md px-3 py-1 text-sm transition-colors"
-          style={{ zIndex: 1000 }}>
-          <HiTranslate className="mr-2 h-4 w-4" />
-          {language === "ja" ? "English" : "日本語"}
-        </button>
-
         <div className="auth-header">
           <img
-            src="/src/assets/icon.png"
+            src={iconImage}
             alt="RAPID Icon"
             className="auth-icon"
           />
