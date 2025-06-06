@@ -179,41 +179,46 @@ npm run format
 
 詳細なデプロイ手順は [デプロイガイド](./how_to_deploy.md) を参照してください。
 
-### 簡易デプロイ手順
+### デプロイ方法
+
+RAPIDのデプロイには以下の2つの方法があります：
+
+#### 1. CodeBuildを使用したデプロイ（推奨）
+
+ローカル環境に依存せず、AWS CodeBuildを使用してクラウド上でデプロイする方法です。
 
 ```bash
-# MySQLのDockerコンテナを起動
-docker-compose -f assets/local/docker-compose.yml up -d
-
-# バックエンドの準備
-cd backend
-npm ci
-npm run prisma:generate  # Prismaクライアントの生成
-npm run build
-
-# CDKのデプロイ
-cd ../cdk
-npm ci
-npm run build
-cdk bootstrap  # 初回のみ
-cdk deploy --all --require-approval never
-
-# ローカルMySQLの停止
-cd ..
-docker-compose -f assets/local/docker-compose.yml down -v
+# プロジェクトルートディレクトリから実行
+./bin.sh
 ```
 
-### デプロイ後の初期設定
+カスタムパラメータを指定することも可能です：
 
-デプロイ完了後、以下の手順が必要です:
+```bash
+./bin.sh --ipv4-ranges '["192.168.0.0/16"]' --auto-migrate false
+```
 
-1. AWS Management Console で、Lambda サービスに移動
-2. `BeaconStack-PrismaMigrationMigrationFunction~` という名前の Lambda 関数を検索して選択
-3. 「テスト」タブを選択
-4. 以下の JSON をテストイベントとして設定し実行
-   ```json
-   { "command": "deploy" }
-   ```
+利用可能なオプション：
+- `--ipv4-ranges`: フロントエンドWAFで許可するIPv4アドレス範囲（JSON配列形式）
+- `--ipv6-ranges`: フロントエンドWAFで許可するIPv6アドレス範囲（JSON配列形式）
+- `--disable-ipv6`: IPv6サポートを無効にする
+- `--auto-migrate`: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
+- `--cdk-json-override`: CDK設定をオーバーライドするためのJSON文字列
+- `--repo-url`: デプロイするリポジトリのURL
+- `--branch`: デプロイするブランチ名
+
+詳細は [デプロイガイド](./how_to_deploy.md) を参照してください。
+
+#### 2. ローカル環境からのデプロイ
+
+ローカル環境で必要なツールをインストールしてデプロイする方法です。
+
+```bash
+# プロジェクトルートディレクトリから実行
+./deploy.sh
+```
+
+詳細は [デプロイガイド](./how_to_deploy.md) を参照してください。
 
 ## パラメータカスタマイズ
 
@@ -225,6 +230,10 @@ CDK デプロイ時に以下のパラメータをカスタマイズできます:
 | ------------------------ | --------------------------------------- | ----------------------------------------- |
 | allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲 | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
 | allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲 | ["0000::/1", "8000::/1"] (すべて許可)     |
+| autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか | true (自動実行する) |
+
+> [!Warning]
+> デフォルトでは `autoMigrate` パラメータが `true` に設定されており、デプロイ時に自動的にデータベースマイグレーションが実行されます。本番環境や重要なデータを含む環境では、このパラメータを `false` に設定し、マイグレーションを手動で制御することを検討してください。
 
 ### パラメータ指定方法
 
@@ -246,6 +255,8 @@ export const parameters = {
   allowedIpV6AddressRanges: [
     "2001:db8::/32", // IPv6アドレス範囲例
   ],
+  
+  autoMigrate: false, // 自動マイグレーションを無効化
 };
 ```
 
@@ -257,6 +268,15 @@ cdk deploy --context rapid.allowedIpV4AddressRanges='["192.168.0.0/16", "203.0.1
 
 # または JSON 形式
 cdk deploy --context rapid='{"allowedIpV4AddressRanges":["192.168.0.0/16"]}'
+
+# 自動マイグレーションを無効化する例
+cdk deploy --context rapid.autoMigrate=false
+```
+
+#### 3. CodeBuildデプロイ時にパラメータを指定
+
+```bash
+./bin.sh --ipv4-ranges '["192.168.0.0/16"]' --auto-migrate false
 ```
 
 ## セキュリティ考慮事項
