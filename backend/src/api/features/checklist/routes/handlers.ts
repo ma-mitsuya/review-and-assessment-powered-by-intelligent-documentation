@@ -124,6 +124,7 @@ export const getAllChecklistSetsHandler = async (
         description: checkList.description,
         processingStatus: checkList.processingStatus,
         isEditable: checkList.isEditable,
+        createdAt: checkList.createdAt,
       })),
     },
   });

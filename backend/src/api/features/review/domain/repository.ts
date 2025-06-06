@@ -140,6 +140,7 @@ export const makePrismaReviewJobRepository = async (
           uploadDate: doc.uploadDate,
           status: doc.status as CHECK_LIST_STATUS,
         })),
+        createdAt: job.checkListSet.createdAt,
       },
       documents: job.documents.map((doc) => ({
         id: doc.id,
