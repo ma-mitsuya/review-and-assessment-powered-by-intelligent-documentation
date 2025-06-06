@@ -77,55 +77,99 @@ RAPID は直感的なウェブインターフェースを通じて、以下の�
 - AWS CLI (設定済み)
 - Node.js (v18 以上)
 
-### 簡易デプロイ手順
+### デプロイ方法
+
+RAPIDのデプロイには以下の2つの方法があります：
+
+#### 1. CloudShellを使用したデプロイ（簡単に始めたい方向け）
+
+ローカル環境の準備が不要で、AWS CloudShellを使用してブラウザから簡単に直接デプロイできる方法です。
 
 1. **Amazon Bedrock モデルの有効化**
 
-   AWS Management Console から Bedrock サービスにアクセスし、必要なモデルへのアクセスを有効化してください。
+   AWS Management Console から [Bedrock モデルアクセス](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess)にアクセスし、必要なモデルへのアクセスを有効化してください。
 
-2. **リポジトリのクローン**
+2. **AWS CloudShellを開く**
 
-   ```bash
-   git clone https://github.com/aws-samples/bedrock-chat.git
-   cd bedrock-chat
-   ```
+   [AWS CloudShell](https://console.aws.amazon.com/cloudshell/home)をデプロイしたいリージョンで開きます。
 
-3. **デプロイの実行**
+3. **デプロイスクリプトの実行**
 
    ```bash
-   npm ci
-   cd cdk
-   npm ci
-   npm run build
-   cdk bootstrap  # 初回のみ
-   cdk deploy --all --require-approval never
+   git clone https://github.com/aws-samples/sample-review-and-assessment-powered-by-intelligent-documentation.git
+   cd sample-review-and-assessment-powered-by-intelligent-documentation
+   ./bin.sh
    ```
 
-4. **デプロイ後の初期設定**
+   このスクリプトは、CloudShellを使用してRAPIDアプリケーションを自動的にデプロイします。
 
-   デプロイ完了後、以下の手順が必要です:
+4. **カスタムパラメータの指定（オプション）**
 
-   1. AWS Management Console で、Lambda サービスに移動
-   2. `BeaconStack-PrismaMigrationMigrationFunction~` という名前の Lambda 関数を検索して選択
-   3. 「テスト」タブを選択
-   4. 以下の JSON をテストイベントとして設定し実行
-      ```json
-      { "command": "deploy" }
-      ```
-   5. 表示される URL にアクセスしてアプリケーションを開始
+   ```bash
+   ./bin.sh --ipv4-ranges '["192.168.0.0/16"]' --auto-migrate false
+   ```
+
+   利用可能なオプション：
+   - `--ipv4-ranges`: フロントエンドWAFで許可するIPv4アドレス範囲（JSON配列形式）
+   - `--ipv6-ranges`: フロントエンドWAFで許可するIPv6アドレス範囲（JSON配列形式）
+   - `--disable-ipv6`: IPv6サポートを無効にする
+   - `--auto-migrate`: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
+   - `--cdk-json-override`: CDK設定をオーバーライドするためのJSON文字列
+   - `--repo-url`: デプロイするリポジトリのURL
+   - `--branch`: デプロイするブランチ名
+
+5. **デプロイ後の確認**
+
+   デプロイが完了すると、フロントエンドURLとAPIのURLが表示されます。
+   表示されたURLにアクセスして、アプリケーションを利用開始できます。
+
+> [!Note]
+> CloudShellを使用したデプロイでは、Node.js 20とnpmの最新バージョンが自動的に使用されるため、環境構築の手間がありません。
+
+> [!Important]
+> このデプロイ方法では、オプションパラメータを設定しない場合、URLを知っている誰でもサインアップできます。本番環境での使用には、IPアドレス制限の追加やセルフサインアップの無効化を強くお勧めします。
+
+#### 2. ローカル環境からのデプロイ（カスタマイズが必要な場合に推奨）
+
+ローカル環境でCDKを使用してデプロイする方法です。、デプロイプロセスをカスタマイズしたい方向けです。詳細な手順については[デプロイガイド](./docs/how_to_deploy.md)を参照してください。
+
+1. **前提条件の確認**
+   - Node.js (v18 以上)
+   - AWS CLI (設定済み)
+   - Docker (macOSでのデプロイ時に必要)
+
+2. **自動化スクリプトを使用したデプロイ**
+
+   ```bash
+   # プロジェクトルートディレクトリから実行
+   ./deploy.sh
+   ```
+
+   このスクリプトは以下の手順を自動的に実行します：
+   - 環境のチェック（Docker、AWS CLI）
+   - MySQL コンテナの起動（必要な場合）
+   - バックエンドの依存関係インストールとビルド
+   - マイグレーションファイルの確認と作成
+   - CDK によるAWSリソースのデプロイ
+   - データベースマイグレーションの実行
+   - デプロイ情報（フロントエンドURLとAPI URL）の表示
+
+詳細な手順については[デプロイガイド](./docs/how_to_deploy.md)を参照してください。
 
 ### パラメータカスタマイズ
 
 CDK デプロイ時に以下のパラメータをカスタマイズできます:
 
-| パラメータ名             | 説明                                                       | デフォルト値                              |
-| ------------------------ | ---------------------------------------------------------- | ----------------------------------------- |
-| allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲                    | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
-| allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲                    | ["0000::/1", "8000::/1"] (すべて許可)     |
+| パラメータ名             | 説明                                    | デフォルト値                              |
+| ------------------------ | --------------------------------------- | ----------------------------------------- |
+| allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲 | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
+| allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲 | ["0000::/1", "8000::/1"] (すべて許可)     |
 | cognitoSelfSignUpEnabled | Cognito User Pool のセルフサインアップを有効にするかどうか | true (有効)                               |
+| autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか | true (自動実行する) |
 
 > [!CAUTION]
 > 本番環境では、`cognitoSelfSignUpEnabled: false` に設定することでセルフサインアップを無効化することを強く推奨します。セルフサインアップを有効にしたままにすると、誰でもアカウント登録が可能となるため、セキュリティリスクとなる可能性があります。
+> デフォルトでは `autoMigrate` パラメータが `true` に設定されており、デプロイ時に自動的にデータベースマイグレーションが実行されます。本番環境や重要なデータを含む環境では、このパラメータを `false` に設定し、マイグレーションを手動で制御することを検討してください。
 
 #### パラメータ指定方法
 
@@ -147,6 +191,8 @@ export const parameters = {
   allowedIpV6AddressRanges: [
     "2001:db8::/32", // IPv6アドレス範囲例
   ],
+  
+  autoMigrate: false, // 自動マイグレーションを無効化
 };
 ```
 
@@ -158,6 +204,15 @@ cdk deploy --context rapid.allowedIpV4AddressRanges='["192.168.0.0/16", "203.0.1
 
 # または JSON 形式
 cdk deploy --context rapid='{"allowedIpV4AddressRanges":["192.168.0.0/16"]}'
+
+# 自動マイグレーションを無効化する例
+cdk deploy --context rapid.autoMigrate=false
+```
+
+##### 3. CodeBuildデプロイ時にパラメータを指定
+
+```bash
+./bin.sh --ipv4-ranges '["192.168.0.0/16"]' --auto-migrate false
 ```
 
 セキュリティ強化のため、フロントエンドへのアクセスを必要な IP アドレス範囲のみに制限することを強く推奨します。

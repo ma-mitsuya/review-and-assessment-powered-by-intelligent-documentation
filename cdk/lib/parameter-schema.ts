@@ -34,6 +34,10 @@ const parameterSchema = z.object({
     .boolean()
     .default(true)
     .describe("Cognito User Poolのセルフサインアップを有効にするかどうか"),
+
+   // Prismaマイグレーション設定
+  autoMigrate: z.boolean().default(true), // デフォルトはtrue（自動マイグレーションを実行する）
+
 });
 
 // パラメータの型定義（型安全性のため）
@@ -144,6 +148,12 @@ export function extractContextParameters(app: any): Record<string, any> {
   if (cognitoSelfSignUpEnabled !== undefined) {
     params.cognitoSelfSignUpEnabled =
       cognitoSelfSignUpEnabled === "true" || cognitoSelfSignUpEnabled === true;
+  }
+
+  // Prismaマイグレーション設定の取得
+  const autoMigrate = app.node.tryGetContext("rapid.autoMigrate");
+  if (autoMigrate !== undefined) {
+    params.autoMigrate = autoMigrate === "true" || autoMigrate === true;
   }
 
   return params;
