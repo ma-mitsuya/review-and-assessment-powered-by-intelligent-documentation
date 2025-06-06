@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "RAPID (Review & Assessment Powered by Intelligent Documentation) Backend",
   "main": "dist/api/index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "prisma": {
     "seed": "tsx src/scripts/seed-db.ts"
   },
@@ -30,7 +33,7 @@
     "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@fastify/cors": "^8.3.0",
     "@prisma/client": "^6.6.0",
-    "fastify": "^4.24.3",
+    "fastify": "^5.3.2",
     "jose": "^5.10.0",
     "mysql2": "^3.6.1",
     "pdf-lib": "^1.17.1",
