@@ -73,6 +73,13 @@ export class RapidStack extends cdk.Stack {
       ],
     });
 
+    // Add VPC Flow Logs (AwsSolutions-VPC7)
+    new ec2.FlowLog(this, "VpcFlowLog", {
+      resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
+      destination: ec2.FlowLogDestination.toCloudWatchLogs(),
+      trafficType: ec2.FlowLogTrafficType.ALL,
+    });
+
     // データベースの作成
     const database = new Database(this, "Database", {
       vpc,

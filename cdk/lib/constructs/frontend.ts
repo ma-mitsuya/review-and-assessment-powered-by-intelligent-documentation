@@ -9,6 +9,7 @@ import {
 import {
   CachePolicy,
   Distribution,
+  SecurityPolicyProtocol,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
@@ -84,6 +85,8 @@ export class Frontend extends Construct {
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
         cachePolicy: CachePolicy.CACHING_OPTIMIZED,
       },
+      // Required to pass AwsSolutions-CFR4 check
+      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       ...(this.alternateDomainName && this.certificate
         ? {
             domainNames: [this.alternateDomainName],
@@ -137,7 +140,18 @@ export class Frontend extends Construct {
         id: "AwsPrototyping-CloudFrontDistributionGeoRestrictions",
         reason: "this asset is being used all over the world",
       },
+      {
+        id: "AwsSolutions-CFR1",
+        reason: "Global asset that cannot have geographical restrictions",
+      },
+      {
+        id: "AwsSolutions-CFR4",
+        reason:
+          "TLS settings have been explicitly set to TLS_V1_2_2021. This is likely a nag tool issue: https://github.com/cdklabs/cdk-nag/issues/1101",
+      },
     ]);
+
+    // ReactBuild is created later in buildViteApp, so we'll add suppressions there
 
     this.assetBucket = assetBucket;
     this.cloudFrontWebDistribution = distribution;
@@ -207,7 +221,7 @@ export class Frontend extends Construct {
       // return { ...defaultProps, ...oAuthProps };
     })();
 
-    new NodejsBuild(this, "ReactBuild", {
+    const reactBuild = new NodejsBuild(this, "ReactBuild", {
       assets: [
         {
           // path: "../frontend",
@@ -233,6 +247,19 @@ export class Frontend extends Construct {
       distribution: this.cloudFrontWebDistribution,
       outputSourceDirectory: "dist",
     });
+
+    // Add suppressions for CodeBuild-related findings
+    NagSuppressions.addResourceSuppressions(
+      reactBuild,
+      [
+        {
+          id: "AwsSolutions-CB4",
+          reason:
+            "KMS encryption settings cannot be changed because it's a third-party library",
+        },
+      ],
+      true
+    );
   }
 
   /**

@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
+import { Aspects } from "aws-cdk-lib";
 import { RapidStack } from "../lib/rapid-stack";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
 import {
   extractContextParameters,
   resolveParameters,
 } from "../lib/parameter-schema";
+import { AwsSolutionsChecks } from "cdk-nag";
 
 const app = new cdk.App();
 
@@ -42,3 +44,17 @@ new RapidStack(app, "RapidStack", {
   // カスタムパラメータを追加
   parameters: parameters,
 });
+
+// Add AWS Solutions Checks
+Aspects.of(app).add(new AwsSolutionsChecks());
+
+// Import and apply NagSuppressions for specific issues
+import { applyNagSuppressions } from "../lib/nag-suppressions";
+
+// Apply suppressions after stacks are constructed (and before synth)
+const stacks = app.node.children.filter((child) => child instanceof cdk.Stack);
+for (const stack of stacks) {
+  if (stack instanceof RapidStack) {
+    applyNagSuppressions(stack);
+  }
+}

@@ -8,6 +8,7 @@ import {
   IUserPoolClient,
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
+import { NagSuppressions } from "cdk-nag";
 
 /**
  * Auth コンストラクトに渡すプロパティ
@@ -150,6 +151,24 @@ export class Auth extends Construct {
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       removalPolicy: RemovalPolicy.DESTROY, // 開発環境用。本番環境ではRETAINを検討
     });
+
+    // Add suppressions for Cognito requirements
+    NagSuppressions.addResourceSuppressions(
+      userPool,
+      [
+        {
+          id: "AwsSolutions-COG2",
+          reason:
+            "MFA requirement is disabled for demo/POC environments to lower barriers for users",
+        },
+        {
+          id: "AwsSolutions-COG3",
+          reason:
+            "Advanced Security Mode is deprecated due to the introduction of feature plans, so configuration is not required",
+        },
+      ],
+      true
+    );
 
     const client = this.createUserPoolClient(userPool);
 

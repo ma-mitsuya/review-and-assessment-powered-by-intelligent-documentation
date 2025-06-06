@@ -12,6 +12,7 @@ import { Construct } from "constructs";
 import { Auth } from "./auth";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 import { DatabaseConnectionProps } from "./database";
+import { NagSuppressions } from "cdk-nag";
 
 /**
  * API Constructのプロパティ
@@ -181,5 +182,46 @@ export class Api extends Construct {
       value: executionLogGroup.logGroupName,
       description: "Name of the API Gateway execution log group",
     });
+
+    // Add nag suppressions for API Gateway
+    NagSuppressions.addResourceSuppressions(
+      this.api,
+      [
+        {
+          id: "AwsSolutions-APIG2",
+          reason:
+            "Request validation is implemented in the backend Lambda using Fastify",
+        },
+        {
+          id: "AwsSolutions-APIG3",
+          reason:
+            "WAF is already applied on CloudFront. Additional application to API would lead to increased costs",
+        },
+        {
+          id: "AwsSolutions-APIG4",
+          reason:
+            "JWT authentication is implemented in the backend Lambda using Fastify",
+        },
+        {
+          id: "AwsSolutions-COG4",
+          reason:
+            "JWT authentication is implemented in the backend Lambda using Fastify",
+        },
+      ],
+      true
+    );
+
+    // Add IAM role suppressions
+    NagSuppressions.addResourceSuppressions(
+      apiGatewayCloudWatchRole,
+      [
+        {
+          id: "AwsSolutions-IAM4",
+          reason:
+            "Managed policies are used for simplicity in this sample application",
+        },
+      ],
+      true
+    );
   }
 }

@@ -8,6 +8,7 @@ import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
+import { NagSuppressions } from "cdk-nag";
 
 /**
  * データベースConstructのプロパティ
@@ -71,8 +72,11 @@ export class Database extends Construct {
         publiclyAccessible: false,
       }),
       storageEncrypted: true,
-      removalPolicy: RemovalPolicy.SNAPSHOT,
+      removalPolicy: RemovalPolicy.DESTROY,
       enableDataApi: true, // Allow access from Management Console
+      port: 3307, // Custom port instead of default 3306 (AwsSolutions-RDS11)
+      iamAuthentication: true, // Enable IAM database authentication (AwsSolutions-RDS6)
+      backtrackWindow: Duration.hours(24), // Enable backtrack for MySQL Aurora (AwsSolutions-RDS14)
     });
 
     // シークレットローテーションの設定
@@ -109,6 +113,19 @@ export class Database extends Construct {
     // マネジメントコンソールからのアクセスを許可するためのタグを追加
     cdk.Tags.of(this.cluster).add("Name", `RAPID-${databaseName}`);
     cdk.Tags.of(this.cluster).add("Project", "RAPID");
+
+    // Suppress RDS deletion protection (AwsSolutions-RDS10)
+    NagSuppressions.addResourceSuppressions(
+      this.cluster,
+      [
+        {
+          id: "AwsSolutions-RDS10",
+          reason:
+            "Sample/demo environment where resources should be easily removed with cdk destroy",
+        },
+      ],
+      true
+    );
   }
 
   /**
