@@ -1,4 +1,4 @@
-import { PrismaClient, CheckListSet, getPrismaClient } from "../../../core/db";
+import { PrismaClient, getPrismaClient } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
 import {
   CheckListItemEntity,
@@ -10,7 +10,9 @@ import {
 } from "./model/checklist";
 
 export interface CheckRepository {
-  storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
+  storeCheckListSet(params: {
+    checkListSet: CheckListSetEntity;
+  }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
   findAllCheckListSets(
     status?: CHECK_LIST_STATUS
@@ -49,13 +51,14 @@ export const makePrismaCheckRepository = async (
     checkListSet: CheckListSetEntity;
   }): Promise<void> => {
     const { checkListSet } = params;
-    const { id, name, description, documents } = checkListSet;
+    const { id, name, description, documents, createdAt } = checkListSet;
 
     await client.checkListSet.create({
       data: {
         id,
         name,
         description,
+        createdAt: createdAt,
         documents: {
           create: documents.map((doc) => ({
             id: doc.id,
@@ -199,9 +202,18 @@ export const makePrismaCheckRepository = async (
         id: true,
         name: true,
         description: true,
-        // ドキュメントのステータスだけ取得
+        createdAt: true,
+        // ドキュメントの詳細情報を取得
         documents: {
-          select: { status: true },
+          select: {
+            id: true,
+            filename: true,
+            s3Path: true,
+            fileType: true,
+            uploadDate: true,
+            status: true,
+            errorDetail: true,
+          },
         },
         _count: { select: { reviewJobs: true } },
       },
@@ -230,6 +242,16 @@ export const makePrismaCheckRepository = async (
         description: s.description ?? "",
         processingStatus,
         isEditable: s._count.reviewJobs === 0,
+        createdAt: s.createdAt,
+        documents: s.documents.map((doc) => ({
+          id: doc.id,
+          filename: doc.filename,
+          s3Key: doc.s3Path,
+          fileType: doc.fileType,
+          uploadDate: doc.uploadDate,
+          status: doc.status as CHECK_LIST_STATUS,
+          errorDetail: doc.errorDetail || undefined,
+        })),
       };
     });
 

@@ -84,6 +84,7 @@ export type GetAllChecklistSetsResponse = ApiResponse<{
     description: string;
     processingStatus: CHECK_LIST_STATUS;
     isEditable: boolean;
+    createdAt: string;
   }[];
 }>;
 
@@ -228,4 +229,6 @@ export interface CheckListSetSummary {
   description: string;
   processingStatus: CHECK_LIST_STATUS;
   isEditable: boolean;
+  createdAt: string;
+  documents?: ChecklistDocumentEntity[];
 }

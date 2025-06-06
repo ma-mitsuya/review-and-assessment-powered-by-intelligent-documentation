@@ -20,6 +20,7 @@ type CheckListSetListProps = {
     description: string;
     processingStatus: CHECK_LIST_STATUS;
     isEditable: boolean;
+    createdAt: string;
   }[];
   isLoading: boolean;
   error: string | null;
@@ -45,6 +46,30 @@ export default function CheckListSetList({
   };
 
   const { showConfirm, showError, AlertModal } = useAlert();
+
+  // 日付のフォーマット
+  const formatDate = (dateString: string | Date) => {
+    if (!dateString) return t("date.noDate");
+
+    try {
+      const date =
+        typeof dateString === "string" ? new Date(dateString) : dateString;
+      if (isNaN(date.getTime())) {
+        return t("date.invalidDate");
+      }
+
+      return new Intl.DateTimeFormat("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error, dateString);
+      return t("date.dateError");
+    }
+  };
 
   // チェックリストセットの削除処理
   const handleDelete = (
@@ -95,6 +120,23 @@ export default function CheckListSetList({
       ),
     },
     {
+      key: "documents",
+      header: t("review.documents"),
+      render: (item) => (
+        <div className="text-sm text-aws-font-color-gray">
+          {item.documents && item.documents.length > 0
+            ? `${item.documents[0].filename}${
+                item.documents.length > 1
+                  ? ` (${t("review.otherDocuments", {
+                      count: item.documents.length - 1,
+                    })})`
+                  : ""
+              }`
+            : t("review.noDocuments")}
+        </div>
+      ),
+    },
+    {
       key: "description",
       header: t("checklist.description"),
       render: (item) => (
@@ -111,6 +153,15 @@ export default function CheckListSetList({
       render: (item) => (
         <div className="flex items-center">
           <StatusBadge status={item.processingStatus} />
+        </div>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: t("common.createdAt"),
+      render: (item) => (
+        <div className="text-sm text-aws-font-color-gray">
+          {formatDate(item.createdAt)}
         </div>
       ),
     },

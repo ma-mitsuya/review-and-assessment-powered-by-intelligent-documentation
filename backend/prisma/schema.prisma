@@ -42,6 +42,7 @@ model CheckListSet {
   checkLists  CheckList[]
   documents   CheckListDocument[]
   reviewJobs  ReviewJob[]
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
 
   @@map("check_list_sets")
 }

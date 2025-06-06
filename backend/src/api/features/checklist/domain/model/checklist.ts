@@ -18,6 +18,7 @@ export interface CheckListSetEntity {
   name: string;
   description: string;
   documents: ChecklistDocumentEntity[];
+  createdAt: Date;
 }
 
 // 一覧取得用
@@ -27,6 +28,7 @@ export interface CheckListSetSummary {
   description: string;
   processingStatus: CHECK_LIST_STATUS;
   isEditable: boolean;
+  createdAt: Date;
 }
 
 // 詳細取得用
@@ -77,6 +79,7 @@ export const CheckListSetDomain = {
         uploadDate: new Date(),
         status: CHECK_LIST_STATUS.PENDING,
       })),
+      createdAt: new Date(),
     };
   },
 
@@ -99,6 +102,7 @@ export const CheckListSetDomain = {
         uploadDate: new Date(),
         status: CHECK_LIST_STATUS.COMPLETED, // 複製時は完了状態に設定
       })),
+      createdAt: new Date(),
     };
   },
 };
