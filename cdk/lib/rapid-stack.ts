@@ -58,6 +58,7 @@ export class RapidStack extends cdk.Stack {
           name: "public",
           subnetType: ec2.SubnetType.PUBLIC,
           cidrMask: 24,
+          mapPublicIpOnLaunch: false, // Disable auto-assignment of public IPs
         },
         {
           name: "private",
