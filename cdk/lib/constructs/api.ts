@@ -35,10 +35,11 @@ export class Api extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    // セキュリティグループの作成
+    const stackId = cdk.Stack.of(this).stackName;
+
     this.securityGroup = new ec2.SecurityGroup(this, "ApiSecurityGroup", {
       vpc: props.vpc,
-      description: "Security group for API Lambda function",
+      description: `Security group for ${stackId} API Lambda function`,
       allowAllOutbound: true,
     });
 
@@ -81,10 +82,10 @@ export class Api extends Construct {
       memorySize: 1024,
     });
 
-    // CloudWatch Logs グループの作成
+    // CloudWatch Logs グループの作成 - スタックIDを含めて名前の衝突を防止
     const accessLogGroup = new logs.LogGroup(this, "ApiGatewayAccessLogs", {
       retention: logs.RetentionDays.ONE_WEEK,
-      logGroupName: `/aws/apigateway/rapid-api-access-logs`,
+      logGroupName: `/aws/apigateway/${stackId}-api-access-logs`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -93,7 +94,7 @@ export class Api extends Construct {
       "ApiGatewayExecutionLogs",
       {
         retention: logs.RetentionDays.ONE_WEEK,
-        logGroupName: `/aws/apigateway/rapid-api-execution-logs`,
+        logGroupName: `/aws/apigateway/${stackId}-api-execution-logs`,
         removalPolicy: cdk.RemovalPolicy.DESTROY,
       }
     );
@@ -112,9 +113,9 @@ export class Api extends Construct {
       }
     );
 
-    // API Gateway の作成
+    // API Gateway の作成 - スタック名を含めて一意性を確保
     this.api = new apigateway.RestApi(this, "RapidApi", {
-      restApiName: "RAPID API",
+      restApiName: `${stackId}-RAPID-API`,
       description:
         "RAPID (Review & Assessment Powered by Intelligent Documentation) API",
       deployOptions: {
