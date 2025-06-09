@@ -8,7 +8,6 @@ import { I18n } from "aws-amplify/utils";
 import { translations } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import "../../ThemeAuth.css";
-import iconImage from "../assets/icon.png";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -38,13 +37,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <div className="auth-container">
         <div className="auth-header">
-          <img
-            src={iconImage}
-            alt="RAPID Icon"
-            className="auth-icon"
-          />
           <h2 className="auth-title">{t("common.appName")}</h2>
-          <p className="auth-description">{t("auth.appDescription")}</p>
+          {/* <p className="auth-description">{t("auth.appDescription")}</p> */}
         </div>
         <div className="auth-wrapper">
           <Authenticator

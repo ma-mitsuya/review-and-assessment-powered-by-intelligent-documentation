@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "RAPID",
+    "appName": "Review & Assessment Powered by Intelligent Documentation",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",

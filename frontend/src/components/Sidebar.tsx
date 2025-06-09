@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import iconImage from "../assets/icon.png";
 import {
   HiX,
   HiMenu,
@@ -66,8 +65,7 @@ export default function Sidebar() {
         }`}>
         <div className="p-6">
           <div className="mb-8 flex items-center">
-            <img src={iconImage} alt="RAPID Logo" className="mr-3 h-16 w-16" />
-            <h1 className="text-2xl font-bold">{t("common.appName")}</h1>
+            {/* Logo and app name removed */}
           </div>
 
           <nav>
