@@ -1,9 +1,6 @@
 {
   "name": "cdk_init",
   "version": "0.1.0",
-  "bin": {
-    "cdk_init": "bin/cdk_init.js"
-  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
