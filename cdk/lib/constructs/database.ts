@@ -1,6 +1,3 @@
-/**
- * RAPID データベース構成
- */
 import * as cdk from "aws-cdk-lib";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
@@ -33,7 +30,7 @@ export interface DatabaseConnectionProps {
 }
 
 /**
- * RAPID データベース Construct
+ * データベース Construct
  */
 export class Database extends Construct {
   public readonly cluster: rds.DatabaseCluster;
