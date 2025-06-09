@@ -274,7 +274,6 @@ export class ChecklistProcessor extends Construct {
       }
     );
 
-    // 新規追加: RDBに格納するLambda
     const storeToDbTask = new tasks.LambdaInvoke(this, "StoreToDb", {
       lambdaFunction: this.documentLambda,
       payload: sfn.TaskInput.fromObject({
@@ -322,13 +321,12 @@ export class ChecklistProcessor extends Construct {
     processMediumDocPass.next(aggregateResultTask);
     processLargeDocPass.next(aggregateResultTask);
 
-    // 新規追加: 集約タスクからRDB格納タスクへの接続
     aggregateResultTask.next(storeToDbTask);
 
     // エラーハンドリングの設定
     documentProcessorTask.addCatch(handleErrorTask);
     aggregateResultTask.addCatch(handleErrorTask);
-    storeToDbTask.addCatch(handleErrorTask); // 新規追加
+    storeToDbTask.addCatch(handleErrorTask);
 
     // IAMロールの作成
     const stateMachineRole = new iam.Role(this, "StateMachineRole", {

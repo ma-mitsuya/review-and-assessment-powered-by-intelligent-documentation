@@ -38,7 +38,6 @@ export default function CheckListItemTreeNode({
 }: CheckListItemTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < maxDepth || autoExpand);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  // 新規追加: 子項目追加モーダルの状態
   const [isAddChildModalOpen, setIsAddChildModalOpen] = useState(false);
 
   const {
