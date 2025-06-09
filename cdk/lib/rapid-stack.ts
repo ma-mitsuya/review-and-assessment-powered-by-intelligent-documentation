@@ -184,7 +184,6 @@ export class RapidStack extends cdk.Stack {
       allowedOrigins: [
         `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`, // frontend.getOrigin() is cyclic reference
         "http://localhost:5173",
-        "*", // TODO: remove
       ],
       allowedHeaders: ["*"],
       maxAge: 3000,

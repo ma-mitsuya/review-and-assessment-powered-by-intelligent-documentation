@@ -128,8 +128,6 @@ export default function CheckListItemEditModal({
           />
         </div>
 
-        {/* TODO: フロー形式の編集機能は将来的に実装予定 */}
-
         <div className="mt-6 flex justify-end space-x-3">
           <Button outline onClick={onClose} type="button">
             キャンセル

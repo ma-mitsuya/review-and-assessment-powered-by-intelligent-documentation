@@ -177,7 +177,6 @@ export class ChecklistProcessor extends Construct {
         "Lambda.ServiceException",
         "Lambda.AWSLambdaException",
         "Lambda.SdkClientException",
-        // TODO: throttlingの場合に限定
         "Error",
       ],
       interval: cdk.Duration.seconds(2),
