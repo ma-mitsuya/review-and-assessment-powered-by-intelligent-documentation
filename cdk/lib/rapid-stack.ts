@@ -10,8 +10,6 @@ import { Api } from "./constructs/api";
 import { Auth } from "./constructs/auth";
 import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
-import { Distribution } from "aws-cdk-lib/aws-cloudfront";
-import { S3 } from "aws-cdk-lib/aws-ses-actions";
 import { Parameters } from "./parameter-schema";
 
 export interface RapidStackProps extends cdk.StackProps {

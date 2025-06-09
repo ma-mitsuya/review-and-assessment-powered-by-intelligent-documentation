@@ -87,7 +87,6 @@ export class ChecklistProcessor extends Construct {
     const mediumDocThreshold = props.mediumDocThreshold || 40;
     const largeDocThreshold = props.largeDocThreshold || 100;
     const inlineMapConcurrency = props.inlineMapConcurrency || 1;
-    const distributedMapConcurrency = props.distributedMapConcurrency || 20;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
     // セキュリティグループの作成
