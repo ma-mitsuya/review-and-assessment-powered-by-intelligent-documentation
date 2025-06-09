@@ -1,8 +1,8 @@
-# CDK 特記事項
+# CDK Special Notes
 
-## デプロイ
+## Deployment
 
-「デプロイしてください」と言われた場合にのみ実行:
+Only execute when explicitly asked to "please deploy":
 
 ```
 cd backend

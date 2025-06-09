@@ -1,37 +1,37 @@
-# Backend 特記事項
+# Backend Special Notes
 
-## 言語
+## Language
 
-- すべて TypeScript。Python 禁止、JavaScript も禁止
-- CommonJS は厳禁。いかなる時も ES Modules (ESM)利用すること
+- All TypeScript. Python prohibited, JavaScript also prohibited
+- CommonJS strictly forbidden. ES Modules (ESM) must be used at all times
 
-## Web フレームワーク
+## Web Framework
 
-- REST API は Fastify 利用
-- 実装は src/api 下に行う
-- 共通コア実装: src/api/core
-- ドメイン別機能: src/api/features
-- レイヤードアーキテクチャを採用
+- REST API uses Fastify
+- Implementation should be done under src/api
+- Common core implementation: src/api/core
+- Domain-specific functionality: src/api/features
+- Layered architecture is adopted
 
-## テスト
+## Testing
 
-- vitest (**jest は禁止**)
-- 実装する際は既存のテストを参考にせよ
+- vitest (**jest is prohibited**)
+- When implementing, refer to existing tests
   - example) backend/src/features/document-processing/**tests**
 
-### 動作確認
+### Verification
 
 ```bash
-# ユニットテストの実行
+# Run unit tests
 npm run test -- test-suite
 
-# すべてのテストを実行
+# Run all tests
 npm test
 
-# ビルド通るか確認
+# Check if build passes
 npm run build
 
-# ビルド通ったらフォーマット
+# Format after successful build
 npm run format
 ```
 
@@ -39,166 +39,176 @@ npm run format
 
 - MySQL
 - Prisma
-  - backend/prisma/schema.prisma 参照
-- repository 単体テストは実際の DB に接続し動作確認すること。backend/src/api/features/checklist-management/**tests**/repository-integration.test.ts を参考
-  - なおこの際、backend/package.json を参考に migration/seed を実施する必要があります
+  - refer to backend/prisma/schema.prisma
+- Repository unit tests should connect to an actual DB to verify behavior. Refer to backend/src/api/features/checklist-management/**tests**/repository-integration.test.ts
+  - Note that in this case, you need to perform migration/seed by referring to backend/package.json
 
-# バックエンドコーディング規約
+# Backend Coding Standards
 
-## 基本原則
+## Basic Principles
 
-• 言語: TypeScript（ESM 形式）のみ使用
-• アーキテクチャ: レイヤードアーキテクチャを採用
-• データベース: Prisma を使用した MySQL 接続
+• Language: Only TypeScript (ESM format)
+• Architecture: Layered architecture adopted
+• Database: MySQL connection using Prisma
 
-## ディレクトリ構造
+## Directory Structure
 
-src/api/features/{機能名}/
-├── domain/ # ドメインレイヤー
-│ ├── model/ # ドメインモデル
-│ ├── service/ # ドメインサービス
-│ └── repository.ts # リポジトリインターフェースと実装
-├── usecase/ # ユースケースレイヤー
-│ └── {機能単位}.ts # 機能単位のユースケース実装
-└── routes/ # プレゼンテーションレイヤー
-├── index.ts # ルート定義
-└── handlers.ts # ハンドラー実装
+src/api/features/{feature-name}/
+├── domain/ # Domain layer
+│ ├── model/ # Domain model
+│ ├── service/ # Domain service
+│ └── repository.ts # Repository interface and implementation
+├── usecase/ # Use case layer
+│ └── {function-unit}.ts # Use case implementation by function unit
+└── routes/ # Presentation layer
+├── index.ts # Route definition
+└── handlers.ts # Handler implementation
 
-## レイヤー構成と責務
+## Layer Structure and Responsibilities
 
-### 1. ドメインレイヤー (domain/)
+### 1. Domain Layer (domain/)
 
-責務: ビジネスロジックとドメインモデルの定義
+Responsibility: Business logic and domain model definition
 
-#### モデル (model/)
+#### Model (model/)
 
-• ドメインエンティティの型定義
-• ドメインオブジェクトの変換ロジック
+• Type definitions for domain entities
+• Conversion logic for domain objects
 
-具体例:
-typescript
+Example:
+
+```typescript
 // domain/model/checklist.ts
 export interface CheckListSetModel {
-id: string;
-name: string;
-description: string;
-documents: ChecklistDocumentModel[];
+  id: string;
+  name: string;
+  description: string;
+  documents: ChecklistDocumentModel[];
 }
 
 export const CheckListSetDomain = {
-fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetModel => {
-// リクエストからドメインモデルへの変換ロジック
-}
+  fromCreateRequest: (req: CreateChecklistSetRequest): CheckListSetModel => {
+    // Logic for converting from request to domain model
+  },
 };
+```
 
-#### リポジトリ (repository.ts)
+#### Repository (repository.ts)
 
-• データアクセスのインターフェース定義
-• データベース操作の実装
+• Interface definition for data access
+• Implementation of database operations
 
-具体例:
-typescript
+Example:
+
+```typescript
 // domain/repository.ts
 export interface CheckRepository {
-storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
-findAllCheckListSets(): Promise<CheckListSetMetaModel[]>;
+  storeCheckListSet(params: { checkListSet: CheckListSet }): Promise<void>;
+  findAllCheckListSets(): Promise<CheckListSetMetaModel[]>;
 }
 
 export const makePrismaCheckRepository = (
-client: PrismaClient = prisma
+  client: PrismaClient = prisma
 ): CheckRepository => {
-// 実装
+  // Implementation
 };
+```
 
-### 2. ユースケースレイヤー (usecase/)
+### 2. Use Case Layer (usecase/)
 
-責務: アプリケーションのユースケース実装、ドメインオブジェクトの操作
+Responsibility: Implementation of application use cases, manipulation of domain objects
 
-• 機能単位でファイルを分割
-• 依存性注入パターンを使用（テスト容易性向上）
-• ドメインレイヤーのみに依存
+• Files divided by functional units
+• Use of dependency injection pattern (improves testability)
+• Depends only on the domain layer
 
-具体例:
-typescript
+Example:
+
+```typescript
 // usecase/checklist-set.ts
 export const createChecklistSet = async (params: {
-req: CreateChecklistSetRequest;
-deps?: {
-repo?: CheckRepository;
-};
+  req: CreateChecklistSetRequest;
+  deps?: {
+    repo?: CheckRepository;
+  };
 }): Promise<void> => {
-const repo = params.deps?.repo || await makePrismaCheckRepository();
-const checkListSet = CheckListSetDomain.fromCreateRequest(req);
-await repo.storeCheckListSet({ checkListSet });
+  const repo = params.deps?.repo || (await makePrismaCheckRepository());
+  const checkListSet = CheckListSetDomain.fromCreateRequest(req);
+  await repo.storeCheckListSet({ checkListSet });
 };
+```
 
-### 3. プレゼンテーションレイヤー (routes/)
+### 3. Presentation Layer (routes/)
 
-責務: HTTP リクエスト/レスポンスの処理、ルーティング
+Responsibility: Processing HTTP requests/responses, routing
 
-#### ルート定義 (index.ts)
+#### Route Definition (index.ts)
 
-• エンドポイントの定義
-• ハンドラーの登録
+• Definition of endpoints
+• Registration of handlers
 
-具体例:
-typescript
+Example:
+
+```typescript
 // routes/index.ts
 export function registerChecklistRoutes(fastify: FastifyInstance): void {
-fastify.get("/checklist-sets", {
-handler: getAllChecklistSetsHandler,
-});
+  fastify.get("/checklist-sets", {
+    handler: getAllChecklistSetsHandler,
+  });
 
-fastify.post("/checklist-sets", {
-handler: createChecklistSetHandler,
-});
+  fastify.post("/checklist-sets", {
+    handler: createChecklistSetHandler,
+  });
 }
+```
 
-#### ハンドラー (handlers.ts)
+#### Handler (handlers.ts)
 
-• リクエストのバリデーション
-• ユースケースの呼び出し
-• レスポンスの整形
+• Request validation
+• Use case invocation
+• Response formatting
 
-具体例:
-typescript
+Example:
+
+```typescript
 // routes/handlers.ts
 export const createChecklistSetHandler = async (
-request: FastifyRequest<{ Body: CreateChecklistSetRequest }>,
-reply: FastifyReply
+  request: FastifyRequest<{ Body: CreateChecklistSetRequest }>,
+  reply: FastifyReply
 ): Promise<void> => {
-await createChecklistSet({
-req: request.body,
-});
+  await createChecklistSet({
+    req: request.body,
+  });
 
-reply.code(200).send({
-success: true,
-data: {},
-});
+  reply.code(200).send({
+    success: true,
+    data: {},
+  });
 };
+```
 
-## 設計原則
+## Design Principles
 
-1. 依存方向の一方向性
-   • routes → usecase → domain の方向のみ依存
-   • 逆方向の依存は禁止
+1. Unidirectional Dependency
+   • Dependencies only flow in one direction: routes → usecase → domain
+   • Reverse dependencies are prohibited
 
-2. 依存性注入
-   • テスト容易性のため、外部依存はパラメータで注入
-   • デフォルト実装を提供し、使いやすさも確保
+2. Dependency Injection
+   • External dependencies injected as parameters for testability
+   • Default implementations provided for ease of use
 
-3. 型安全性
-   • インターフェースと型定義を明確に
-   • リクエスト/レスポンスの型を明示的に定義
+3. Type Safety
+   • Clear interface and type definitions
+   • Explicit definition of request/response types
 
-4. エラーハンドリング
-   • ドメイン固有のエラーを定義
-   • 適切な HTTP ステータスコードへのマッピング
+4. Error Handling
+   • Definition of domain-specific errors
+   • Appropriate mapping to HTTP status codes
 
-5. トランザクション管理
-   • 複数の操作を伴う場合はトランザクションを使用
+5. Transaction Management
+   • Use transactions for operations involving multiple steps
 
-## StepFunctions ハンドラーの設計
+## StepFunctions Handler Design
 
-- src/checklist-workflow, src/review-workflow など
-- prisma client の呼び出しは厳禁。必ず repository 経由でデータにアクセスする
+- src/checklist-workflow, src/review-workflow, etc.
+- Direct calls to prisma client are strictly prohibited. Always access data through repositories

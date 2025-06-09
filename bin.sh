@@ -16,6 +16,10 @@ ALLOWED_IPV4_RANGES='["0.0.0.0/1","128.0.0.0/1"]'
 ALLOWED_IPV6_RANGES='["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
 DISABLE_IPV6="false"
 AUTO_MIGRATE="true"
+COGNITO_SELF_SIGNUP_ENABLED="true"
+COGNITO_USER_POOL_ID=""
+COGNITO_USER_POOL_CLIENT_ID=""
+COGNITO_DOMAIN_PREFIX=""
 REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
 
@@ -26,6 +30,10 @@ while [[ "$#" -gt 0 ]]; do
         --ipv6-ranges) ALLOWED_IPV6_RANGES="$2"; shift ;;
         --disable-ipv6) DISABLE_IPV6="true" ;;
         --auto-migrate) AUTO_MIGRATE="$2"; shift ;;
+        --cognito-self-signup) COGNITO_SELF_SIGNUP_ENABLED="$2"; shift ;;
+        --cognito-user-pool-id) COGNITO_USER_POOL_ID="$2"; shift ;;
+        --cognito-user-pool-client-id) COGNITO_USER_POOL_CLIENT_ID="$2"; shift ;;
+        --cognito-domain-prefix) COGNITO_DOMAIN_PREFIX="$2"; shift ;;
         --repo-url) REPO_URL="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
         *) echo "不明なパラメータ: $1"; exit 1 ;;
@@ -52,6 +60,10 @@ aws cloudformation deploy \
     AllowedIpV6AddressRanges="$ALLOWED_IPV6_RANGES" \
     DisableIpv6="$DISABLE_IPV6" \
     AutoMigrate="$AUTO_MIGRATE" \
+    CognitoSelfSignUpEnabled="$COGNITO_SELF_SIGNUP_ENABLED" \
+    CognitoUserPoolId="$COGNITO_USER_POOL_ID" \
+    CognitoUserPoolClientId="$COGNITO_USER_POOL_CLIENT_ID" \
+    CognitoDomainPrefix="$COGNITO_DOMAIN_PREFIX" \
     RepoUrl="$REPO_URL" \
     Branch="$BRANCH"
 

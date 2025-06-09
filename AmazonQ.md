@@ -1,23 +1,39 @@
-## ディレクトリ構成
+# Amazon Q Development Guidelines
 
-All TS プロジェクトです。
+## Project Structure
 
-- cdk
+This is an all-TypeScript project with the following structure:
+
+- cdk/
   - package.json
-- backend
+- backend/
   - package.json
-- frontend (React SPA, tailwind css)
+- frontend/ (React SPA, Tailwind CSS)
   - package.json
 
-NOTE: root ディレクトリに package.json は存在しません。　 npm init で作成しないように。
+NOTE: There is NO package.json in the root directory. Do NOT create one using npm init.
 
-## Instructions
+## Development Workflow
 
-- 実装の前に必ず計画書を markdown で作成します。Go と言われるまで実装は厳禁。いかなる場合も、良いと言われるまで勝手に実装を行ってはいけません。Multi turn で修正を指示した場合も同様です。
-- 計画フェーズ
-  - 計画書を作る際は必ず既存の実装をみてから作成すること。推測は厳禁。
-  - 計画書には必ず、「新規作成するファイル」「修正するファイル」「削除するファイル」のパスを具体的に記載し、diff をわかりやすく提示すること。なお本質的な diff のみに絞り、不必要にファイル全てを書かないように。
-- 実装フェーズ
-  - 計画したファイル以外の修正は厳禁です。
-  - 実装後、ビルドが通るかテストしてください。backend / frontend は`npm run build`, cdk は`cdk synth`です。
-  - ビルドが通過したら、backend / frontend では`npm run format`を実行し、フォーマットしてください。
+### Planning Phase
+
+- ALWAYS create a detailed plan in Markdown format before implementation. DO NOT proceed with implementation until explicitly told "Go" or "Proceed."
+- When creating plans:
+  - MUST examine existing implementation first. Speculation is strictly prohibited.
+  - MUST include specific paths for "Files to create," "Files to modify," and "Files to delete."
+  - MUST show clear, concise diffs focusing only on essential changes (do not include entire file contents unnecessarily).
+
+### Implementation Phase
+
+- ONLY modify files specified in the approved plan.
+- ALWAYS verify build success after implementation:
+  - For backend/frontend: `npm run build`
+  - For CDK: `cdk synth`
+- After successful build, run formatting for backend/frontend: `npm run format`
+
+## Key Principles
+
+- Maintain consistency with existing code patterns
+- Follow TypeScript best practices
+- Ensure code passes all linting and build processes
+- Prioritize clear documentation of changes

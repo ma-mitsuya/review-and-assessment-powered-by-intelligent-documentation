@@ -24,6 +24,27 @@ Parameters:
     Description: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
     AllowedValues: ["true", "false"]
 
+  CognitoSelfSignUpEnabled:
+    Type: String
+    Default: "true"
+    Description: Cognito User Poolのセルフサインアップを有効にするかどうか
+    AllowedValues: ["true", "false"]
+
+  CognitoUserPoolId:
+    Type: String
+    Default: ""
+    Description: 既存のCognito User Pool ID（指定しない場合は新規作成）
+
+  CognitoUserPoolClientId:
+    Type: String
+    Default: ""
+    Description: 既存のCognito User Pool Client ID（指定しない場合は新規作成）
+
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+    Description: Cognitoドメインのプレフィックス（指定しない場合は自動生成）
+
   RepoUrl:
     Type: String
     Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
@@ -131,6 +152,14 @@ Resources:
             Value: !Ref DisableIpv6
           - Name: AUTO_MIGRATE
             Value: !Ref AutoMigrate
+          - Name: COGNITO_SELF_SIGNUP_ENABLED
+            Value: !Ref CognitoSelfSignUpEnabled
+          - Name: COGNITO_USER_POOL_ID
+            Value: !Ref CognitoUserPoolId
+          - Name: COGNITO_USER_POOL_CLIENT_ID
+            Value: !Ref CognitoUserPoolClientId
+          - Name: COGNITO_DOMAIN_PREFIX
+            Value: !Ref CognitoDomainPrefix
           - Name: REPO_URL
             Value: !Ref RepoUrl
           - Name: BRANCH
@@ -173,6 +202,12 @@ Resources:
                   "echo '' >> cdk/lib/parameter.ts",
                   "echo '  // Prismaマイグレーション設定' >> cdk/lib/parameter.ts",
                   "if [ \"$AUTO_MIGRATE\" = \"true\" ]; then echo '  autoMigrate: true,' >> cdk/lib/parameter.ts; else echo '  autoMigrate: false,' >> cdk/lib/parameter.ts; fi",
+                  "echo '' >> cdk/lib/parameter.ts",
+                  "echo '  // Cognito設定' >> cdk/lib/parameter.ts",
+                  "if [ \"$COGNITO_SELF_SIGNUP_ENABLED\" = \"true\" ]; then echo '  cognitoSelfSignUpEnabled: true,' >> cdk/lib/parameter.ts; else echo '  cognitoSelfSignUpEnabled: false,' >> cdk/lib/parameter.ts; fi",
+                  "if [ ! -z \"$COGNITO_USER_POOL_ID\" ]; then echo '  cognitoUserPoolId: \"'$COGNITO_USER_POOL_ID'\",' >> cdk/lib/parameter.ts; fi",
+                  "if [ ! -z \"$COGNITO_USER_POOL_CLIENT_ID\" ]; then echo '  cognitoUserPoolClientId: \"'$COGNITO_USER_POOL_CLIENT_ID'\",' >> cdk/lib/parameter.ts; fi",
+                  "if [ ! -z \"$COGNITO_DOMAIN_PREFIX\" ]; then echo '  cognitoDomainPrefix: \"'$COGNITO_DOMAIN_PREFIX'\",' >> cdk/lib/parameter.ts; fi",
                   "echo '};' >> cdk/lib/parameter.ts",
                   "echo 'パラメータファイルを作成しました:'",
                   "cat cdk/lib/parameter.ts",

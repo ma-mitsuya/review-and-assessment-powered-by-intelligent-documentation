@@ -25,30 +25,12 @@ if ! docker info &> /dev/null; then
   exit 1
 fi
 
-# ローカルMySQLコンテナ起動（必要に応じて）
-MYSQL_CONTAINER_RUNNING=$(docker ps | grep mysql || true)
-if [ -z "$MYSQL_CONTAINER_RUNNING" ]; then
-  echo "MySQLコンテナを起動しています..."
-  docker-compose up -d
-  # MySQLの起動待機
-  echo "MySQLの起動を待機しています..."
-  sleep 10
-  DOCKER_STARTED=true
-else
-  echo "MySQLコンテナは既に実行中です"
-fi
-
 # バックエンド準備
 echo "バックエンドの準備..."
 cd backend
 npm ci
 npm run prisma:generate
 
-# マイグレーションファイル存在確認（必要に応じて作成）
-if [ ! "$(ls -A prisma/migrations 2>/dev/null)" ]; then
-  echo "マイグレーションファイルが存在しません。作成します..."
-  npm run prisma:migrate
-fi
 
 # ビルド
 echo "バックエンドのビルド中..."

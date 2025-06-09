@@ -1,32 +1,32 @@
-# Frontend 特記事項
+# Frontend Special Notes
 
-## 基本
+## Basics
 
 - vite React SPA
 - tailwind
-  - **スタイリングは必ず frontend/tailwind.config.js を使うこと**
-    - frontend/tailwind.config.js の修正は厳禁
-- ディレクトリ構成
-  - pages, hooks,　 compoments などから構成
-  - API フェッチは標準の fetch 利用
-    - useFetch を利用すること
-  - SWR 利用
-  - hooks などアプリ共通で使うものは src のルートに配置で良いが、基本は feature ベースを採用
-    - 機能ごとに features/\*ディレクトリを作成し、その下に hooks, components, etc を配置
-- 実装の前に一度バックエンドのエンドポイントを見て把握すること
-  - .amazonq/rules/api_specs 下に記載
+  - **Styling must always use frontend/tailwind.config.js**
+    - Modification of frontend/tailwind.config.js is strictly forbidden
+- Directory structure
+  - Composed of pages, hooks, components, etc.
+  - API fetching uses standard fetch
+    - Must use useFetch
+  - SWR is used
+  - Items used commonly across the app like hooks can be placed at the src root, but basically adopt a feature-based approach
+    - Create features/\* directories for each function, placing hooks, components, etc. under them
+- Before implementation, check and understand the backend endpoints
+  - Detailed in .amazonq/rules/api_specs
 
-## 言語
+## Language
 
-- すべて TypeScript。JavaScript 厳禁
-- CommonJS は厳禁。いかなる時も ES Modules (ESM)利用すること
+- All TypeScript. JavaScript strictly forbidden
+- CommonJS strictly forbidden. ES Modules (ESM) must be used at all times
 
-## コアコンポーネントの利用
+## Core Component Usage
 
-- 実装の際は必ず frontend/src/components に下にあるコンポーネントの利用を試みよ
-  - e.g. ボタンを利用する場合など。なお不足の場合は継承したボタンを各 features/components 下に作成せよ
-  - 特に<button>タグの乱用が見受けられます。必ず component を利用せよ
+- When implementing, always attempt to use components under frontend/src/components
+  - e.g., when using buttons. If insufficient, create inherited buttons under respective features/components
+  - Especially avoid overusing the <button> tag. Always use components
 
-## アイコン
+## Icons
 
-- SVG は利用禁止、必ず react-icons 利用せよ
+- SVG usage is prohibited, always use react-icons

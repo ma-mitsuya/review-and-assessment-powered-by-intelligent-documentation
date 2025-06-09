@@ -104,7 +104,10 @@
    - `--ipv6-ranges`: フロントエンド WAF で許可する IPv6 アドレス範囲（JSON 配列形式）
    - `--disable-ipv6`: IPv6 サポートを無効にする
    - `--auto-migrate`: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
-   - `--cdk-json-override`: CDK 設定をオーバーライドするための JSON 文字列
+   - `--cognito-self-signup`: Cognito User Pool のセルフサインアップを有効にするかどうか（true/false）
+   - `--cognito-user-pool-id`: 既存の Cognito User Pool ID（指定しない場合は新規作成）
+   - `--cognito-user-pool-client-id`: 既存の Cognito User Pool Client ID（指定しない場合は新規作成）
+   - `--cognito-domain-prefix`: Cognito ドメインのプレフィックス（指定しない場合は自動生成）
    - `--repo-url`: デプロイするリポジトリの URL
    - `--branch`: デプロイするブランチ名
 
@@ -114,106 +117,72 @@
    表示された URL にアクセスして、アプリケーションを利用開始できます。
 
 > [!Important]
-> このデプロイ方法では、オプションパラメータを設定しない場合、URL を知っている誰でもサインアップできます。本番環境での使用には、IP アドレス制限の追加やセルフサインアップの無効化を強くお勧めします。
+> このデプロイ方法では、オプションパラメータを設定しない場合、URL を知っている誰でもサインアップできます。本番環境での使用には、IP アドレス制限の追加やセルフサインアップの無効化 (`--cognito-self-signup=false`) を強くお勧めします。
 
 ### 2. ローカル環境からのデプロイ（カスタマイズが必要な場合に推奨）
 
-ローカル環境で CDK を使用してデプロイする方法です。、デプロイプロセスをカスタマイズしたい方向けです。詳細な手順については[デプロイガイド](./docs/how_to_deploy.md)を参照してください。
+- このリポジトリをクローン
 
-1. **前提条件の確認**
+```
+git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
+```
 
-   - Node.js (v18 以上)
-   - AWS CLI (設定済み)
-   - Docker (macOS でのデプロイ時に必要)
+- npm パッケージのインストール
 
-2. **自動化スクリプトを使用したデプロイ**
+```
+cd review-and-assessment-powered-by-intelligent-documentation
+cd cdk
+npm ci
+```
 
-   ```bash
-   # プロジェクトルートディレクトリから実行
-   ./deploy.sh
-   ```
+- 必要に応じて、[parameter.ts](./cdk/parameter.ts) を編集してください。詳細は[パラメータカスタマイズ](#パラメータカスタマイズ)をご覧ください。
+- CDK をデプロイする前に、デプロイ先のリージョンに対して一度ブートストラップを実行する必要があります。
 
-   このスクリプトは以下の手順を自動的に実行します：
+```
+npx cdk bootstrap
+```
 
-   - 環境のチェック（Docker、AWS CLI）
-   - MySQL コンテナの起動（必要な場合）
-   - バックエンドの依存関係インストールとビルド
-   - マイグレーションファイルの確認と作成
-   - CDK による AWS リソースのデプロイ
-   - データベースマイグレーションの実行
-   - デプロイ情報（フロントエンド URL と API URL）の表示
+- サンプルプロジェクトをデプロイ
 
-詳細な手順については[デプロイガイド](./docs/how_to_deploy.md)を参照してください。
+```
+npx cdk deploy --require-approval never --all
+```
+
+- 以下のような出力が表示されます。Web アプリの URL は `RapidStack.FrontendURL` に出力されますので、ブラウザからアクセスしてください。
+
+```sh
+ ✅  RapidStack
+
+✨  deployment time: 78.57s
+
+Output:
+...
+RapidStack.FrontendURL = https://xxxxx.cloudfront.net
+```
 
 ## パラメータカスタマイズ
 
 CDK デプロイ時に以下のパラメータをカスタマイズできます:
 
-| パラメータ名             | 説明                                                       | デフォルト値                              |
-| ------------------------ | ---------------------------------------------------------- | ----------------------------------------- |
-| allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲                    | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
-| allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲                    | ["0000::/1", "8000::/1"] (すべて許可)     |
-| cognitoSelfSignUpEnabled | Cognito User Pool のセルフサインアップを有効にするかどうか | true (有効)                               |
-| autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか     | true (自動実行する)                       |
+| パラメータグループ   | パラメータ名             | 説明                                                       | デフォルト値                              |
+| -------------------- | ------------------------ | ---------------------------------------------------------- | ----------------------------------------- |
+| **WAF 設定**         | allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲                    | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
+|                      | allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲                    | ["0000::/1", "8000::/1"] (すべて許可)     |
+| **Cognito 設定**     | cognitoUserPoolId        | 既存の Cognito User Pool ID                                | 新規作成                                  |
+|                      | cognitoUserPoolClientId  | 既存の Cognito User Pool Client ID                         | 新規作成                                  |
+|                      | cognitoDomainPrefix      | Cognito ドメインのプレフィックス                           | 自動生成                                  |
+|                      | cognitoSelfSignUpEnabled | Cognito User Pool のセルフサインアップを有効にするかどうか | true (有効)                               |
+| **マイグレーション** | autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか     | true (自動実行する)                       |
+
+設定するには`cdk/lib/parameter.ts` ファイルを直接編集してください。
 
 > [!CAUTION]
 > 本番環境では、`cognitoSelfSignUpEnabled: false` に設定することでセルフサインアップを無効化することを強く推奨します。セルフサインアップを有効にしたままにすると、誰でもアカウント登録が可能となるため、セキュリティリスクとなる可能性があります。
 > デフォルトでは `autoMigrate` パラメータが `true` に設定されており、デプロイ時に自動的にデータベースマイグレーションが実行されます。本番環境や重要なデータを含む環境では、このパラメータを `false` に設定し、マイグレーションを手動で制御することを検討してください。
 
-#### パラメータ指定方法
+## 開発者向け情報
 
-##### 1. parameter.ts で設定（推奨）
-
-`cdk/lib/parameter.ts` ファイルを直接編集する方法:
-
-```typescript
-// cdk/lib/parameter.ts
-export const parameters = {
-  // カスタマイズしたいパラメータのみコメントを外して設定
-
-  // WAF IP制限の設定例
-  allowedIpV4AddressRanges: [
-    "192.168.0.0/16", // 内部ネットワーク例
-    "203.0.113.0/24", // 特定のパブリックIP範囲例
-  ],
-
-  allowedIpV6AddressRanges: [
-    "2001:db8::/32", // IPv6アドレス範囲例
-  ],
-
-  autoMigrate: false, // 自動マイグレーションを無効化
-};
-```
-
-##### 2. コマンドラインで context パラメータとして指定
-
-```bash
-# ドット表記形式
-cdk deploy --context 本サンプル.allowedIpV4AddressRanges='["192.168.0.0/16", "203.0.113.0/24"]'
-
-# または JSON 形式
-cdk deploy --context rapid='{"allowedIpV4AddressRanges":["192.168.0.0/16"]}'
-
-# 自動マイグレーションを無効化する例
-cdk deploy --context rapid.autoMigrate=false
-```
-
-##### 3. CodeBuild デプロイ時にパラメータを指定
-
-```bash
-./bin.sh --ipv4-ranges '["192.168.0.0/16"]' --auto-migrate false
-```
-
-セキュリティ強化のため、フロントエンドへのアクセスを必要な IP アドレス範囲のみに制限することを強く推奨します。
-
-## 詳細情報
-
-- [デプロイガイド](./docs/how_to_deploy.md): 詳細なデプロイ手順と設定オプション
 - [開発者ガイド](./docs/developer-guide.md): 技術仕様、アーキテクチャ、開発環境設定
-
-## Notice
-
-顧客は、このガイダンスに含まれる情報について独自の判断を下す責任があります。このガイダンスは、(a) 情報提供のみを目的としており、(b) AWS の現在の製品提供と慣行を表していますが、これらは予告なく変更される可能性があり、(c) AWS およびその関連会社、サプライヤー、ライセンサーからのいかなるコミットメントや保証も生じません。AWS の製品またはサービスは、明示的か黙示的かを問わず、いかなる保証、表明、または条件もなく「現状のまま」提供されます。AWS の顧客に対する責任と義務は AWS の契約によって管理され、このガイダンスは AWS とその顧客間のいかなる契約の一部でもなく、またいかなる契約も修正しません。
 
 ## ライセンス
 
