@@ -6,33 +6,28 @@ Parameters:
     Type: String
     Default: '["0.0.0.0/1","128.0.0.0/1"]'
     Description: フロントエンドWAFで許可するIPv4アドレス範囲（JSON配列形式）
-  
+
   AllowedIpV6AddressRanges:
     Type: String
     Default: '["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
     Description: フロントエンドWAFで許可するIPv6アドレス範囲（JSON配列形式）
-  
+
   DisableIpv6:
     Type: String
     Default: "false"
     Description: IPv6サポートを無効にするかどうか
     AllowedValues: ["true", "false"]
-  
+
   AutoMigrate:
     Type: String
     Default: "true"
     Description: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
     AllowedValues: ["true", "false"]
-  
-  CdkJsonOverride:
-    Type: String
-    Default: "{}"
-    Description: CDK設定をオーバーライドするためのJSON文字列
 
   S3Bucket:
     Type: String
     Description: ソースコードが格納されているS3バケット名
-  
+
   S3Key:
     Type: String
     Default: "rapid-code.zip"
@@ -55,7 +50,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/AdministratorAccess
-  
+
   ProjectRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -123,7 +118,7 @@ Resources:
       PolicyName: ProjectRoleDefaultPolicy
       Roles:
         - Ref: ProjectRole
-  
+
   Project:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -147,8 +142,6 @@ Resources:
             Value: !Ref DisableIpv6
           - Name: AUTO_MIGRATE
             Value: !Ref AutoMigrate
-          - Name: CDK_JSON_OVERRIDE
-            Value: !Ref CdkJsonOverride
           - Name: S3_BUCKET
             Value: !Ref S3Bucket
           - Name: S3_KEY
@@ -199,8 +192,6 @@ Resources:
                   "echo '};' >> cdk/lib/parameter.ts",
                   "echo 'パラメータファイルを作成しました:'",
                   "cat cdk/lib/parameter.ts",
-                  "echo 'CDK設定をカスタマイズ中...'",
-                  "if [ ! -z \"$CDK_JSON_OVERRIDE\" ] && [ \"$CDK_JSON_OVERRIDE\" != \"{}\" ]; then echo \"$CDK_JSON_OVERRIDE\" | jq '.' && jq --argjson override \"$CDK_JSON_OVERRIDE\" '. * $override' cdk/cdk.json > temp.json && mv temp.json cdk/cdk.json; fi",
                   "echo 'バックエンドの準備...'",
                   "cd backend",
                   "npm ci",

@@ -24,11 +24,6 @@ Parameters:
     Description: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
     AllowedValues: ["true", "false"]
 
-  CdkJsonOverride:
-    Type: String
-    Default: "{}"
-    Description: CDK設定をオーバーライドするためのJSON文字列
-
   RepoUrl:
     Type: String
     Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
@@ -136,8 +131,6 @@ Resources:
             Value: !Ref DisableIpv6
           - Name: AUTO_MIGRATE
             Value: !Ref AutoMigrate
-          - Name: CDK_JSON_OVERRIDE
-            Value: !Ref CdkJsonOverride
           - Name: REPO_URL
             Value: !Ref RepoUrl
           - Name: BRANCH
@@ -183,8 +176,6 @@ Resources:
                   "echo '};' >> cdk/lib/parameter.ts",
                   "echo 'パラメータファイルを作成しました:'",
                   "cat cdk/lib/parameter.ts",
-                  "echo 'CDK設定をカスタマイズ中...'",
-                  "if [ ! -z \"$CDK_JSON_OVERRIDE\" ] && [ \"$CDK_JSON_OVERRIDE\" != \"{}\" ]; then echo \"$CDK_JSON_OVERRIDE\" | jq '.' && jq --argjson override \"$CDK_JSON_OVERRIDE\" '. * $override' cdk/cdk.json > temp.json && mv temp.json cdk/cdk.json; fi",
                   "echo 'バックエンドの準備...'",
                   "cd backend",
                   "npm ci",

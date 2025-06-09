@@ -16,7 +16,6 @@ ALLOWED_IPV4_RANGES='["0.0.0.0/1","128.0.0.0/1"]'
 ALLOWED_IPV6_RANGES='["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
 DISABLE_IPV6="false"
 AUTO_MIGRATE="true"
-CDK_JSON_OVERRIDE="{}"
 REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
 
@@ -27,7 +26,6 @@ while [[ "$#" -gt 0 ]]; do
         --ipv6-ranges) ALLOWED_IPV6_RANGES="$2"; shift ;;
         --disable-ipv6) DISABLE_IPV6="true" ;;
         --auto-migrate) AUTO_MIGRATE="$2"; shift ;;
-        --cdk-json-override) CDK_JSON_OVERRIDE="$2"; shift ;;
         --repo-url) REPO_URL="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
         *) echo "不明なパラメータ: $1"; exit 1 ;;
@@ -54,7 +52,6 @@ aws cloudformation deploy \
     AllowedIpV6AddressRanges="$ALLOWED_IPV6_RANGES" \
     DisableIpv6="$DISABLE_IPV6" \
     AutoMigrate="$AUTO_MIGRATE" \
-    CdkJsonOverride="$CDK_JSON_OVERRIDE" \
     RepoUrl="$REPO_URL" \
     Branch="$BRANCH"
 
