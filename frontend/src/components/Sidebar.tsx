@@ -64,10 +64,6 @@ export default function Sidebar() {
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}>
         <div className="p-6">
-          <div className="mb-8 flex items-center">
-            {/* Logo and app name removed */}
-          </div>
-
           <nav>
             <ul className="space-y-2">
               <li className="mb-1">

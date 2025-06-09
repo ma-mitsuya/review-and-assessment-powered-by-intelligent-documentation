@@ -57,5 +57,5 @@ const responseLogger: FastifyPluginAsync<ResponseLoggerOptions> = async (
 
 export default fp(responseLogger, {
   name: "response-logger",
-  fastify: "4.x",
+  fastify: "5.x",
 });

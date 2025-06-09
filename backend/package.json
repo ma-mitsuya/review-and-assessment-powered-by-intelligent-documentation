@@ -31,7 +31,7 @@
     "@aws-sdk/client-secrets-manager": "^3.777.0",
     "@aws-sdk/client-sfn": "^3.787.0",
     "@aws-sdk/s3-request-presigner": "^3.787.0",
-    "@fastify/cors": "^8.3.0",
+    "@fastify/cors": "^11.0.1",
     "@prisma/client": "^6.6.0",
     "fastify": "^5.3.2",
     "jose": "^5.10.0",
