@@ -95,6 +95,7 @@ export class RapidStack extends cdk.Stack {
       vpc,
       databaseConnection: database.connection,
       databaseCluster: database.cluster,
+      autoMigrate: props.parameters.autoMigrate, // パラメータから自動マイグレーション設定を渡す
     });
 
     // データベース接続権限の付与
