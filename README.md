@@ -92,8 +92,8 @@ RAPID のデプロイには以下の 2 つの方法があります：
 3. **デプロイスクリプトの実行**
 
    ```bash
-   git clone https://github.com/aws-samples/sample-review-and-assessment-powered-by-intelligent-documentation.git
-   cd sample-review-and-assessment-powered-by-intelligent-documentation
+   git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
+   cd review-and-assessment-powered-by-intelligent-documentation
    ./bin.sh
    ```
 

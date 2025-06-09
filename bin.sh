@@ -17,7 +17,7 @@ ALLOWED_IPV6_RANGES='["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:000
 DISABLE_IPV6="false"
 AUTO_MIGRATE="true"
 CDK_JSON_OVERRIDE="{}"
-REPO_URL="https://github.com/aws-samples/sample-review-and-assessment-powered-by-intelligent-documentation.git"
+REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
 
 # コマンドライン引数の解析

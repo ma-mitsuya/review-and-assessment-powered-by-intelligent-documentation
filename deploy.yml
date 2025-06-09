@@ -6,24 +6,24 @@ Parameters:
     Type: String
     Default: '["0.0.0.0/1","128.0.0.0/1"]'
     Description: フロントエンドWAFで許可するIPv4アドレス範囲（JSON配列形式）
-  
+
   AllowedIpV6AddressRanges:
     Type: String
     Default: '["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
     Description: フロントエンドWAFで許可するIPv6アドレス範囲（JSON配列形式）
-  
+
   DisableIpv6:
     Type: String
     Default: "false"
     Description: IPv6サポートを無効にするかどうか
     AllowedValues: ["true", "false"]
-  
+
   AutoMigrate:
     Type: String
     Default: "true"
     Description: デプロイ時に自動的にデータベースマイグレーションを実行するかどうか
     AllowedValues: ["true", "false"]
-  
+
   CdkJsonOverride:
     Type: String
     Default: "{}"
@@ -31,9 +31,9 @@ Parameters:
 
   RepoUrl:
     Type: String
-    Default: "https://github.com/aws-samples/sample-review-and-assessment-powered-by-intelligent-documentation.git"
+    Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
     Description: デプロイするリポジトリのURL
-  
+
   Branch:
     Type: String
     Default: "main"
@@ -56,7 +56,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/AdministratorAccess
-  
+
   ProjectRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -112,7 +112,7 @@ Resources:
       PolicyName: ProjectRoleDefaultPolicy
       Roles:
         - Ref: ProjectRole
-  
+
   Project:
     Type: AWS::CodeBuild::Project
     Properties:
