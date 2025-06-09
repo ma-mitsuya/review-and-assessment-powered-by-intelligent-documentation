@@ -22,7 +22,11 @@ export interface RapidStackProps extends cdk.StackProps {
 
 export class RapidStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RapidStackProps) {
-    super(scope, id, props);
+    super(scope, id, {
+      description:
+        "Rapid Stack for Document Processing and Review (uksb-v0ap2ubnkl)",
+      ...props,
+    });
 
     // VPC等のリソースを作成
 
