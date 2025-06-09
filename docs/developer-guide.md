@@ -95,3 +95,52 @@
 ## コード規約
 
 [.amazonq/rules](../.amazonq/rules)を参照してください。
+
+## DB リセット（環境のクリーンアップ）
+
+DB をリセットする必要がある場合は、以下のコマンドでリセットできます：
+
+```bash
+# リセットコマンドを取得して実行
+RESET_COMMAND=$(aws cloudformation describe-stacks --stack-name RapidStack --query "Stacks[0].Outputs[?OutputKey=='ResetMigrationCommand'].OutputValue" --output text)
+eval $RESET_COMMAND
+```
+
+> [!Warning]
+> これにより、データベースのすべてのデータが削除されます。本番環境では絶対に実行しないでください。
+
+## トラブルシューティング
+
+1. **Docker 関連の問題**
+
+   - macOS でデプロイする場合、Docker が起動していることを確認してください。
+   - CDK は Lambda 関数のビルドに Docker を使用します。
+
+2. **マイグレーションエラー**
+
+   - 自動マイグレーションが失敗した場合は、CloudWatch Logs で「MigrationProviderLambda」関数のログを確認してください。
+   - 問題が解決しない場合は、以下の方法で手動実行を試みることができます：
+
+     **AWS CLI を使用**:
+
+     ```bash
+     # StackのOutputからマイグレーションコマンドを取得して実行
+     MIGRATION_COMMAND=$(aws cloudformation describe-stacks --stack-name RapidStack --query "Stacks[0].Outputs[?OutputKey=='DeployMigrationCommand'].OutputValue" --output text)
+     eval $MIGRATION_COMMAND
+     ```
+
+     **AWS Management Console を使用**:
+
+     1. AWS Management Console で、Lambda サービスに移動
+     2. `RapidStack-PrismaMigrationMigrationFunction~` という名前の Lambda 関数を検索して選択
+     3. 「テスト」タブを選択
+     4. 以下の JSON をテストイベントとして設定
+        ```json
+        {
+          "command": "deploy"
+        }
+        ```
+     5. 「テスト」ボタンをクリックして実行
+
+3. **Prisma 生成エラー**
+   - `prisma:generate` コマンドでエラーが発生した場合、`node_modules/.prisma` ディレクトリを削除して再試行してください。
