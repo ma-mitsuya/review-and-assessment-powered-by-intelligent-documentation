@@ -175,11 +175,15 @@ export default function ReviewResultItem({
     <>
       <div
         id={`result-item-${result.id}`}
-        className={`border bg-white ${
+        className={`border ${
           isBelowThreshold ? "border-2 border-yellow" : "border-light-gray"
-        } rounded-md p-4 transition-colors hover:bg-aws-paper-light ${
-          isBelowThreshold ? "bg-light-yellow" : ""
-        }`}>
+        } rounded-md p-4 transition-all duration-200 ${
+          result.result === REVIEW_RESULT.PASS
+            ? "bg-aws-lab bg-opacity-10 hover:bg-aws-lab hover:bg-opacity-30"
+            : result.result === REVIEW_RESULT.FAIL
+              ? "bg-red bg-opacity-10 hover:bg-red hover:bg-opacity-30"
+              : "bg-white hover:bg-aws-paper-light"
+        } ${isBelowThreshold ? "hover:bg-yellow-100 bg-light-yellow" : ""}`}>
         <div className="grid grid-cols-[auto_1fr_auto] gap-4">
           {/* Expand/collapse button - 1st column */}
           <div className="pt-1">

@@ -167,12 +167,6 @@ export class Api extends Construct {
     const proxyResource = this.api.root.addResource("{proxy+}");
     proxyResource.addMethod("ANY", lambdaIntegration);
 
-    // API URL の出力
-    new cdk.CfnOutput(this, "ApiUrl", {
-      value: this.api.url,
-      description: "URL of the RAPID API",
-    });
-
     // ロググループの ARN を出力
     new cdk.CfnOutput(this, "AccessLogGroupName", {
       value: accessLogGroup.logGroupName,
