@@ -76,7 +76,12 @@
 
 1. **Amazon Bedrock モデルの有効化**
 
-   AWS Management Console から [Bedrock モデルアクセス](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess)にアクセスし、必要なモデルへのアクセスを有効化してください。
+   AWS Management Console から [Bedrock モデルアクセス](https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess)にアクセスし、以下のモデルへのアクセスを有効化してください：
+   
+   - Anthropic Claude 3.7 Sonnet
+   - Amazon Nova Premier
+   
+   オレゴン (us-west-2) リージョンでモデルアクセスを有効化してください。
 
 2. **AWS CloudShell を開く**
 
