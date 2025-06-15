@@ -10,6 +10,7 @@ import { Api } from "./constructs/api";
 import { Auth } from "./constructs/auth";
 import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
+import { McpRuntime } from "./constructs/mcp-runtime/mcp-runtime";
 import { Parameters } from "./parameter-schema";
 
 export interface RapidStackProps extends cdk.StackProps {
@@ -104,6 +105,12 @@ export class RapidStack extends cdk.Stack {
     database.grantConnect(prismaMigration.securityGroup);
     database.grantSecretAccess(prismaMigration.migrationLambda);
 
+    // MCP Runner for MCP functionality
+    const mcpRuntime = new McpRuntime(this, "McpRuntime", {
+      timeout: cdk.Duration.minutes(15),
+      admin: props.parameters.mcpAdmin,
+    });
+
     // ドキュメント処理ワークフローの作成
     const documentProcessor = new ChecklistProcessor(
       this,
@@ -126,6 +133,7 @@ export class RapidStack extends cdk.Stack {
       vpc,
       logLevel: sfn.LogLevel.ALL,
       databaseConnection: database.connection,
+      McpRuntime: mcpRuntime,
     });
 
     // Auth構成の作成（Cognitoのカスタムパラメータを個別に渡す）
@@ -225,8 +233,14 @@ export class RapidStack extends cdk.Stack {
       value: database.secret.secretArn,
     });
 
-    new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
-      value: prismaMigration.migrationLambda.functionArn,
-    });
+    // Fix migrationLambda.functionArn
+    if (
+      prismaMigration.migrationLambda &&
+      "functionArn" in prismaMigration.migrationLambda
+    ) {
+      new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
+        value: prismaMigration.migrationLambda.functionArn,
+      });
+    }
   }
 }

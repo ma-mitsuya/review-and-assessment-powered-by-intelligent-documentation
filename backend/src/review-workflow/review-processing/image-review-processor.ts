@@ -192,25 +192,39 @@ export async function processImageReviewItem(
     const bucketName = process.env.DOCUMENT_BUCKET || "";
 
     // Get up to 20 images
-    const imageBuffers = await Promise.all(
-      documents.slice(0, 20).map(async (doc) => {
-        const { Body } = await s3Client.send(
-          new GetObjectCommand({
-            Bucket: bucketName,
-            Key: doc.s3Path,
-          })
-        );
+    const inputDocuments = documents; // Rename to avoid shadowing later variable
+    const imageBuffers: Array<{
+      documentId: string;
+      filename: string;
+      buffer: Uint8Array;
+    }> = await Promise.all(
+      inputDocuments
+        .slice(0, 20)
+        .map(
+          async (doc: {
+            id: string;
+            filename: string;
+            s3Path: string;
+            fileType: string;
+          }) => {
+            const { Body } = await s3Client.send(
+              new GetObjectCommand({
+                Bucket: bucketName,
+                Key: doc.s3Path,
+              })
+            );
 
-        if (!Body) {
-          throw new Error(`Image not found: ${doc.s3Path}`);
-        }
+            if (!Body) {
+              throw new Error(`Image not found: ${doc.s3Path}`);
+            }
 
-        return {
-          documentId: doc.id,
-          filename: doc.filename,
-          buffer: await Body.transformToByteArray(),
-        };
-      })
+            return {
+              documentId: doc.id,
+              filename: doc.filename,
+              buffer: await Body.transformToByteArray(),
+            };
+          }
+        )
     );
 
     // Prepare prompt based on user language
@@ -364,15 +378,26 @@ ${prompt}
     const current = await reviewResultRepository.findDetailedReviewResultById({
       resultId: reviewResultId,
     });
-    const updated = ReviewResultDomain.fromImageLlmReviewData({
+
+    // Convert image buffers to document info format
+    const documentInfos = imageBuffers.map((img) => ({
+      documentId: img.documentId,
+      filename: img.filename,
+    }));
+
+    // Use the unified review data method
+    const updated = ReviewResultDomain.fromReviewData({
       current,
       result: reviewData.result,
       confidenceScore: reviewData.confidence,
       explanation: reviewData.explanation,
       shortExplanation: reviewData.shortExplanation,
-      usedImageIndexes: reviewData.usedImageIndexes,
-      imageBuffers,
-      boundingBoxes: reviewData.boundingBoxes || [],
+      documents: documentInfos,
+      reviewType: "IMAGE",
+      typeSpecificData: {
+        usedImageIndexes: reviewData.usedImageIndexes,
+        boundingBoxes: reviewData.boundingBoxes || [],
+      },
     });
     await reviewResultRepository.updateResult({
       newResult: updated,

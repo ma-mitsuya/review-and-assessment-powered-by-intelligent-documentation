@@ -7,6 +7,7 @@ import FormTextField from "../../../components/FormTextField";
 import FormFileUpload from "../../../components/FormFileUpload";
 import ChecklistSelector from "../components/ChecklistSelector";
 import ComparisonIndicator from "../components/ComparisonIndicator";
+import McpServerSelector from "../components/McpServerSelector";
 import { useCreateReviewJob } from "../hooks/useReviewJobMutations";
 import { useDocumentUpload } from "../../../hooks/useDocumentUpload";
 import { useChecklistSets } from "../../checklist/hooks/useCheckListSetQueries";
@@ -29,6 +30,7 @@ export const CreateReviewPage: React.FC = () => {
   const [fileType, setFileType] = useState<REVIEW_FILE_TYPE>(
     REVIEW_FILE_TYPE.PDF
   );
+  const [mcpServerName, setMcpServerName] = useState("");
   const [errors, setErrors] = useState({
     name: "",
     files: "",
@@ -72,6 +74,11 @@ export const CreateReviewPage: React.FC = () => {
     // ファイルタイプが変更されたら選択済みファイルをクリア
     setSelectedFiles([]);
     clearUploadedDocuments();
+  };
+
+  // MCP サーバー選択ハンドラ
+  const handleMcpServerChange = (serverName: string) => {
+    setMcpServerName(serverName);
   };
 
   // 入力値の変更ハンドラ
@@ -230,6 +237,7 @@ export const CreateReviewPage: React.FC = () => {
         name: jobName,
         checkListSetId: selectedChecklist.id,
         documents: documents,
+        mcpServerName: mcpServerName || undefined,
       });
 
       // アップロード済みドキュメントリストをクリア
@@ -344,6 +352,12 @@ export const CreateReviewPage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* MCP サーバー選択 */}
+          <McpServerSelector
+            onChange={handleMcpServerChange}
+            value={mcpServerName}
+          />
 
           <div className="mt-8 flex justify-end space-x-3">
             <Button outline to="/review">

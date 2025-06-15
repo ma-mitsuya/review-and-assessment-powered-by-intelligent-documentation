@@ -52,6 +52,7 @@ export interface ReviewJobEntity {
   status: REVIEW_JOB_STATUS;
   checkListSetId: string;
   userId?: string;
+  mcpServerName?: string;
   documents: Array<{
     id: string;
     filename: string;
@@ -73,6 +74,7 @@ export interface ReviewJobSummary {
   updatedAt: Date;
   completedAt?: Date;
   userId?: string;
+  mcpServerName?: string;
   documents: Array<{
     id: string;
     filename: string;
@@ -102,6 +104,7 @@ export interface ReviewJobDetail {
     s3Path: string;
     fileType: REVIEW_FILE_TYPE;
   }>;
+  mcpServerName?: string;
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
@@ -110,6 +113,12 @@ export interface ReviewJobDetail {
 /**
  * 参照元情報
  */
+export interface DocumentInfo {
+  documentId: string;
+  filename: string;
+  pageNumber?: number; // PDFで使用
+}
+
 export interface SourceReference {
   documentId: string;
   pageNumber?: number;
@@ -117,6 +126,11 @@ export interface SourceReference {
     label: string;
     coordinates: [number, number, number, number]; // [x1, y1, x2, y2]
   };
+  // 外部情報源の情報
+  externalSources?: Array<{
+    mcpName?: string; // 使用したMCPツール名
+    description: string; // 情報源の詳細説明
+  }>;
 }
 
 export interface ReviewResultEntity {
@@ -181,106 +195,119 @@ export const ReviewResultDomain = (() => {
       };
     },
 
-    fromLlmReviewData: (params: {
+    fromReviewData: (params: {
       current: ReviewResultDetail;
       result: REVIEW_RESULT;
       confidenceScore: number;
       explanation: string;
       shortExplanation: string;
-      extractedText: string;
-      sourceReferences: SourceReference[];
-    }): ReviewResultEntity => {
-      const {
-        result,
-        confidenceScore,
-        explanation,
-        shortExplanation,
-        extractedText,
-        sourceReferences,
-      } = params;
 
-      return {
-        ...params.current,
-        status: REVIEW_RESULT_STATUS.COMPLETED,
-        result,
-        confidenceScore,
-        explanation,
-        shortExplanation,
-        extractedText,
-        sourceReferences,
-        userOverride: false,
-        updatedAt: new Date(),
+      // 共通フィールド
+      documents: DocumentInfo[];
+      reviewType: "PDF" | "IMAGE";
+      verificationDetails?: {
+        sourcesDetails: Array<{
+          description: string;
+          mcpName?: string;
+        }>;
       };
-    },
 
-    fromImageLlmReviewData: (params: {
-      current: ReviewResultDetail;
-      result: REVIEW_RESULT;
-      confidenceScore: number;
-      explanation: string;
-      shortExplanation: string;
-      usedImageIndexes: number[];
-      imageBuffers: Array<{
-        documentId: string;
-        filename: string;
-        buffer: Uint8Array;
-      }>;
-      boundingBoxes?: Array<{
-        imageIndex: number;
-        label: string;
-        coordinates: [number, number, number, number];
-      }>;
+      // タイプ固有フィールド
+      typeSpecificData?: {
+        // PDF固有データ
+        extractedText?: string;
+
+        // 画像固有データ
+        usedImageIndexes?: number[];
+        boundingBoxes?: Array<{
+          imageIndex: number;
+          label: string;
+          coordinates: [number, number, number, number];
+        }>;
+      };
     }): ReviewResultEntity => {
       const {
-        result,
+        current,
+        result: reviewResult,
         confidenceScore,
         explanation,
         shortExplanation,
-        usedImageIndexes,
-        imageBuffers,
-        boundingBoxes = [],
+        documents,
+        reviewType,
+        verificationDetails,
+        typeSpecificData,
       } = params;
 
-      // 基本的な参照元情報を構築
-      const sourceReferences = _buildSourceReferencesFromImages(
-        usedImageIndexes,
-        imageBuffers
-      );
+      let sourceReferences: SourceReference[] = [];
 
-      // バウンディングボックス情報を追加
-      if (boundingBoxes && boundingBoxes.length > 0) {
-        boundingBoxes.forEach((box) => {
-          const imageIndex = box.imageIndex;
-          if (imageIndex >= 0 && imageIndex < imageBuffers.length) {
-            const documentId = imageBuffers[imageIndex].documentId;
-            // 既存の参照元情報を探す
-            const existingRef = sourceReferences.find(
-              (ref) => ref.documentId === documentId
-            );
-            if (existingRef) {
-              // 既存の参照元情報にバウンディングボックスを追加
-              existingRef.boundingBox = {
-                label: box.label,
-                coordinates: box.coordinates,
-              };
-            } else {
-              // 新しい参照元情報を追加
-              sourceReferences.push({
-                documentId,
-                boundingBox: {
+      // レビュータイプによる分岐
+      if (reviewType === "PDF") {
+        // PDFのソース参照作成
+        sourceReferences = documents.map((doc) => ({
+          documentId: doc.documentId,
+          pageNumber: doc.pageNumber || 1,
+        }));
+      } else {
+        // IMAGE
+        const { usedImageIndexes, boundingBoxes = [] } = typeSpecificData || {};
+
+        // 使用された画像のみを対象とするか、すべての画像を対象とするか
+        if (usedImageIndexes && usedImageIndexes.length > 0) {
+          sourceReferences = usedImageIndexes
+            .filter((index) => index >= 0 && index < documents.length)
+            .map((index) => ({
+              documentId: documents[index].documentId,
+            }));
+        } else {
+          sourceReferences = documents.map((doc) => ({
+            documentId: doc.documentId,
+          }));
+        }
+
+        // バウンディングボックスの処理
+        if (boundingBoxes && boundingBoxes.length > 0) {
+          boundingBoxes.forEach((box) => {
+            const imageIndex = box.imageIndex;
+            if (imageIndex >= 0 && imageIndex < documents.length) {
+              const documentId = documents[imageIndex].documentId;
+              const existingRef = sourceReferences.find(
+                (ref) => ref.documentId === documentId
+              );
+
+              if (existingRef) {
+                existingRef.boundingBox = {
                   label: box.label,
                   coordinates: box.coordinates,
-                },
-              });
+                };
+              } else {
+                sourceReferences.push({
+                  documentId,
+                  boundingBox: {
+                    label: box.label,
+                    coordinates: box.coordinates,
+                  },
+                });
+              }
             }
-          }
+          });
+        }
+      }
+
+      // 外部情報源の追加（すべてのソース参照に共通）
+      if (
+        verificationDetails?.sourcesDetails &&
+        verificationDetails.sourcesDetails.length > 0
+      ) {
+        sourceReferences.forEach((ref) => {
+          ref.externalSources = verificationDetails.sourcesDetails;
         });
       }
 
-      return {
-        ...params.current,
+      // 共通返却値
+      const resultEntity: ReviewResultEntity = {
+        ...current,
         status: REVIEW_RESULT_STATUS.COMPLETED,
-        result,
+        result: reviewResult,
         confidenceScore,
         explanation,
         shortExplanation,
@@ -288,6 +315,13 @@ export const ReviewResultDomain = (() => {
         userOverride: false,
         updatedAt: new Date(),
       };
+
+      // PDFの場合のみ抽出テキストを追加
+      if (reviewType === "PDF" && typeSpecificData?.extractedText) {
+        resultEntity.extractedText = typeSpecificData.extractedText;
+      }
+
+      return resultEntity;
     },
 
     parseSourceReferences: (

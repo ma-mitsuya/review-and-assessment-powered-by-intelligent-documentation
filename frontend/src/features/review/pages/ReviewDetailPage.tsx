@@ -43,14 +43,15 @@ export default function ReviewDetailPage() {
     return (
       <div className="mt-4">
         <ErrorAlert
-          title={t('review.loadError')}
-          message={t('review.loadErrorMessage')}
+          error={jobError}
+          title={t("review.loadError")}
+          message={t("review.loadErrorMessage")}
           retry={() => {
             refetchJob();
           }}
         />
         <div className="mt-4">
-          <Breadcrumb to="/review" label={t('review.backToList')} />
+          <Breadcrumb to="/review" label={t("review.backToList")} />
         </div>
       </div>
     );
@@ -61,12 +62,13 @@ export default function ReviewDetailPage() {
     return (
       <div className="mt-4">
         <ErrorAlert
-          title={t('common.error')}
-          message={t('review.jobNotFound')}
+          error={t("review.jobNotFound")}
+          title={t("common.error")}
+          message={t("review.jobNotFound")}
           retry={() => refetchJob()}
         />
         <div className="mt-4">
-          <Breadcrumb to="/review" label={t('review.backToList')} />
+          <Breadcrumb to="/review" label={t("review.backToList")} />
         </div>
       </div>
     );
@@ -75,42 +77,44 @@ export default function ReviewDetailPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <Breadcrumb to="/review" label={t('review.backToList')} />
+          <Breadcrumb to="/review" label={t("review.backToList")} />
           <h1 className="text-2xl font-bold text-aws-squid-ink-light">
             {job.name}
           </h1>
-          <p className="text-aws-font-color-gray mt-1">
-            {t('review.documents')}:{" "}
-            {job.documents.length > 0 ? job.documents[0].filename : t('review.noDocuments')}
+          <p className="mt-1 text-aws-font-color-gray">
+            {t("review.documents")}:{" "}
+            {job.documents.length > 0
+              ? job.documents[0].filename
+              : t("review.noDocuments")}
             {job.documents.length > 1
-              ? t('review.otherDocuments', { count: job.documents.length - 1 })
+              ? t("review.otherDocuments", { count: job.documents.length - 1 })
               : ""}
           </p>
           <p className="text-aws-font-color-gray">
-            {t('review.checklist')}: {job.checkList.name}
+            {t("review.checklist")}: {job.checkList.name}
           </p>
           <p className="text-aws-font-color-gray">
-            {t('review.status')}:&nbsp;
+            {t("review.status")}:&nbsp;
             <span
               className={`font-medium ${
                 job.status === REVIEW_JOB_STATUS.COMPLETED
                   ? "text-green-600"
                   : job.status === REVIEW_JOB_STATUS.FAILED
-                  ? "text-red-600"
-                  : "text-yellow-600"
-              }`}
-            >
+                    ? "text-red-600"
+                    : "text-yellow-600"
+              }`}>
               {t(`status.${job.status}`)}
             </span>
           </p>
           <p className="text-aws-font-color-gray">
-            {t('review.createdAt')}: {new Date(job.createdAt).toLocaleString()}
+            {t("review.createdAt")}: {new Date(job.createdAt).toLocaleString()}
           </p>
           {job.completedAt && (
             <p className="text-aws-font-color-gray">
-              {t('review.completedAt', 'Completed At')}: {new Date(job.completedAt).toLocaleString()}
+              {t("review.completedAt", "Completed At")}:{" "}
+              {new Date(job.completedAt).toLocaleString()}
             </p>
           )}
         </div>
@@ -120,17 +124,18 @@ export default function ReviewDetailPage() {
       {job.hasError && job.errorDetail && (
         <div className="mb-6">
           <ErrorAlert
-            title={t('common.processingError')}
+            error={job.errorDetail}
+            title={t("common.processingError")}
             message={job.errorDetail}
           />
         </div>
       )}
 
       {/* Review results */}
-      <div className="bg-white shadow-md rounded-lg p-6 border border-light-gray">
-        <div className="flex justify-between items-center mb-4">
+      <div className="rounded-lg border border-light-gray bg-white p-6 shadow-md">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-medium text-aws-squid-ink-light">
-            {t('review.results')}
+            {t("review.results")}
           </h2>
           <div className="w-64">
             <Slider
@@ -139,7 +144,7 @@ export default function ReviewDetailPage() {
               step={0.05}
               value={confidenceThreshold}
               onChange={setConfidenceThreshold}
-              label={t('review.confidenceThreshold')}
+              label={t("review.confidenceThreshold")}
             />
           </div>
         </div>

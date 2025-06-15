@@ -29,9 +29,10 @@ export const parameters = {
   // cognitoUserPoolClientId: "1example23456789", // 既存のCognito User Pool Client ID
   // cognitoDomainPrefix: "myapp-login", // Cognitoドメインのプレフィックス
   // cognitoSelfSignUpEnabled: false, // Cognito User Poolのセルフサインアップを無効化（セキュリティ強化のため推奨）
-
   // Prismaマイグレーション設定
   // デプロイ時に自動的にマイグレーションを実行するかどうか
   // ---------------------------------------------------
   // autoMigrate: true, // デフォルトはtrue（自動マイグレーションを実行する）
+  // MCP Runtime設定
+  // mcpAdmin: true, // MCPランタイムLambda関数に管理者権限を付与する（デフォルト：false、本番環境では推奨されません）
 };

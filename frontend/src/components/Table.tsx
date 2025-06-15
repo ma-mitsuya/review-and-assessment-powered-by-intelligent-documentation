@@ -3,6 +3,8 @@ import { HiInformationCircle } from "react-icons/hi";
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import { TableSkeleton } from "./Skeleton";
+import { ErrorAlert } from "./ErrorAlert";
+import { InfoAlert } from "./InfoAlert";
 
 // Column definition for table
 export interface TableColumn<T> {
@@ -67,35 +69,12 @@ export function Table<T>({
 
   // Show error state
   if (error) {
-    return (
-      <div
-        className="rounded-lg border border-red bg-light-red px-6 py-4 text-red shadow-md"
-        role="alert">
-        <div className="flex items-center">
-          <HiInformationCircle className="mr-2 h-6 w-6" />
-          <strong className="font-medium">Error: </strong>
-          <span className="ml-2">
-            {typeof error === "object"
-              ? (error as Error).message || "An error occurred"
-              : error}
-          </span>
-        </div>
-      </div>
-    );
+    return <ErrorAlert error={error} />;
   }
 
   // Show empty state
   if (!items || items.length === 0) {
-    return (
-      <div
-        className="rounded-lg border border-yellow bg-light-yellow px-6 py-4 text-yellow shadow-md"
-        role="alert">
-        <div className="flex items-center">
-          <HiInformationCircle className="mr-2 h-6 w-6" />
-          <span>{emptyMessage}</span>
-        </div>
-      </div>
-    );
+    return <InfoAlert message={emptyMessage} variant="info" />;
   }
 
   return (

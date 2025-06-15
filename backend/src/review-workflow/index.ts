@@ -1,20 +1,23 @@
 import { reviewErrorHandler } from "./handle-error";
 import { prepareReview, finalizeReview } from "./review-processing";
-import { processReviewItem } from "./review-processing/review-item-processor";
+import { preReviewItemProcessor } from "./review-preprocessing/pre-review-item";
+import { postReviewItemProcessor } from "./review-postprocessing/post-review-item";
 
 export const handler = async (event: any): Promise<any> => {
-  console.log("受信イベント:", JSON.stringify(event, null, 2));
+  console.log("Received event:", JSON.stringify(event, null, 2));
 
   // アクションタイプに基づいて処理を分岐
   switch (event.action) {
     case "prepareReview":
       return await handlePrepareReview(event);
-    case "processReviewItem":
-      return await handleProcessReviewItem(event);
     case "finalizeReview":
       return await handleFinalizeReview(event);
     case "handleReviewError":
       return await handleReviewError(event);
+    case "preReviewItemProcessor":
+      return await preReviewItemProcessor(event);
+    case "postReviewItemProcessor":
+      return await postReviewItemProcessor(event);
     default:
       throw new Error(`未知のアクション: ${event.action}`);
   }
@@ -26,18 +29,6 @@ export const handler = async (event: any): Promise<any> => {
 async function handlePrepareReview(event: any) {
   return await prepareReview({
     reviewJobId: event.reviewJobId,
-  });
-}
-
-/**
- * 審査項目処理ハンドラー
- */
-async function handleProcessReviewItem(event: any) {
-  return await processReviewItem({
-    reviewJobId: event.reviewJobId,
-    checkId: event.checkId,
-    reviewResultId: event.reviewResultId,
-    userId: event.userId,
   });
 }
 

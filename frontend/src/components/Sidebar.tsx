@@ -130,6 +130,23 @@ export default function Sidebar() {
                     </li>
                   </ul>
                 )}
+                <li>
+                  <Link
+                    to="/mcp-servers"
+                    className={`mt-2 flex items-center rounded-md px-4 py-2 transition-colors ${
+                      isActive("/mcp-servers")
+                        ? "bg-aws-sea-blue-light text-aws-font-color-white-light"
+                        : "text-aws-font-color-white-light hover:bg-aws-sea-blue-hover-light"
+                    }`}
+                    onClick={() => setIsOpen(false)}>
+                    <span className="flex items-center">
+                      {t("mcpServer.title")}
+                      <span className="bg-yellow-200 text-yellow-800 ml-1 inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium">
+                        {t("experimental.beta")}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
               </li>
             </ul>
           </nav>

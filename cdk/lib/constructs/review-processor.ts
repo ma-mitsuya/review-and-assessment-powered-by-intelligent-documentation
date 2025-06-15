@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambdaPython from "@aws-cdk/aws-lambda-python-alpha";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -11,17 +12,20 @@ import { Construct } from "constructs";
 import { DockerPrismaFunction } from "./docker-prisma-function";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 import { DatabaseConnectionProps } from "./database";
+import { McpRuntime } from "./mcp-runtime/mcp-runtime";
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
   vpc: ec2.IVpc;
   databaseConnection: DatabaseConnectionProps;
   logLevel?: sfn.LogLevel;
   maxConcurrency?: number; // Add parameter for controlling parallel executions
+  McpRuntime: McpRuntime; // MCP runner for enhanced review capabilities
 }
 
 export class ReviewProcessor extends Construct {
   public readonly stateMachine: sfn.StateMachine;
   public readonly reviewLambda: lambda.Function;
+  public readonly reviewMcpLambda: lambdaPython.PythonFunction;
   public readonly securityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: ReviewProcessorProps) {
@@ -69,6 +73,53 @@ export class ReviewProcessor extends Construct {
       }
     );
 
+    // Pythonベースの審査Lambda関数を作成
+    this.reviewMcpLambda = new lambdaPython.PythonFunction(
+      this,
+      "ReviewItemProcessorMcpFunction",
+      {
+        entry: path.join(
+          __dirname,
+          "../../../backend/src/review-workflow/review-item-processor"
+        ),
+        index: "lambda_handler.py",
+        handler: "handler",
+        runtime: lambda.Runtime.PYTHON_3_13,
+        memorySize: 1024,
+        timeout: cdk.Duration.minutes(15),
+        // vpc: props.vpc,
+        // vpcSubnets: {
+        //   subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        // },
+        // securityGroups: [this.securityGroup],
+        environment: {
+          DOCUMENT_BUCKET: props.documentBucket.bucketName,
+          BEDROCK_REGION: "us-west-2",
+          // MCPサーバーLambdaのARNを設定
+          PY_MCP_LAMBDA_ARN: props.McpRuntime.pythonMcpServer.functionArn,
+          NODE_MCP_LAMBDA_ARN: props.McpRuntime.typescriptMcpServer.functionArn,
+        },
+      }
+    );
+
+    // Lambda関数にS3バケットへのアクセス権限を付与
+    props.documentBucket.grantReadWrite(this.reviewMcpLambda);
+
+    // Lambda関数にBedrockへのアクセス権限を付与
+    this.reviewMcpLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+        ],
+        resources: ["*"],
+      })
+    );
+
+    // MCP Lambdaへの呼び出し権限を付与
+    props.McpRuntime.pythonMcpServer.grantInvoke(this.reviewMcpLambda);
+    props.McpRuntime.typescriptMcpServer.grantInvoke(this.reviewMcpLambda);
+
     // Lambda関数にS3バケットへのアクセス権限を付与
     props.documentBucket.grantReadWrite(this.reviewLambda);
 
@@ -102,25 +153,70 @@ export class ReviewProcessor extends Construct {
       },
     });
 
-    // Map内で各項目を処理するLambda
-    const processReviewItemTask = new tasks.LambdaInvoke(
+    // 処理フロー定義
+    // MCP対応の処理フロー - 3ステップで処理
+
+    // Step 1: Pre-processing - データ準備
+    const preProcessTask = new tasks.LambdaInvoke(
       this,
-      "ProcessReviewItem",
+      "PreReviewItemProcessor",
       {
         lambdaFunction: this.reviewLambda,
         payload: sfn.TaskInput.fromObject({
-          action: "processReviewItem",
+          action: "preReviewItemProcessor",
           reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
           checkId: sfn.JsonPath.stringAt("$.checkId"),
           reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
           userId: sfn.JsonPath.stringAt("$$.Execution.Input.userId"),
         }),
+        resultPath: "$.preItemResult",
+      }
+    );
+
+    // Step 2: MCP processing - Strandsエージェントによる処理
+    const mcpTask = new tasks.LambdaInvoke(this, "ProcessReviewWithMcp", {
+      lambdaFunction: this.reviewMcpLambda,
+      payload: sfn.TaskInput.fromObject({
+        reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
+        checkId: sfn.JsonPath.stringAt("$.checkId"),
+        reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
+        documentPaths: sfn.JsonPath.stringAt(
+          "$.preItemResult.Payload.documentPaths"
+        ),
+        checkName: sfn.JsonPath.stringAt("$.preItemResult.Payload.checkName"),
+        checkDescription: sfn.JsonPath.stringAt(
+          "$.preItemResult.Payload.checkDescription"
+        ),
+        languageName: sfn.JsonPath.stringAt(
+          "$.preItemResult.Payload.languageName"
+        ),
+        mcpServers: sfn.JsonPath.stringAt("$.preItemResult.Payload.mcpServers"),
+      }),
+      resultPath: "$.mcpResult",
+    });
+
+    // Step 3: Post-processing - 結果の保存
+    const postProcessTask = new tasks.LambdaInvoke(
+      this,
+      "PostReviewItemProcessor",
+      {
+        lambdaFunction: this.reviewLambda,
+        payload: sfn.TaskInput.fromObject({
+          action: "postReviewItemProcessor",
+          reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
+          checkId: sfn.JsonPath.stringAt("$.checkId"),
+          reviewResultId: sfn.JsonPath.stringAt("$.reviewResultId"),
+          documentIds: sfn.JsonPath.stringAt(
+            "$.preItemResult.Payload.documentIds"
+          ),
+          reviewData: sfn.JsonPath.stringAt("$.mcpResult.Payload"),
+        }),
         resultPath: "$.itemResult",
       }
     );
 
-    // Add retry configuration for throttling errors
-    processReviewItemTask.addRetry({
+    // リトライ設定を追加
+    mcpTask.addRetry({
       errors: [
         "ThrottlingException",
         "ServiceQuotaExceededException",
@@ -130,6 +226,14 @@ export class ReviewProcessor extends Construct {
       maxAttempts: 5,
       backoffRate: 2,
     });
+
+    // タスクを連鎖させる
+    const processReviewItemTask = preProcessTask
+      .next(mcpTask)
+      .next(postProcessTask);
+
+    // Retry configuration is already added in each specific task implementation above
+    // No need for additional retry configuration here
 
     processItemsMap.itemProcessor(processReviewItemTask);
 
