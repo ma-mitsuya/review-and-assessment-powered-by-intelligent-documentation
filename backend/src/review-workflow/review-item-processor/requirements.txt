@@ -1,0 +1,10 @@
+# Local MCP Lambda integration wheel package
+# Ref: https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda/blob/main/DEVELOP.md
+./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
+
+# Core Strands packages
+strands-agents>=0.1.5
+strands-agents-tools>=0.1.5
+
+# Image processing
+pillow>=11.2.1
