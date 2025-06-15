@@ -35,9 +35,14 @@ const parameterSchema = z.object({
     .default(true)
     .describe("Cognito User Poolのセルフサインアップを有効にするかどうか"),
 
-   // Prismaマイグレーション設定
+  // Prismaマイグレーション設定
   autoMigrate: z.boolean().default(true), // デフォルトはtrue（自動マイグレーションを実行する）
 
+  // MCP Runtime設定
+  mcpAdmin: z
+    .boolean()
+    .default(false)
+    .describe("MCPランタイムLambda関数に管理者権限を付与するかどうか"),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -154,6 +159,12 @@ export function extractContextParameters(app: any): Record<string, any> {
   const autoMigrate = app.node.tryGetContext("rapid.autoMigrate");
   if (autoMigrate !== undefined) {
     params.autoMigrate = autoMigrate === "true" || autoMigrate === true;
+  }
+
+  // MCP Runtime管理者権限設定の取得
+  const mcpAdmin = app.node.tryGetContext("rapid.mcpAdmin");
+  if (mcpAdmin !== undefined) {
+    params.mcpAdmin = mcpAdmin === "true" || mcpAdmin === true;
   }
 
   return params;

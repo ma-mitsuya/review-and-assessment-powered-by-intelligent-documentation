@@ -82,6 +82,7 @@ export const makePrismaReviewJobRepository = async (
         updatedAt: job.updatedAt,
         completedAt: job.completedAt || undefined,
         userId: job.userId || undefined,
+        mcpServerName: job.mcpServerName || undefined,
         documents: job.documents.map((doc) => ({
           id: doc.id,
           filename: doc.filename,
@@ -102,6 +103,7 @@ export const makePrismaReviewJobRepository = async (
   }): Promise<ReviewJobDetail> => {
     const { reviewJobId } = params;
 
+    // Cannot use both 'include' and 'select' in the same query
     const job = await client.reviewJob.findUnique({
       where: { id: reviewJobId },
       include: {
@@ -122,12 +124,17 @@ export const makePrismaReviewJobRepository = async (
       throw new NotFoundError(`Review job not found`, reviewJobId);
     }
 
+    console.log(
+      `[DEBUG REPO] Full job data from database: ${JSON.stringify(job)}`
+    );
+
     return {
       id: job.id,
       name: job.name,
       status: job.status as REVIEW_JOB_STATUS,
       errorDetail: job.errorDetail || undefined,
       hasError: job.status === REVIEW_JOB_STATUS.FAILED && !!job.errorDetail,
+      mcpServerName: job.mcpServerName || undefined,
       checkList: {
         id: job.checkListSet.id,
         name: job.checkListSet.name,
@@ -157,6 +164,10 @@ export const makePrismaReviewJobRepository = async (
   const createReviewJob = async (params: ReviewJobEntity): Promise<void> => {
     const now = new Date();
 
+    console.log(
+      `[DEBUG REPO] Creating job with mcpServerName: "${params.mcpServerName}"`
+    );
+
     await client.$transaction(async (tx) => {
       // 審査ジョブを作成
       await tx.reviewJob.create({
@@ -168,6 +179,7 @@ export const makePrismaReviewJobRepository = async (
           createdAt: now,
           updatedAt: now,
           userId: params.userId,
+          mcpServerName: params.mcpServerName,
         },
         include: {
           documents: true,

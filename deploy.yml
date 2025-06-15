@@ -45,6 +45,12 @@ Parameters:
     Default: ""
     Description: Cognitoドメインのプレフィックス（指定しない場合は自動生成）
 
+  McpAdmin:
+    Type: String
+    Default: "false"
+    Description: MCPランタイムLambda関数に管理者権限を付与するかどうか
+    AllowedValues: ["true", "false"]
+
   RepoUrl:
     Type: String
     Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
@@ -160,6 +166,8 @@ Resources:
             Value: !Ref CognitoUserPoolClientId
           - Name: COGNITO_DOMAIN_PREFIX
             Value: !Ref CognitoDomainPrefix
+          - Name: MCP_ADMIN
+            Value: !Ref McpAdmin
           - Name: REPO_URL
             Value: !Ref RepoUrl
           - Name: BRANCH
@@ -208,6 +216,9 @@ Resources:
                   "if [ ! -z \"$COGNITO_USER_POOL_ID\" ]; then echo '  cognitoUserPoolId: \"'$COGNITO_USER_POOL_ID'\",' >> cdk/lib/parameter.ts; fi",
                   "if [ ! -z \"$COGNITO_USER_POOL_CLIENT_ID\" ]; then echo '  cognitoUserPoolClientId: \"'$COGNITO_USER_POOL_CLIENT_ID'\",' >> cdk/lib/parameter.ts; fi",
                   "if [ ! -z \"$COGNITO_DOMAIN_PREFIX\" ]; then echo '  cognitoDomainPrefix: \"'$COGNITO_DOMAIN_PREFIX'\",' >> cdk/lib/parameter.ts; fi",
+                  "echo '' >> cdk/lib/parameter.ts",
+                  "echo '  // MCP設定' >> cdk/lib/parameter.ts",
+                  "if [ \"$MCP_ADMIN\" = \"true\" ]; then echo '  mcpAdmin: true,' >> cdk/lib/parameter.ts; else echo '  mcpAdmin: false,' >> cdk/lib/parameter.ts; fi",
                   "echo '};' >> cdk/lib/parameter.ts",
                   "echo 'パラメータファイルを作成しました:'",
                   "cat cdk/lib/parameter.ts",

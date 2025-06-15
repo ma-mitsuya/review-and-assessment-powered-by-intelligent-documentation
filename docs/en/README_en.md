@@ -136,15 +136,16 @@ RapidStack.FrontendURL = https://xxxxx.cloudfront.net
 
 The following parameters can be customized during CDK deployment:
 
-| Parameter Group       | Parameter Name           | Description                                              | Default Value                              |
-| --------------------- | ------------------------ | -------------------------------------------------------- | ------------------------------------------ |
-| **WAF Configuration** | allowedIpV4AddressRanges | IPv4 ranges to allow in the frontend WAF                 | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
-|                       | allowedIpV6AddressRanges | IPv6 ranges to allow in the frontend WAF                 | ["0000::/1", "8000::/1"] (all allowed)     |
-| **Cognito Settings**  | cognitoUserPoolId        | Existing Cognito User Pool ID                            | Create new                                 |
-|                       | cognitoUserPoolClientId  | Existing Cognito User Pool Client ID                     | Create new                                 |
-|                       | cognitoDomainPrefix      | Cognito domain prefix                                    | Auto-generated                             |
-|                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool      | true (enabled)                             |
-| **Migration**         | autoMigrate              | Whether to automatically run migration during deployment | true (auto-run)                            |
+| Parameter Group       | Parameter Name           | Description                                                                                             | Default Value                              |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **WAF Configuration** | allowedIpV4AddressRanges | IPv4 ranges to allow in the frontend WAF                                                                | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
+|                       | allowedIpV6AddressRanges | IPv6 ranges to allow in the frontend WAF                                                                | ["0000::/1", "8000::/1"] (all allowed)     |
+| **Cognito Settings**  | cognitoUserPoolId        | Existing Cognito User Pool ID                                                                           | Create new                                 |
+|                       | cognitoUserPoolClientId  | Existing Cognito User Pool Client ID                                                                    | Create new                                 |
+|                       | cognitoDomainPrefix      | Cognito domain prefix                                                                                   | Auto-generated                             |
+|                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool                                                     | true (enabled)                             |
+| **Migration**         | autoMigrate              | Whether to automatically run migration during deployment                                                | true (auto-run)                            |
+| **MCP Features**      | mcpAdmin                 | Whether to grant admin privileges to the MCP runtime Lambda function ([details](../en/mcp-features.md)) | false (disabled)                           |
 
 To configure these, directly edit the `cdk/lib/parameter.ts` file.
 
@@ -154,7 +155,12 @@ To configure these, directly edit the `cdk/lib/parameter.ts` file.
 
 ## Developer Information
 
-- [Developer Guide](./developer-guide.md): Technical specifications, architecture, development environment setup
+- [Developer Guide](../developer-guide.md): Technical specifications, architecture, development environment setup
+
+## Contact
+
+- [Takehiro Suzuki](https://github.com/statefb)
+- [Kenta Sato](https://github.com/kenta-sato3)
 
 ## License
 

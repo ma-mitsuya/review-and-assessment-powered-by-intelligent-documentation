@@ -32,6 +32,13 @@ export const createInitialReviewJobModel = async (params: {
     `[createInitialReviewJobModel] checkListSet has ${checkListSet.length} items`
   );
 
+  // MCPサーバー名を設定（指定がある場合）
+  if (req.mcpServerName) {
+    console.log(
+      `[createInitialReviewJobModel] Using MCP server: ${req.mcpServerName}`
+    );
+  }
+
   const jobId = ulid();
   const initialResults = checkListSet.map((checkList) => {
     return createInitialReviewResult(jobId, checkList.id);
@@ -46,6 +53,8 @@ export const createInitialReviewJobModel = async (params: {
     name: req.name,
     status: REVIEW_JOB_STATUS.PENDING,
     checkListSetId: req.checkListSetId,
+    userId: req.userId,
+    mcpServerName: req.mcpServerName,
     documents: req.documents,
     results: initialResults,
   };

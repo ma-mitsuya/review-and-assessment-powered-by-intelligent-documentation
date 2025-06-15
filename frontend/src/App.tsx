@@ -17,6 +17,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ChecklistPromptTemplatesPage } from "./features/prompt-template/pages/ChecklistPromptTemplatesPage";
+import { McpServersPage } from "./features/user-preference/pages/McpServersPage";
 import "./App.css";
 
 /**
@@ -75,6 +76,9 @@ function App() {
                     path="prompt-templates/checklist"
                     element={<ChecklistPromptTemplatesPage />}
                   />
+
+                  {/* MCPサーバー関連のルート */}
+                  <Route path="mcp-servers" element={<McpServersPage />} />
 
                   {/* その他のルート */}
                   <Route path="documents" element={<ReviewListPage />} />

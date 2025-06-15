@@ -28,6 +28,7 @@
     "duplicate": "Duplicate",
     "information": "Information",
     "ok": "OK",
+    "info": "Info",
     "warning": "Warning",
     "confirmation": "Confirmation"
   },
@@ -193,10 +194,22 @@
     "judgmentResult": "Judgment Result",
     "commentPlaceholder": "Enter the reason for the override or additional information",
     "noExplanation": "No judgment results available",
+    "referenceSources": "Reference Sources",
     "comparisonReady": "Comparison Ready",
     "selectFilesAndChecklist": "Select Files and Checklist",
     "canRunComparison": "You can run comparison of documents and checklist",
-    "selectBothToCompare": "Select both to run comparison"
+    "selectBothToCompare": "Select both to run comparison",
+    "mcpServer": "MCP Tools (Optional)",
+    "mcpServerDescription": "Enable MCP tools to improve document analysis capabilities.",
+    "mcpServerSelected": "Using {{name}} for analysis",
+    "mcpServerNotAvailable": "No MCP servers configured. MCP tools will not be used.",
+    "mcpServerError": "Error loading MCP servers",
+    "selectMcpServer": "Select MCP server",
+    "mcpDisabled": "Do not use MCP",
+    "mcpDisabledDescription": "Use standard review processing",
+    "mcpEnabled": "Use MCP",
+    "mcpEnabledDescription": "Use enhanced review processing with extensions",
+    "noMcpServersAvailable": "No MCP servers available"
   },
   "fileUploader": {
     "dropFiles": "Drop files here",
@@ -245,5 +258,31 @@
     "templateName": "Template Name",
     "prompt": "Prompt",
     "resetToDefault": "Reset to Default"
+  },
+  "mcpServer": {
+    "title": "MCP Server Settings",
+    "description": "Manage Model Context Protocol (MCP) server settings",
+    "infoTitle": "Notice",
+    "infoMessage": "MCP servers extend AI assistant functionality using the Model Context Protocol. They enable AI assistants to connect with specific services and APIs. For security, available commands and arguments are restricted. Currently, only \"uvx\" and \"npx\" commands are allowed, and only MCP servers published on <a href='https://github.com/awslabs/mcp' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>AWS MCP Servers</a> are supported. Using MCP requires deployment option adjustments. Please refer to the <a href='https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/docs/en/mcp-features.md' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>documentation</a> for details.",
+    "settingsLabel": "Settings (JSON)",
+    "insertExample": "Insert Example",
+    "saveButton": "Save",
+    "saveSuccess": "MCP server settings saved successfully",
+    "saveError": "Failed to save: ",
+    "validationErrors": {
+      "invalidJson": "Invalid JSON format: ",
+      "mcpServersRequired": "mcpServers field is required",
+      "configObjectRequired": "Server '{{key}}' configuration must be an object",
+      "commandRequired": "Server '{{key}}' requires a command field",
+      "commandRestriction": "Server '{{key}}' command must be 'uvx' or 'npx' only",
+      "argsArray": "Server '{{key}}' args must be an array",
+      "argsString": "Server '{{key}}' args must contain only strings",
+      "argsPrefix": "Server '{{key}}' argument '{{arg}}' must start with 'awslabs.' for security reasons",
+      "envObject": "Server '{{key}}' env must be an object"
+    }
+  },
+  "experimental": {
+    "beta": "Beta",
+    "experimental": "Experimental"
   }
 }

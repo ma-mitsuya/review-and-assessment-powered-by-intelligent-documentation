@@ -11,7 +11,7 @@ export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  
+
   const {
     items: reviewJobs,
     refetch: revalidate,
@@ -32,31 +32,31 @@ export const ReviewListPage: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <div className="flex items-center">
-            <HiDocumentText className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
+            <HiDocumentText className="mr-2 h-8 w-8 text-aws-font-color-light dark:text-aws-font-color-dark" />
             <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">
-              {t('review.title')}
+              {t("review.title")}
             </h1>
           </div>
-          <p className="text-aws-font-color-gray mt-2">
-            {t('review.description')}
+          <p className="mt-2 text-aws-font-color-gray">
+            {t("review.description")}
           </p>
         </div>
         <Button
           variant="primary"
           to="/review/create"
-          icon={<HiPlus className="h-5 w-5" />}
-        >
-          {t('review.create')}
+          icon={<HiPlus className="h-5 w-5" />}>
+          {t("review.create")}
         </Button>
       </div>
 
       {error ? (
         <ErrorAlert
-          title={t('review.loadError')}
-          message={t('review.loadErrorMessage')}
+          error={error}
+          title={t("review.loadError")}
+          message={t("review.loadErrorMessage")}
           retry={revalidate}
         />
       ) : (

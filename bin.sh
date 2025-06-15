@@ -20,6 +20,7 @@ COGNITO_SELF_SIGNUP_ENABLED="true"
 COGNITO_USER_POOL_ID=""
 COGNITO_USER_POOL_CLIENT_ID=""
 COGNITO_DOMAIN_PREFIX=""
+MCP_ADMIN="false"
 REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
 
@@ -34,6 +35,7 @@ while [[ "$#" -gt 0 ]]; do
         --cognito-user-pool-id) COGNITO_USER_POOL_ID="$2"; shift ;;
         --cognito-user-pool-client-id) COGNITO_USER_POOL_CLIENT_ID="$2"; shift ;;
         --cognito-domain-prefix) COGNITO_DOMAIN_PREFIX="$2"; shift ;;
+        --mcp-admin) MCP_ADMIN="$2"; shift ;;
         --repo-url) REPO_URL="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
         *) echo "不明なパラメータ: $1"; exit 1 ;;
@@ -64,6 +66,7 @@ aws cloudformation deploy \
     CognitoUserPoolId="$COGNITO_USER_POOL_ID" \
     CognitoUserPoolClientId="$COGNITO_USER_POOL_CLIENT_ID" \
     CognitoDomainPrefix="$COGNITO_DOMAIN_PREFIX" \
+    McpAdmin="$MCP_ADMIN" \
     RepoUrl="$REPO_URL" \
     Branch="$BRANCH"
 
