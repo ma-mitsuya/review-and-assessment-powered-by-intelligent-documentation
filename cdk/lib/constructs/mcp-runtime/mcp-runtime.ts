@@ -56,6 +56,9 @@ export class McpRuntime extends Construct {
       }
     );
 
+    const tsDir = path.join(__dirname, "typescript");
+    const tarball = "aws-run-mcp-servers-with-aws-lambda-0.2.1.tgz";
+
     this.typescriptMcpServer = new lambdaNode.NodejsFunction(
       this,
       "typescriptMcpServer",
@@ -70,6 +73,29 @@ export class McpRuntime extends Construct {
           nodeModules: ["@aws/run-mcp-servers-with-aws-lambda", "npm"],
           format: OutputFormat.ESM,
           target: "node22",
+          commandHooks: {
+            /** Runs right after esbuild finished */
+            afterBundling(inputDir: string, outputDir: string) {
+              return [
+                // Make the tarball visible in /asset-output
+                `cp ${inputDir}/${tarball} ${outputDir}/`,
+              ];
+            },
+
+            /** Runs after CDK created package.json but before npm ci */
+            beforeInstall(_inputDir: string, outputDir: string) {
+              return [
+                // Replace absolute file path with relative one
+                // (ignore if the file is not yet there in local builds)
+                `[ -f ${outputDir}/package.json ] && ` +
+                  `sed -i -e 's@file:.*${tarball}@file:./${tarball}@' ${outputDir}/package.json || true`,
+              ];
+            },
+
+            beforeBundling() {
+              return [];
+            }, // not needed
+          },
         },
         environment: {
           NODE_OPTIONS: "--enable-source-maps",
@@ -80,6 +106,7 @@ export class McpRuntime extends Construct {
           "typescript",
           "package-lock.json"
         ),
+
         memorySize: 1024,
       }
     );
