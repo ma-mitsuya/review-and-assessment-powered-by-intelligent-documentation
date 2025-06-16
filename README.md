@@ -1,6 +1,6 @@
 # Review & Assessment Powered by Intelligent Documentation
 
-[English](./docs/en/README_en.md) | [日本語](./README.md)
+[English](./docs/en/README_en.md) | [日本語](README.md)
 
 このサンプルは生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。チェックリストの構造化から AI による審査、そして人間の最終判断までの一連のプロセスをサポートし、審査時間の短縮と品質向上を実現します。
 
@@ -155,7 +155,7 @@ CDK デプロイ時に以下のパラメータをカスタマイズできます:
 
 ## 開発者向け情報
 
-- [開発者ガイド](./docs/developer-guide.md): 技術仕様、アーキテクチャ、開発環境設定
+- [開発者ガイド](./docs/ja/developer-guide.md): 技術仕様、アーキテクチャ、開発環境設定
 
 ## コンタクト
 

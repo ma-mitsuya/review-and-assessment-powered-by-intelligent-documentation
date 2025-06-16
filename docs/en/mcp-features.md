@@ -16,7 +16,7 @@ In this sample, MCP can be used to implement the following enhanced functionalit
 
 ## MCP Implementation Mechanism
 
-This sample uses Lambda functions as the runtime for commonly used MCP servers such as [npx](https://docs.npmjs.com/cli/v8/commands/npx) and [uvx](https://docs.astral.sh/uv/guides/tools/). The implementation relies on [Run Model Context Protocol (MCP) servers with AWS Lambda](https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda), which is a stdio-based wrapper for MCP. Please also check the Lambda handler implementations: [Python handler](../cdk/lib/constructs/mcp-runtime/python/index.py), [NodeJS handler](../cdk/lib/constructs/mcp-runtime/typescript/handler.ts).
+This sample uses Lambda functions as the runtime for commonly used MCP servers such as [npx](https://docs.npmjs.com/cli/v8/commands/npx) and [uvx](https://docs.astral.sh/uv/guides/tools/). The implementation relies on [Run Model Context Protocol (MCP) servers with AWS Lambda](https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda), which is a stdio-based wrapper for MCP. Please also check the Lambda handler implementations: [Python handler](../../cdk/lib/constructs/mcp-runtime/python/index.py), [NodeJS handler](../../cdk/lib/constructs/mcp-runtime/typescript/handler.ts).
 
 ## Constraints
 
@@ -35,7 +35,7 @@ export const parameters = {
 Setting the `mcpAdmin` parameter to `true` grants **AdministratorAccess** permissions to the MCP runtime. While this is highly convenient, it can also pose security risks. Therefore, it is **strongly recommended to use the `mcpAdmin: true` setting only for PoC (Proof of Concept) purposes**. For actual operations, the following points should be considered:
 
 - Create and apply custom IAM policies with only the minimum necessary permissions
-- Edit the [Python handler](../cdk/lib/constructs/mcp-runtime/python/index.py) and [NodeJS handler](../cdk/lib/constructs/mcp-runtime/typescript/handler.ts) to implement appropriate sanitization before command execution (such as restricting executable commands using a whitelist approach)
+- Edit the [Python handler](../../cdk/lib/constructs/mcp-runtime/python/index.py) and [NodeJS handler](../../cdk/lib/constructs/mcp-runtime/typescript/handler.ts) to implement appropriate sanitization before command execution (such as restricting executable commands using a whitelist approach)
 
 ## (For Developers) How MCP Works in this Sample
 
@@ -43,7 +43,7 @@ This sample uses MCP through the agent SDK [Strands Agents](https://github.com/s
 
 ### Using Custom MCP
 
-Refer to [agent.py](../backend/src/review-workflow/review-item-processor/agent.py). Specifically, the `create_mcp_client` function is responsible for generating the MCP client and can be customized by editing it.
+Refer to [agent.py](../../backend/src/review-workflow/review-item-processor/agent.py). Specifically, the `create_mcp_client` function is responsible for generating the MCP client and can be customized by editing it.
 
 ```python
 def create_mcp_client(mcp_server_cfg: Dict[str, Any]) -> MCPClient:

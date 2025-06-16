@@ -17,7 +17,7 @@
 
 ## アーキテクチャ
 
-![](./imgs/arch.png)
+![](../imgs/arch.png)
 
 アーキテクチャの概要:
 
@@ -94,7 +94,7 @@
 
 ## コード規約
 
-[.amazonq/rules](../.amazonq/rules)を参照してください。
+[.amazonq/rules](../../.amazonq/rules)を参照してください。
 
 ## DB リセット（環境のクリーンアップ）
 
