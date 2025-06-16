@@ -1,6 +1,6 @@
 # Review & Assessment Powered by Intelligent Documentation
 
-[English](./README_en.md) | [日本語](../../README.md)
+[English](README_en.md) | [日本語](../../README.md)
 
 This sample is a document review solution powered by generative AI (Amazon Bedrock). It streamlines review processes involving extensive documents and complex checklists using a Human in the Loop approach. It supports the entire process from checklist structuring to AI-assisted review and final human judgment, reducing review time and improving quality.
 
@@ -107,7 +107,7 @@ cd cdk
 npm ci
 ```
 
-- Edit [parameter.ts](./cdk/parameter.ts) as needed. See [Parameter Customization](#parameter-customization) for details.
+- Edit [parameter.ts](../../cdk/lib/parameter.ts) as needed. See [Parameter Customization](#parameter-customization) for details.
 - Before deploying CDK, you need to bootstrap once for the target region.
 
 ```
@@ -136,16 +136,16 @@ RapidStack.FrontendURL = https://xxxxx.cloudfront.net
 
 The following parameters can be customized during CDK deployment:
 
-| Parameter Group       | Parameter Name           | Description                                                                                             | Default Value                              |
-| --------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| **WAF Configuration** | allowedIpV4AddressRanges | IPv4 ranges to allow in the frontend WAF                                                                | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
-|                       | allowedIpV6AddressRanges | IPv6 ranges to allow in the frontend WAF                                                                | ["0000::/1", "8000::/1"] (all allowed)     |
-| **Cognito Settings**  | cognitoUserPoolId        | Existing Cognito User Pool ID                                                                           | Create new                                 |
-|                       | cognitoUserPoolClientId  | Existing Cognito User Pool Client ID                                                                    | Create new                                 |
-|                       | cognitoDomainPrefix      | Cognito domain prefix                                                                                   | Auto-generated                             |
-|                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool                                                     | true (enabled)                             |
-| **Migration**         | autoMigrate              | Whether to automatically run migration during deployment                                                | true (auto-run)                            |
-| **MCP Features**      | mcpAdmin                 | Whether to grant admin privileges to the MCP runtime Lambda function ([details](../en/mcp-features.md)) | false (disabled)                           |
+| Parameter Group       | Parameter Name           | Description                                                                                         | Default Value                              |
+| --------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **WAF Configuration** | allowedIpV4AddressRanges | IPv4 ranges to allow in the frontend WAF                                                            | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
+|                       | allowedIpV6AddressRanges | IPv6 ranges to allow in the frontend WAF                                                            | ["0000::/1", "8000::/1"] (all allowed)     |
+| **Cognito Settings**  | cognitoUserPoolId        | Existing Cognito User Pool ID                                                                       | Create new                                 |
+|                       | cognitoUserPoolClientId  | Existing Cognito User Pool Client ID                                                                | Create new                                 |
+|                       | cognitoDomainPrefix      | Cognito domain prefix                                                                               | Auto-generated                             |
+|                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool                                                 | true (enabled)                             |
+| **Migration**         | autoMigrate              | Whether to automatically run migration during deployment                                            | true (auto-run)                            |
+| **MCP Features**      | mcpAdmin                 | Whether to grant admin privileges to the MCP runtime Lambda function ([details](./mcp-features.md)) | false (disabled)                           |
 
 To configure these, directly edit the `cdk/lib/parameter.ts` file.
 
@@ -155,7 +155,7 @@ To configure these, directly edit the `cdk/lib/parameter.ts` file.
 
 ## Developer Information
 
-- [Developer Guide](../developer-guide.md): Technical specifications, architecture, development environment setup
+- [Developer Guide](./developer-guide.md): Technical specifications, architecture, development environment setup
 
 ## Contact
 

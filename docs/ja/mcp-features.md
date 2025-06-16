@@ -16,7 +16,7 @@
 
 ## MCP の実装メカニズム
 
-本サンプルでは、MCP サーバとして頻繁に利用される [npx](https://docs.npmjs.com/cli/v8/commands/npx) や [uvx](https://docs.astral.sh/uv/guides/tools/) のランタイムとして Lambda 関数を利用しています。実装は stdio ベースの MCP のラッパーである[Run Model Context Protocol (MCP) servers with AWS Lambda](https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda)に依存しています。Lambda ハンドラーの実装も合わせてご確認ください：[Python ハンドラ](../cdk/lib/constructs/mcp-runtime/python/index.py)、[NodeJS ハンドラ](../cdk/lib/constructs/mcp-runtime/typescript/handler.ts)。
+本サンプルでは、MCP サーバとして頻繁に利用される [npx](https://docs.npmjs.com/cli/v8/commands/npx) や [uvx](https://docs.astral.sh/uv/guides/tools/) のランタイムとして Lambda 関数を利用しています。実装は stdio ベースの MCP のラッパーである[Run Model Context Protocol (MCP) servers with AWS Lambda](https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda)に依存しています。Lambda ハンドラーの実装も合わせてご確認ください：[Python ハンドラ](../../cdk/lib/constructs/mcp-runtime/python/index.py)、[NodeJS ハンドラ](../../cdk/lib/constructs/mcp-runtime/typescript/handler.ts)。
 
 ## 制約事項
 
@@ -35,7 +35,7 @@ export const parameters = {
 `mcpAdmin` パラメータを `true` に設定すると、MCP ランタイムに **AdministratorAccess** 権限が付与されます。これは利便性が高い反面、セキュリティリスクになり得ます。そのため、`mcpAdmin: true`の設定は**PoC（概念実証）用途でのみ利用することを強く推奨します**。実際の運用では下記の点に留意する必要があります：
 
 - 必要最小限の権限のみを持つカスタム IAM ポリシーを作成し、適用
-- [Python ハンドラ](../cdk/lib/constructs/mcp-runtime/python/index.py)、[NodeJS ハンドラ](../cdk/lib/constructs/mcp-runtime/typescript/handler.ts)を編集し、コマンド実行前に適切なサニタイズを実施（ホワイトリスト形式で実行できるコマンドを制限する等）
+- [Python ハンドラ](../../cdk/lib/constructs/mcp-runtime/python/index.py)、[NodeJS ハンドラ](../../cdk/lib/constructs/mcp-runtime/typescript/handler.ts)を編集し、コマンド実行前に適切なサニタイズを実施（ホワイトリスト形式で実行できるコマンドを制限する等）
 
 ## (開発者向け) MCP 利用の仕組み
 
@@ -43,7 +43,7 @@ export const parameters = {
 
 ### 任意の MCP を利用する
 
-[agent.py](../backend/src/review-workflow/review-item-processor/agent.py)を参照してください。特に`create_mcp_client`関数が MCP クライアントの生成を担当しており、編集することでカスタマイズが可能です。
+[agent.py](../../backend/src/review-workflow/review-item-processor/agent.py)を参照してください。特に`create_mcp_client`関数が MCP クライアントの生成を担当しており、編集することでカスタマイズが可能です。
 
 ```python
 def create_mcp_client(mcp_server_cfg: Dict[str, Any]) -> MCPClient:
