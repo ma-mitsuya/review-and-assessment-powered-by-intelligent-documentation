@@ -32,8 +32,8 @@ function dirSize(p: string): number {
   if (!st.isDirectory()) return st.size;
   return fs
     .readdirSync(p)
-    .map((f: string) => dirSize(path.join(p, f)))
-    .reduce((a: number, b: number) => a + b, 0);
+    .map((f) => dirSize(path.join(p, f)))
+    .reduce((a, b) => a + b, 0);
 }
 
 async function maybePruneNpmCache(): Promise<void> {
@@ -49,7 +49,7 @@ async function maybePruneNpmCache(): Promise<void> {
 /* ------------------------------------------------------------------------- */
 /*  Path helpers (ESM-friendly __dirname)                                    */
 
-const __filename = fileURLToPath(new URL(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const npxCli = path.join(
