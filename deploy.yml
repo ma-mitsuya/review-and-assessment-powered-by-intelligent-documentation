@@ -230,7 +230,6 @@ Resources:
                   "cd ../cdk",
                   "echo 'CDKデプロイの準備...'",
                   "npm ci",
-                  "npm run build",
                   "echo 'CDKデプロイを実行中...'",
                   "npx cdk bootstrap",
                   "npx cdk deploy --all --require-approval never"

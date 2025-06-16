@@ -4,11 +4,11 @@ import { Handler, Context } from "aws-lambda";
 import { stdioServerAdapter } from "@aws/run-mcp-servers-with-aws-lambda";
 import { z } from "zod";
 import { fileURLToPath } from "url";
-import path from "node:path";
-import fs from "node:fs";
+import * as path from "node:path";
+import * as fs from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import util from "node:util";
+import * as util from "node:util";
 
 const execFileAsync = promisify(execFile);
 const log = console; // simple alias
