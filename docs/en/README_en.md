@@ -80,6 +80,7 @@ This method allows you to deploy directly from your browser using AWS CloudShell
    - `--cognito-user-pool-id`: Existing Cognito User Pool ID (creates new if not specified)
    - `--cognito-user-pool-client-id`: Existing Cognito User Pool Client ID (creates new if not specified)
    - `--cognito-domain-prefix`: Prefix for the Cognito domain (auto-generated if not specified)
+   - `--mcp-admin`: Whether to grant admin privileges to the MCP runtime Lambda function (true/false)
    - `--repo-url`: URL of the repository to deploy
    - `--branch`: Branch name to deploy
 

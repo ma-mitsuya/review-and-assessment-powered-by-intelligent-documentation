@@ -80,6 +80,7 @@
    - `--cognito-user-pool-id`: 既存の Cognito User Pool ID（指定しない場合は新規作成）
    - `--cognito-user-pool-client-id`: 既存の Cognito User Pool Client ID（指定しない場合は新規作成）
    - `--cognito-domain-prefix`: Cognito ドメインのプレフィックス（指定しない場合は自動生成）
+   - `--mcp-admin`: MCP ランタイム Lambda 関数に管理者権限を付与するかどうか（true/false）
    - `--repo-url`: デプロイするリポジトリの URL
    - `--branch`: デプロイするブランチ名
 
