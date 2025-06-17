@@ -3,6 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
+    platform: linux/arm64
     container_name: rapid-mysql
     restart: always
     environment:
