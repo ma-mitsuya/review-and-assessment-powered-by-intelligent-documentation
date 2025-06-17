@@ -263,7 +263,7 @@
     "title": "MCPサーバー設定",
     "description": "Model Context Protocol (MCP) サーバーの設定を管理します",
     "infoTitle": "注意事項",
-    "infoMessage": "MCPサーバーは、モデルコンテキストプロトコル（MCP）を使用してAIアシスタントの機能を拡張するサーバーです。このサーバーを使用することで、AIアシスタントが特定のサービスやAPIと連携できるようになります。セキュリティの観点から、実行可能なコマンドと引数は制限されています。現在、許可されているコマンドは「uvx」と「npx」のみで、<a href='https://github.com/awslabs/mcp' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>AWS MCP Servers</a>で公開されているMCPサーバのみ対応しています。MCP利用にはデプロイオプションの調整が必要です。詳細は<a href='https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/docs/ja/mcp-features.md' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>ドキュメント</a>を参考にしてください。",
+    "infoMessage": "MCPサーバーは、モデルコンテキストプロトコル（MCP）を使用してAIアシスタントの機能を拡張するサーバーです。このサーバーを使用することで、AIアシスタントが特定のサービスやAPIと連携できるようになります。セキュリティの観点から、実行可能なコマンドと引数は制限されています。現在、許可されているコマンドは「uvx」と「npx」のみで、<a href='https://github.com/awslabs/mcp' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>AWS MCP Servers</a>で公開されているMCPサーバのみ対応しています。MCP利用にはデプロイオプションの調整が必要です。詳細は<a href='https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/docs/ja/mcp-features.md' target='_blank' rel='noopener noreferrer' style='color: #0073bb; text-decoration: underline;'>ドキュメント</a>を参考にしてください。",
     "settingsLabel": "設定 (JSON)",
     "insertExample": "例を挿入",
     "saveButton": "保存",
