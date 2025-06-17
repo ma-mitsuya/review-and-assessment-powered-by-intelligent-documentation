@@ -54,7 +54,7 @@ export class ReviewProcessor extends Construct {
           path.join(__dirname, "../../../backend/"),
           {
             file: "Dockerfile.prisma.lambda",
-            platform: Platform.LINUX_AMD64,
+            platform: Platform.LINUX_ARM64,
             cmd: ["dist/review-workflow/index.handler"],
           }
         ),
@@ -70,6 +70,7 @@ export class ReviewProcessor extends Construct {
         },
         securityGroups: [this.securityGroup],
         database: props.databaseConnection,
+        architecture: lambda.Architecture.ARM_64,
       }
     );
 
@@ -87,6 +88,7 @@ export class ReviewProcessor extends Construct {
         runtime: lambda.Runtime.PYTHON_3_13,
         memorySize: 1024,
         timeout: cdk.Duration.minutes(15),
+        architecture: lambda.Architecture.ARM_64,
         // vpc: props.vpc,
         // vpcSubnets: {
         //   subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,

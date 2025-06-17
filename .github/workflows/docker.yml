@@ -27,7 +27,7 @@ jobs:
   backend-docker-build:
     needs: changes
     if: ${{ needs.changes.outputs.backend == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
