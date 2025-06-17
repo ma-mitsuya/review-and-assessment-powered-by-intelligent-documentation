@@ -63,7 +63,7 @@ export class Api extends Construct {
       code: lambda.DockerImageCode.fromImageAsset(
         path.join(__dirname, "../../../backend"),
         {
-          platform: Platform.LINUX_AMD64,
+          platform: Platform.LINUX_ARM64,
         }
       ),
       vpc: props.vpc,

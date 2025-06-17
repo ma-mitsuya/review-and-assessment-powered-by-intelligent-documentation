@@ -54,7 +54,7 @@ export class ReviewProcessor extends Construct {
           path.join(__dirname, "../../../backend/"),
           {
             file: "Dockerfile.prisma.lambda",
-            platform: Platform.LINUX_AMD64,
+            platform: Platform.LINUX_ARM64,
             cmd: ["dist/review-workflow/index.handler"],
           }
         ),
