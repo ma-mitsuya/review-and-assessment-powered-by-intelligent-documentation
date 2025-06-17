@@ -88,7 +88,6 @@ export class ReviewProcessor extends Construct {
         runtime: lambda.Runtime.PYTHON_3_13,
         memorySize: 1024,
         timeout: cdk.Duration.minutes(15),
-        architecture: lambda.Architecture.ARM_64,
         // vpc: props.vpc,
         // vpcSubnets: {
         //   subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
