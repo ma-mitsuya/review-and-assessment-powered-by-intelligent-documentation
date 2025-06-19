@@ -100,6 +100,7 @@ export class ReviewProcessor extends Construct {
           PY_MCP_LAMBDA_ARN: props.McpRuntime.pythonMcpServer.functionArn,
           NODE_MCP_LAMBDA_ARN: props.McpRuntime.typescriptMcpServer.functionArn,
         },
+        architecture: lambda.Architecture.ARM_64,
       }
     );
 

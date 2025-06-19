@@ -53,6 +53,7 @@ export class McpRuntime extends Construct {
           PATH: "/var/task/bin:/opt/bin:/usr/local/bin:/usr/bin:/bin",
         },
         memorySize: 1024,
+        architecture: lambda.Architecture.ARM_64,
       }
     );
 
