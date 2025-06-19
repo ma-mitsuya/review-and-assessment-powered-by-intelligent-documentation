@@ -1,4 +1,4 @@
-FROM node:22
+FROM --platform=linux/arm64 node:22
 # Lambda Web Adapter を追加
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter
 
@@ -6,9 +6,9 @@ WORKDIR /var/task
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN ["npm","ci","--omit=dev"]
+RUN npm ci --omit=dev && npm run prisma:generate
 COPY . .
-RUN ["npm","run","build"]
+RUN npm run build
 
 # 環境変数の設定
 ENV PORT=8080
