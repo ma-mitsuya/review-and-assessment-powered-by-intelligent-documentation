@@ -148,7 +148,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2023-aarch64-standard:3.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
-        Type: LINUX_CONTAINER
+        Type: ARM_CONTAINER
         EnvironmentVariables:
           - Name: ALLOWED_IPV4_RANGES
             Value: !Ref AllowedIpV4AddressRanges
