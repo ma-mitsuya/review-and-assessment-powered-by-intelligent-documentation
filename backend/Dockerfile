@@ -6,9 +6,12 @@ WORKDIR /var/task
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm ci --omit=dev && npm run prisma:generate
-COPY . .
-RUN npm run build
+# RUN npm ci --omit=dev && npm run prisma:generate
+# COPY . .
+# RUN npm run build
+
+COPY dist         ./dist
+COPY node_modules ./node_modules
 
 # 環境変数の設定
 ENV PORT=8080
