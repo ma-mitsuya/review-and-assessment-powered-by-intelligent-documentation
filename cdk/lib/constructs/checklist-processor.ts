@@ -86,6 +86,7 @@ export class ChecklistProcessor extends Construct {
     // デフォルト値の設定
     const mediumDocThreshold = props.mediumDocThreshold || 40;
     const largeDocThreshold = props.largeDocThreshold || 100;
+    // Use the value provided in props or default to 1
     const inlineMapConcurrency = props.inlineMapConcurrency || 1;
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 

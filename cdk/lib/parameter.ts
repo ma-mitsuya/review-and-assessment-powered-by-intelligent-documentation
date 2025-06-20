@@ -35,4 +35,10 @@ export const parameters = {
   // autoMigrate: true, // デフォルトはtrue（自動マイグレーションを実行する）
   // MCP Runtime設定
   // mcpAdmin: true, // MCPランタイムLambda関数に管理者権限を付与する（デフォルト：false、本番環境では推奨されません）
+  
+  // Map State並行処理設定
+  // 並行処理数はサービスの負荷とスロットリングに影響します
+  // ---------------------------------------------------
+  // reviewMapConcurrency: 1, // レビュープロセッサのMap State並行処理数（デフォルト：1）
+  // checklistInlineMapConcurrency: 1, // チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）
 };

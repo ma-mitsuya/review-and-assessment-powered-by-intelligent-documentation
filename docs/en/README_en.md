@@ -147,6 +147,8 @@ The following parameters can be customized during CDK deployment:
 |                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool                                                 | true (enabled)                             |
 | **Migration**         | autoMigrate              | Whether to automatically run migration during deployment                                            | true (auto-run)                            |
 | **MCP Features**      | mcpAdmin                 | Whether to grant admin privileges to the MCP runtime Lambda function ([details](./mcp-features.md)) | false (disabled)                           |
+| **Map State Concurrency** | reviewMapConcurrency     | Map State concurrency for the Review Processor (must be configured in consultation with throttling limits)    | 1                                          |
+| **Map State Concurrency** | checklistInlineMapConcurrency | Inline Map State concurrency for the Checklist Processor (must be configured in consultation with throttling limits) | 1                               |
 
 To configure these, directly edit the `cdk/lib/parameter.ts` file.
 

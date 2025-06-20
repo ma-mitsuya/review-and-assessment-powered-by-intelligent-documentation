@@ -32,7 +32,8 @@ export class ReviewProcessor extends Construct {
     super(scope, id);
 
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
-    const maxConcurrency = props.maxConcurrency || 1; // Default to 1 for throttling avoidance
+    // Use the value provided in props or default to 1
+    const maxConcurrency = props.maxConcurrency || 1;
 
     // セキュリティグループの作成
     this.securityGroup = new ec2.SecurityGroup(
