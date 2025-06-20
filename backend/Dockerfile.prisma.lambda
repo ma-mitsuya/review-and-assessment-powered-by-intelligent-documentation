@@ -14,8 +14,5 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 # Keep directory structure to ensure that the app can find Prisma client from generated path
 COPY --from=build /build/prisma ./prisma
 COPY --from=build /build/dist ./dist
-COPY --from=build /build/node_modules ./node_modules
-COPY --from=build /build/package*.json ./
-
 
 CMD ["dist.index.handler"]
