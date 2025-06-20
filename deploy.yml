@@ -146,7 +146,7 @@ Resources:
       Environment:
         # Ref: https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html
         ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: aws/codebuild/amazonlinux2023-aarch64-standard:3.0
+        Image: aws/codebuild/amazonlinux-aarch64-standard:3.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
         Type: ARM_CONTAINER
