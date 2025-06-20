@@ -1,5 +1,7 @@
 import { Construct } from "constructs";
 import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as iam from "aws-cdk-lib/aws-iam";
 import {
   BlockPublicAccess,
   Bucket,
@@ -247,6 +249,29 @@ export class Frontend extends Construct {
       distribution: this.cloudFrontWebDistribution,
       outputSourceDirectory: "dist",
     });
+
+    // This is a workaround for the issue where the BucketDeployment construct
+    // does not have permissions to create CloudFront invalidations
+    // Ref: https://github.com/aws/aws-cdk/issues/23708
+    const bucketDeploy = reactBuild.node
+      .findAll()
+      .find(
+        (c) => c instanceof s3deploy.BucketDeployment
+      ) as s3deploy.BucketDeployment;
+
+    bucketDeploy?.handlerRole?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "cloudfront:CreateInvalidation",
+          "cloudfront:GetInvalidation",
+        ],
+        resources: [
+          `arn:aws:cloudfront::${Stack.of(this).account}:distribution/${
+            this.cloudFrontWebDistribution.distributionId
+          }`,
+        ],
+      })
+    );
 
     // Add suppressions for CodeBuild-related findings
     NagSuppressions.addResourceSuppressions(
