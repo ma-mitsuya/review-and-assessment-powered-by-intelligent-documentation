@@ -43,6 +43,28 @@ const parameterSchema = z.object({
     .boolean()
     .default(false)
     .describe("MCPランタイムLambda関数に管理者権限を付与するかどうか"),
+    
+  // Map State並行処理設定
+  reviewMapConcurrency: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe("レビュープロセッサのMap State並行処理数（デフォルト：1）"),
+    
+  checklistInlineMapConcurrency: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe("チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）"),
+    
+  checklistDistributedMapConcurrency: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe("チェックリストプロセッサの分散Map State並行処理数（デフォルト：1）"),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -165,6 +187,22 @@ export function extractContextParameters(app: any): Record<string, any> {
   const mcpAdmin = app.node.tryGetContext("rapid.mcpAdmin");
   if (mcpAdmin !== undefined) {
     params.mcpAdmin = mcpAdmin === "true" || mcpAdmin === true;
+  }
+  
+  // Map State並行処理設定の取得
+  const reviewMapConcurrency = app.node.tryGetContext("rapid.reviewMapConcurrency");
+  if (reviewMapConcurrency !== undefined) {
+    params.reviewMapConcurrency = Number(reviewMapConcurrency);
+  }
+  
+  const checklistInlineMapConcurrency = app.node.tryGetContext("rapid.checklistInlineMapConcurrency");
+  if (checklistInlineMapConcurrency !== undefined) {
+    params.checklistInlineMapConcurrency = Number(checklistInlineMapConcurrency);
+  }
+  
+  const checklistDistributedMapConcurrency = app.node.tryGetContext("rapid.checklistDistributedMapConcurrency");
+  if (checklistDistributedMapConcurrency !== undefined) {
+    params.checklistDistributedMapConcurrency = Number(checklistDistributedMapConcurrency);
   }
 
   return params;

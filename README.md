@@ -147,6 +147,9 @@ CDK デプロイ時に以下のパラメータをカスタマイズできます:
 |                      | cognitoSelfSignUpEnabled | Cognito User Pool のセルフサインアップを有効にするかどうか                                   | true (有効)                               |
 | **マイグレーション** | autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか                                       | true (自動実行する)                       |
 | **MCP 機能**         | mcpAdmin                 | MCP ランタイム Lambda 関数に管理者権限を付与するかどうか ([詳細](./docs/ja/mcp-features.md)) | false (無効)                              |
+| **並行処理設定**     | reviewMapConcurrency     | レビュープロセッサのMap State並行処理数 (スロットリングと相談して設定が必要)                  | 1                                         |
+| **並行処理設定**     | checklistInlineMapConcurrency | チェックリストプロセッサのインラインMap State並行処理数 (スロットリングと相談して設定が必要) | 1                                      |
+| **並行処理設定**     | checklistDistributedMapConcurrency | チェックリストプロセッサの分散Map State並行処理数 (スロットリングと相談して設定が必要) | 1                                      |
 
 設定するには`cdk/lib/parameter.ts` ファイルを直接編集してください。
 

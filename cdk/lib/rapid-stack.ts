@@ -120,8 +120,8 @@ export class RapidStack extends cdk.Stack {
         vpc,
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
-        inlineMapConcurrency: 1,
-        distributedMapConcurrency: 20,
+        inlineMapConcurrency: props.parameters.checklistInlineMapConcurrency || 1,
+        distributedMapConcurrency: props.parameters.checklistDistributedMapConcurrency || 20,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
       }
@@ -132,6 +132,7 @@ export class RapidStack extends cdk.Stack {
       documentBucket,
       vpc,
       logLevel: sfn.LogLevel.ALL,
+      maxConcurrency: props.parameters.reviewMapConcurrency || 1,
       databaseConnection: database.connection,
       McpRuntime: mcpRuntime,
     });
