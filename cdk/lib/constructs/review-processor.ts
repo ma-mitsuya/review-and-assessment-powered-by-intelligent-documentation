@@ -54,7 +54,7 @@ export class ReviewProcessor extends Construct {
           path.join(__dirname, "../../../backend/"),
           {
             file: "Dockerfile.prisma.lambda",
-            platform: Platform.LINUX_AMD64,
+            platform: Platform.LINUX_ARM64,
             cmd: ["dist/review-workflow/index.handler"],
           }
         ),
@@ -70,6 +70,7 @@ export class ReviewProcessor extends Construct {
         },
         securityGroups: [this.securityGroup],
         database: props.databaseConnection,
+        architecture: lambda.Architecture.ARM_64,
       }
     );
 
@@ -99,6 +100,7 @@ export class ReviewProcessor extends Construct {
           PY_MCP_LAMBDA_ARN: props.McpRuntime.pythonMcpServer.functionArn,
           NODE_MCP_LAMBDA_ARN: props.McpRuntime.typescriptMcpServer.functionArn,
         },
+        architecture: lambda.Architecture.ARM_64,
       }
     );
 

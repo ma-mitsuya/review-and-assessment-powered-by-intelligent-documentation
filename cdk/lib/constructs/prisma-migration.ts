@@ -56,9 +56,9 @@ export class PrismaMigration extends Construct {
         path.join(__dirname, "../../../backend/"),
         {
           file: "Dockerfile.prisma.lambda",
-          platform: Platform.LINUX_AMD64,
+          platform: Platform.LINUX_ARM64,
           cmd: ["dist/handlers/migration-runner.handler"],
-        },
+        }
       ),
       vpc: props.vpc,
       vpcSubnets: {
@@ -68,6 +68,7 @@ export class PrismaMigration extends Construct {
       database: props.databaseConnection,
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
+      architecture: cdk.aws_lambda.Architecture.ARM_64,
     });
 
     // 自動マイグレーションが有効な場合、Custom Resourceを作成
@@ -82,7 +83,7 @@ export class PrismaMigration extends Construct {
         new iam.PolicyStatement({
           actions: ["lambda:InvokeFunction"],
           resources: [this.migrationLambda.functionArn],
-        }),
+        })
       );
 
       // マイグレーションを実行するCustom Resourceを作成
@@ -98,7 +99,7 @@ export class PrismaMigration extends Construct {
               Payload: JSON.stringify({ command: "deploy" }),
             },
             physicalResourceId: cr.PhysicalResourceId.of(
-              `Migration-${Date.now()}`,
+              `Migration-${Date.now()}`
             ),
           },
           onCreate: {
@@ -109,7 +110,7 @@ export class PrismaMigration extends Construct {
               Payload: JSON.stringify({ command: "deploy" }),
             },
             physicalResourceId: cr.PhysicalResourceId.of(
-              `Migration-${Date.now()}`,
+              `Migration-${Date.now()}`
             ),
           },
           policy: cr.AwsCustomResourcePolicy.fromStatements([
@@ -119,7 +120,7 @@ export class PrismaMigration extends Construct {
             }),
           ]),
           role: role,
-        },
+        }
       );
 
       // 重要: 依存関係の設定
