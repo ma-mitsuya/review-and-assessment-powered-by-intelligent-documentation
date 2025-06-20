@@ -147,7 +147,7 @@ jobs:
   cdk-synth:
     needs: changes
     if: ${{ needs.changes.outputs.cdk == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
@@ -177,7 +177,7 @@ jobs:
   cdk-test:
     needs: changes
     if: ${{ needs.changes.outputs.cdk == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
