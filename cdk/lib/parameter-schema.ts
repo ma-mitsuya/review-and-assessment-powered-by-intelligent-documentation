@@ -58,13 +58,6 @@ const parameterSchema = z.object({
     .min(1)
     .optional()
     .describe("チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）"),
-    
-  checklistDistributedMapConcurrency: z
-    .number()
-    .int()
-    .min(1)
-    .optional()
-    .describe("チェックリストプロセッサの分散Map State並行処理数（デフォルト：1）"),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -200,10 +193,6 @@ export function extractContextParameters(app: any): Record<string, any> {
     params.checklistInlineMapConcurrency = Number(checklistInlineMapConcurrency);
   }
   
-  const checklistDistributedMapConcurrency = app.node.tryGetContext("rapid.checklistDistributedMapConcurrency");
-  if (checklistDistributedMapConcurrency !== undefined) {
-    params.checklistDistributedMapConcurrency = Number(checklistDistributedMapConcurrency);
-  }
 
   return params;
 }

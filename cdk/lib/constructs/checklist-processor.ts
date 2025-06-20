@@ -89,9 +89,6 @@ export class ChecklistProcessor extends Construct {
     // Default to 1 or use the value from parameters.ts if provided
     const inlineMapConcurrency = props.inlineMapConcurrency || 
       (scope.node.tryGetContext('parameters')?.checklistInlineMapConcurrency ?? 1);
-    // Default distributed map concurrency (needed for future implementation)
-    const distributedMapConcurrency = props.distributedMapConcurrency || 
-      (scope.node.tryGetContext('parameters')?.checklistDistributedMapConcurrency ?? 1);
     const logLevel = props.logLevel || sfn.LogLevel.ERROR;
 
     // セキュリティグループの作成

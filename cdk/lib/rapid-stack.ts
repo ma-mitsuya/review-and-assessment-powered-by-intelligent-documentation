@@ -121,7 +121,6 @@ export class RapidStack extends cdk.Stack {
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
         inlineMapConcurrency: props.parameters.checklistInlineMapConcurrency || 1,
-        distributedMapConcurrency: props.parameters.checklistDistributedMapConcurrency || 20,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
       }

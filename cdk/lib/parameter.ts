@@ -41,5 +41,4 @@ export const parameters = {
   // ---------------------------------------------------
   // reviewMapConcurrency: 1, // レビュープロセッサのMap State並行処理数（デフォルト：1）
   // checklistInlineMapConcurrency: 1, // チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）
-  // checklistDistributedMapConcurrency: 1, // チェックリストプロセッサの分散Map State並行処理数（デフォルト：1）
 };
