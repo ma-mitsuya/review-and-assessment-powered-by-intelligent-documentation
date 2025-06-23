@@ -91,12 +91,14 @@ jobs:
           EOL
 
           REQ=$(cat prompt.txt | jq -Rs '{anthropic_version:"bedrock-2023-05-31",max_tokens:50,messages:[{role:"user",content:.}]}')
+          echo "$REQ" > "$TMPDIR/request.json"
 
           aws bedrock-runtime invoke-model \
             --model-id us.anthropic.claude-3-7-sonnet-20250219-v1:0 \
             --content-type application/json \
             --accept application/json \
-            --body "$REQ" > "$TMPDIR/claude-response.json"
+            --body fileb://"$TMPDIR/request.json" \
+            "$TMPDIR/claude-response.json"
 
           INCREMENT_TYPE=$(jq -r '.content[0].text' "$TMPDIR/claude-response.json" | tr -d ' \t\n\r')
           if [[ "$INCREMENT_TYPE" != "minor" && "$INCREMENT_TYPE" != "patch" ]]; then
@@ -139,12 +141,14 @@ jobs:
           EOL
 
           REQ=$(cat prompt.txt | jq -Rs '{anthropic_version:"bedrock-2023-05-31",max_tokens:4000,messages:[{role:"user",content:.}]}')
+          echo "$REQ" > "$TMPDIR/request.json"
 
           aws bedrock-runtime invoke-model \
             --model-id us.anthropic.claude-3-7-sonnet-20250219-v1:0 \
             --content-type application/json \
             --accept application/json \
-            --body "$REQ" > "$TMPDIR/claude-response.json"
+            --body fileb://"$TMPDIR/request.json" \
+            "$TMPDIR/claude-response.json"
 
           RELEASE_NOTES=$(jq -r '.content[0].text' "$TMPDIR/claude-response.json")
 
