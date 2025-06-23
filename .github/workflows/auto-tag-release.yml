@@ -172,7 +172,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.generate-version.outputs.new_version }}
-          name: Release ${{ steps.generate-version.outputs.new_version }}
+          name: ${{ steps.generate-version.outputs.new_version }}
           body: ${{ steps.release-notes.outputs.release_notes }}
           draft: false
           prerelease: false
