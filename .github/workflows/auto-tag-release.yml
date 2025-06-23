@@ -176,3 +176,8 @@ jobs:
           body: ${{ steps.release-notes.outputs.release_notes }}
           draft: false
           prerelease: false
+
+      - name: Show release notes (dry-run only)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: |
+          echo "${{ steps.release-notes.outputs.release_notes }}"
