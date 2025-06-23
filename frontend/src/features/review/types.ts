@@ -273,6 +273,23 @@ export interface ReviewResultEntity {
   createdAt: Date;
   updatedAt: Date;
   sourceReferences?: SourceReference[];
+  reviewMeta?: {
+    model_id: string;
+    input_tokens: number;
+    output_tokens: number;
+    input_cost: number;
+    output_cost: number;
+    total_cost: number;
+    pricing: {
+      input_per_1k: number;
+      output_per_1k: number;
+    };
+    duration_seconds: number;
+    timestamp: string;
+  };
+  inputTokens?: number;
+  outputTokens?: number;
+  totalCost?: number;
 }
 
 /**

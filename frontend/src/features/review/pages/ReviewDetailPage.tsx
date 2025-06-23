@@ -5,11 +5,14 @@ import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
 import { FilterType } from "../hooks/useReviewResultQueries";
 import { useReviewJobDetail } from "../hooks/useReviewJobQueries";
+import { useTotalReviewCost } from "../hooks/useTotalReviewCost";
+import { useReviewResultItems } from "../hooks/useReviewResultQueries";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
 import { REVIEW_JOB_STATUS } from "../types";
 import Breadcrumb from "../../../components/Breadcrumb";
+import TotalReviewCostSummary from "../components/TotalReviewCostSummary";
 
 export default function ReviewDetailPage() {
   const { t } = useTranslation();
@@ -27,6 +30,10 @@ export default function ReviewDetailPage() {
     error: jobError,
     refetch: refetchJob,
   } = useReviewJobDetail(id || null);
+
+  // Get review items and calculate cost information
+  const { items } = useReviewResultItems(id || null, undefined, "all");
+  const costInfo = useTotalReviewCost(items);
 
   // When filter state changes
   const handleFilterChange = (newFilter: FilterType) => {
@@ -80,10 +87,21 @@ export default function ReviewDetailPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <Breadcrumb to="/review" label={t("review.backToList")} />
-          <h1 className="text-2xl font-bold text-aws-squid-ink-light">
-            {job.name}
-          </h1>
-          <p className="mt-1 text-aws-font-color-gray">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-aws-squid-ink-light">
+              {job.name}
+            </h1>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            {/* 合計料金表示 */}
+            {costInfo.hasCost && (
+              <TotalReviewCostSummary
+                formattedTotalCost={costInfo.formattedTotalCost}
+                summary={costInfo.summary}
+              />
+            )}
+          </div>
+          <p className="mt-3 text-aws-font-color-gray">
             {t("review.documents")}:{" "}
             {job.documents.length > 0
               ? job.documents[0].filename
