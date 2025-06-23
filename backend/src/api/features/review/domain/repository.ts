@@ -319,6 +319,10 @@ export const makePrismaReviewResultRepository = async (
       userComment: (result as any).userComment ?? undefined,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      reviewMeta: result.reviewMeta as any,
+      inputTokens: result.inputTokens ?? undefined,
+      outputTokens: result.outputTokens ?? undefined,
+      totalCost: result.totalCost ? Number(result.totalCost) : undefined,
       sourceReferences: result.sourceReferences
         ? JSON.parse(result.sourceReferences as string)
         : undefined,
@@ -452,6 +456,10 @@ export const makePrismaReviewResultRepository = async (
         userOverride: result.userOverride,
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
+        reviewMeta: result.reviewMeta as any,
+        inputTokens: result.inputTokens || undefined,
+        outputTokens: result.outputTokens || undefined,
+        totalCost: result.totalCost ? Number(result.totalCost) : undefined,
         sourceReferences,
         checkList: {
           id: result.checkList.id,
@@ -471,6 +479,7 @@ export const makePrismaReviewResultRepository = async (
     newResult: ReviewResultEntity;
   }): Promise<void> => {
     const { newResult } = params;
+
     await client.reviewResult.update({
       where: { id: newResult.id },
       data: {
@@ -486,6 +495,10 @@ export const makePrismaReviewResultRepository = async (
         sourceReferences: newResult.sourceReferences
           ? JSON.stringify(newResult.sourceReferences)
           : undefined,
+        reviewMeta: newResult.reviewMeta,
+        inputTokens: newResult.inputTokens,
+        outputTokens: newResult.outputTokens,
+        totalCost: newResult.totalCost,
       },
     });
   };
@@ -509,6 +522,10 @@ export const makePrismaReviewResultRepository = async (
             userOverride: result.userOverride,
             userComment: result.userComment,
             updatedAt: result.updatedAt,
+            reviewMeta: result.reviewMeta,
+            inputTokens: result.inputTokens,
+            outputTokens: result.outputTokens,
+            totalCost: result.totalCost,
           },
         });
       }
