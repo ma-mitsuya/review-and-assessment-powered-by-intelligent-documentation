@@ -22,6 +22,8 @@ import {
 import Spinner from "../../../components/Spinner";
 import DocumentPreview from "../../../components/DocumentPreview";
 import ImagePreview from "../../../components/ImagePreview";
+import ReviewItemCostBadge from "./ReviewItemCostBadge";
+import { useReviewItemCost } from "../hooks/useReviewItemCost";
 
 interface ReviewResultItemProps {
   result: ReviewResultDetail;
@@ -51,6 +53,7 @@ export default function ReviewResultItem({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [visibleReferencesCount, setVisibleReferencesCount] = useState(5); // 初期表示数
   const [showDetails, setShowDetails] = useState(false); // いかなる場合も詳細を最初は隠した状態に設定
+  const costInfo = useReviewItemCost(result); // コスト情報を直接取得
 
   // Get source references
   const sourceReferences = result.sourceReferences || [];
@@ -218,9 +221,17 @@ export default function ReviewResultItem({
                   {renderStatusBadge()}
                   {renderUserOverrideBadge()}
                 </div>
-                {/* 信頼度スコアを上段に表示 */}
+                {/* 信頼度スコアと料金を上段に表示 */}
                 {!hasChildren && renderConfidenceScore() && (
-                  <div className="ml-3">{renderConfidenceScore()}</div>
+                  <div className="ml-3 flex items-center space-x-2">
+                    {renderConfidenceScore()}
+                    {costInfo.hasCost && (
+                      <ReviewItemCostBadge
+                        formattedCost={costInfo.formattedCost}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -336,36 +347,47 @@ export default function ReviewResultItem({
                                   reference.pageNumber || index
                                 }`}
                                 className="rounded border border-light-gray p-2">
-                            {doc.fileType === REVIEW_FILE_TYPE.PDF ? (
-                              <DocumentPreview
-                                s3Key={doc.s3Path}
-                                filename={doc.filename}
-                                pageNumber={reference.pageNumber}
-                              />
-                            ) : doc.fileType === REVIEW_FILE_TYPE.IMAGE ? (
-                              <ImagePreview
-                                s3Key={doc.s3Path}
-                                filename={doc.filename}
-                                thumbnailHeight={80} // Smaller thumbnail size
-                                boundingBox={reference.boundingBox} // Pass bounding box info
-                              />
-                            ) : null}
-                            {/* Display MCP information if available */}
-                            {reference.externalSources && reference.externalSources.length > 0 && (
-                              <div className="mt-2 border-t border-light-gray pt-2">
-                                <p className="text-xs font-medium text-aws-squid-ink-light">
-                                  {t("review.referenceSources", "Reference Sources")}:
-                                </p>
-                                {reference.externalSources.map((source, idx) => (
-                                  <div key={idx} className="mt-1 text-xs text-aws-font-color-gray">
-                                    {source.mcpName && (
-                                      <span className="font-medium">{source.mcpName}: </span>
-                                    )}
-                                    <span>{source.description}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                                {doc.fileType === REVIEW_FILE_TYPE.PDF ? (
+                                  <DocumentPreview
+                                    s3Key={doc.s3Path}
+                                    filename={doc.filename}
+                                    pageNumber={reference.pageNumber}
+                                  />
+                                ) : doc.fileType === REVIEW_FILE_TYPE.IMAGE ? (
+                                  <ImagePreview
+                                    s3Key={doc.s3Path}
+                                    filename={doc.filename}
+                                    thumbnailHeight={80} // Smaller thumbnail size
+                                    boundingBox={reference.boundingBox} // Pass bounding box info
+                                  />
+                                ) : null}
+                                {/* Display MCP information if available */}
+                                {reference.externalSources &&
+                                  reference.externalSources.length > 0 && (
+                                    <div className="mt-2 border-t border-light-gray pt-2">
+                                      <p className="text-xs font-medium text-aws-squid-ink-light">
+                                        {t(
+                                          "review.referenceSources",
+                                          "Reference Sources"
+                                        )}
+                                        :
+                                      </p>
+                                      {reference.externalSources.map(
+                                        (source: any, idx: number) => (
+                                          <div
+                                            key={idx}
+                                            className="mt-1 text-xs text-aws-font-color-gray">
+                                            {source.mcpName && (
+                                              <span className="font-medium">
+                                                {source.mcpName}:{" "}
+                                              </span>
+                                            )}
+                                            <span>{source.description}</span>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
                               </div>
                             );
                           })}

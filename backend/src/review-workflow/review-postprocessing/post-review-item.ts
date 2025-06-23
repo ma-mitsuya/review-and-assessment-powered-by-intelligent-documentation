@@ -14,6 +14,30 @@ declare const console: {
 };
 
 /**
+ * Function to convert snake_case keys to camelCase in an object
+ * @param obj Object to convert
+ * @returns Object with keys converted to camelCase
+ */
+function convertSnakeToCamelCase(obj: any): any {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => convertSnakeToCamelCase(item));
+  }
+
+  return Object.keys(obj).reduce(
+    (result, key) => {
+      const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      result[camelKey] = convertSnakeToCamelCase(obj[key]);
+      return result;
+    },
+    {} as Record<string, any>
+  );
+}
+
+/**
  * Review item post-processing parameters
  */
 export interface PostReviewItemParams {
@@ -86,6 +110,11 @@ export async function postReviewItemProcessor(
         filename: img.filename,
       }));
 
+      // Convert reviewMeta from snake_case to camelCase
+      if (reviewData.reviewMeta) {
+        reviewData.reviewMeta = convertSnakeToCamelCase(reviewData.reviewMeta);
+      }
+
       // Use the unified review data method
       updated = ReviewResultDomain.fromReviewData({
         current,
@@ -100,6 +129,10 @@ export async function postReviewItemProcessor(
           boundingBoxes,
         },
         verificationDetails: reviewData.verificationDetails,
+        reviewMeta: reviewData.reviewMeta || null,
+        inputTokens: reviewData.inputTokens || null,
+        outputTokens: reviewData.outputTokens || null,
+        totalCost: reviewData.totalCost || null,
       });
     } else {
       // Get the job detail to access document information
@@ -127,6 +160,11 @@ export async function postReviewItemProcessor(
         `[DEBUG POST] Processing PDF review with ${documents.length} documents`
       );
 
+      // Convert reviewMeta from snake_case to camelCase
+      if (reviewData.reviewMeta) {
+        reviewData.reviewMeta = convertSnakeToCamelCase(reviewData.reviewMeta);
+      }
+
       // Use the unified review data method
       updated = ReviewResultDomain.fromReviewData({
         current,
@@ -140,6 +178,10 @@ export async function postReviewItemProcessor(
           extractedText: reviewData.extractedText || "",
         },
         verificationDetails: reviewData.verificationDetails,
+        reviewMeta: reviewData.reviewMeta || null,
+        inputTokens: reviewData.inputTokens || null,
+        outputTokens: reviewData.outputTokens || null,
+        totalCost: reviewData.totalCost || null,
       });
     }
 

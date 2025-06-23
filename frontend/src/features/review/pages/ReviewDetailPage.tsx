@@ -10,6 +10,7 @@ import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
 import { REVIEW_JOB_STATUS } from "../types";
 import Breadcrumb from "../../../components/Breadcrumb";
+import TotalReviewCostSummary from "../components/TotalReviewCostSummary";
 
 export default function ReviewDetailPage() {
   const { t } = useTranslation();
@@ -80,10 +81,25 @@ export default function ReviewDetailPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <Breadcrumb to="/review" label={t("review.backToList")} />
-          <h1 className="text-2xl font-bold text-aws-squid-ink-light">
-            {job.name}
-          </h1>
-          <p className="mt-1 text-aws-font-color-gray">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-aws-squid-ink-light">
+              {job.name}
+            </h1>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            {/* 合計料金表示 */}
+            {job.totalCost && (
+              <TotalReviewCostSummary
+                formattedTotalCost={`$${job.totalCost.toFixed(4)}`}
+                summary={{
+                  totalInputTokens: job.totalInputTokens || 0,
+                  totalOutputTokens: job.totalOutputTokens || 0,
+                  itemCount: job.totalCost > 0 ? 1 : 0,
+                }}
+              />
+            )}
+          </div>
+          <p className="mt-3 text-aws-font-color-gray">
             {t("review.documents")}:{" "}
             {job.documents.length > 0
               ? job.documents[0].filename
