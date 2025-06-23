@@ -17,7 +17,7 @@ export default function ReviewItemCostBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border border-sky-300 font-medium text-sky-600 ${sizeClasses[size]}`}>
+      className={`inline-flex items-center rounded-full border border-gray font-medium text-aws-aqua ${sizeClasses[size]}`}>
       {formattedCost}
     </span>
   );

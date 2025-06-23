@@ -24,7 +24,9 @@ export default function TotalReviewCostSummary({
         <span className="text-sm text-aws-font-color-gray">
           {t("review.totalCost", "合計コスト")}:
         </span>
-        <span className="font-semibold text-sky-600">{formattedTotalCost}</span>
+        <span className="font-semibold text-aws-aqua">
+          {formattedTotalCost}
+        </span>
       </div>
       <div className="text-xs text-aws-font-color-gray">
         {summary.totalInputTokens.toLocaleString()}
