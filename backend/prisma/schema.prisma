@@ -134,6 +134,10 @@ model ReviewResult {
   extractedText    String?   @map("extracted_text") @db.Text
   userOverride     Boolean   @default(false) @map("user_override")
   userComment      String?   @map("user_comment") @db.Text
+  reviewMeta       Json?     @map("review_meta")
+  inputTokens      Int?      @map("input_tokens")
+  outputTokens     Int?      @map("output_tokens")
+  totalCost        Decimal?  @map("total_cost") @db.Decimal(10, 4)
   createdAt        DateTime  @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime  @map("updated_at") @db.Timestamp(0)
   sourceReferences Json?     @map("source_references")

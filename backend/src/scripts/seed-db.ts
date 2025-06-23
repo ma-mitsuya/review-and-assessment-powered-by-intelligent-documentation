@@ -5,7 +5,7 @@
  * Prismaのseed機能と連携して使用します。
  */
 
-import { PrismaClient } from "../api/core/db";
+import { PrismaClient, Prisma } from "../api/core/db";
 import { ulid } from "ulid";
 
 const prisma = new PrismaClient();
@@ -492,6 +492,38 @@ async function main(): Promise<void> {
           : explanation;
     }
 
+    // 料金情報を生成（完了状態の場合のみ）
+    let reviewMeta: any = Prisma.JsonNull;
+    let inputTokens = null;
+    let outputTokens = null;
+    let totalCost = null;
+
+    if (isCompleted) {
+      // 実際のトークン使用量を模擬
+      inputTokens = Math.floor(Math.random() * 3000) + 1000; // 1000〜4000
+      outputTokens = Math.floor(Math.random() * 1000) + 500; // 500〜1500
+
+      // コストを計算（Sonnetの料金に基づく概算）
+      const inputCost = (inputTokens / 1000) * 0.003;
+      const outputCost = (outputTokens / 1000) * 0.015;
+      totalCost = inputCost + outputCost;
+
+      reviewMeta = {
+        model_id: "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        input_cost: inputCost,
+        output_cost: outputCost,
+        total_cost: totalCost,
+        pricing: {
+          input_per_1k: 0.003,
+          output_per_1k: 0.015,
+        },
+        duration_seconds: Math.floor(Math.random() * 10) + 5, // 5〜15秒
+        timestamp: new Date().toISOString(),
+      };
+    }
+
     await prisma.reviewResult.create({
       data: {
         id: ulid(),
@@ -505,6 +537,11 @@ async function main(): Promise<void> {
         extractedText,
         userOverride,
         userComment,
+        // 料金情報を追加
+        reviewMeta,
+        inputTokens,
+        outputTokens,
+        totalCost,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

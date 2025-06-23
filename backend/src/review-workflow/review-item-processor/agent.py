@@ -5,7 +5,9 @@ import logging
 import os
 import re
 import tempfile
+import time
 from contextlib import ExitStack
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import boto3
@@ -18,6 +20,61 @@ from strands_tools import file_read, image_reader
 logger = logging.getLogger(__name__)
 # Set logging level
 logger.setLevel(logging.DEBUG)
+
+
+class ReviewMetaTracker:
+    """Class to track review metadata such as pricing and execution time."""
+
+    def __init__(self, model_id: str):
+        self.model_id = model_id
+        self.pricing = self._get_model_pricing(model_id)
+        self.start_time = time.time()
+
+    def _get_model_pricing(self, model_id: str) -> Dict[str, float]:
+        """Get pricing information for the specified model ID."""
+        pricing_table = {
+            "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {
+                "input_per_1k": 0.003,
+                "output_per_1k": 0.015,
+            },
+            "us.amazon.nova-premier-v1:0": {
+                "input_per_1k": 0.0025,
+                "output_per_1k": 0.0125,
+            },
+        }
+        return pricing_table.get(model_id, {"input_per_1k": 0, "output_per_1k": 0})
+
+    def get_review_meta(self, agent_result) -> Dict[str, Any]:
+        """Extract review metadata from the agent result."""
+        end_time = time.time()
+        duration = end_time - self.start_time
+
+        metrics = agent_result.metrics
+        usage = metrics.accumulated_usage
+        input_tokens = usage.get("inputTokens", 0)
+        output_tokens = usage.get("outputTokens", 0)
+        total_tokens = usage.get("totalTokens", 0)
+
+        logging.debug(
+            f"Token usage from metrics: input={input_tokens}, output={output_tokens}, total={total_tokens}"
+        )
+
+        input_cost = (input_tokens / 1000) * self.pricing["input_per_1k"]
+        output_cost = (output_tokens / 1000) * self.pricing["output_per_1k"]
+        total_cost = input_cost + output_cost
+
+        return {
+            "model_id": self.model_id,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "input_cost": input_cost,
+            "output_cost": output_cost,
+            "total_cost": total_cost,
+            "pricing": self.pricing,
+            "duration_seconds": round(duration, 2),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
 
 # File type constants
 IMAGE_FILE_EXTENSIONS = [
@@ -127,8 +184,8 @@ def run_strands_agent(
     model_id: str = SONNET_MODEL_ID,
     system_prompt: str = "You are an expert document reviewer.",
     temperature: float = 0.0,
-    base_tools: List[Any] = None,
-    mcpServers: List[Dict[str, Any]] = None,
+    base_tools: Optional[List[Any]] = None,
+    mcpServers: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Run the Strands agent with the given prompt and file paths.
@@ -149,11 +206,11 @@ def run_strands_agent(
     logger.debug(f"File paths: {file_paths}")
     logger.debug(f"Using model: {model_id}, system prompt: {system_prompt}")
 
+    meta_tracker = ReviewMetaTracker(model_id)
+
     # MCP servers configuration
     mcp_servers = []
 
-    # MCPサーバー設定が指定されている場合のみMCP設定を使用
-    # 追加のログ出力でデバッグを強化
     logger.debug(f"mcpServers input: {type(mcpServers)}, value: {mcpServers}")
 
     if mcpServers and isinstance(mcpServers, list) and len(mcpServers) > 0:
@@ -161,7 +218,6 @@ def run_strands_agent(
         mcp_servers = mcpServers
     else:
         logger.info("No MCP servers specified or empty array, running without MCP tools")
-        # 空の配列ではなく明示的にNoneにして問題を追跡
         mcp_servers = []
 
     logger.debug(f"Final MCP servers configuration: {mcp_servers}")
@@ -217,6 +273,17 @@ def run_strands_agent(
         result = agent_message_to_dict(response.message)
         logger.debug("type(response.message)=%s", type(response.message))
         logger.debug("message.content (trunc)=%s", str(response.message)[:300])
+
+        logger.info("Extracting usage metrics from agent result")
+        review_meta = meta_tracker.get_review_meta(response)
+        result["reviewMeta"] = review_meta
+        result["inputTokens"] = review_meta["input_tokens"]
+        result["outputTokens"] = review_meta["output_tokens"]
+        result["totalCost"] = review_meta["total_cost"]
+
+        logger.info(
+            f"Token usage: input={review_meta['input_tokens']}, output={review_meta['output_tokens']}, cost=${review_meta['total_cost']:.6f}"
+        )
         logger.debug(f"Extracted result dict: {result}")
         return result
 
@@ -472,7 +539,7 @@ def process_review(
     check_description: str,
     language_name: str = "日本語",
     model_id: str = SONNET_MODEL_ID,
-    mcpServers: List[Dict[str, Any]] = None,
+    mcpServers: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Process a document review using Strands agent with local file reading.

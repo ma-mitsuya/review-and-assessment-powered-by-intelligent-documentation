@@ -79,6 +79,10 @@ def handler(event, context):
             "confidence": review_data.get("confidence", 0.0),
             "explanation": review_data.get("explanation", ""),
             "shortExplanation": review_data.get("shortExplanation", ""),
+            "reviewMeta": review_data.get("reviewMeta"),
+            "inputTokens": review_data.get("inputTokens"),
+            "outputTokens": review_data.get("outputTokens"),
+            "totalCost": review_data.get("totalCost"),
         }
 
         # Handle PDF-specific fields

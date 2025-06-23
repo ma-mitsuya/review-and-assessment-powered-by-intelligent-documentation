@@ -148,6 +148,10 @@ export interface ReviewResultEntity {
   createdAt: Date;
   updatedAt: Date;
   sourceReferences?: SourceReference[];
+  reviewMeta?: any;
+  inputTokens?: number;
+  outputTokens?: number;
+  totalCost?: number;
 }
 
 export interface ReviewResultDetail extends ReviewResultEntity {
@@ -211,6 +215,10 @@ export const ReviewResultDomain = (() => {
           mcpName?: string;
         }>;
       };
+      reviewMeta?: any;
+      inputTokens?: number;
+      outputTokens?: number;
+      totalCost?: number;
 
       // タイプ固有フィールド
       typeSpecificData?: {
@@ -314,6 +322,10 @@ export const ReviewResultDomain = (() => {
         sourceReferences,
         userOverride: false,
         updatedAt: new Date(),
+        reviewMeta: params.reviewMeta,
+        inputTokens: params.inputTokens,
+        outputTokens: params.outputTokens,
+        totalCost: params.totalCost,
       };
 
       // PDFの場合のみ抽出テキストを追加
