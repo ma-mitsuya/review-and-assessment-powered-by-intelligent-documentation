@@ -10,6 +10,7 @@ This guide summarizes information for developers working with this sample.
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
 - [Local Development Environment](#local-development-environment)
+- [Python Dependency Management](#python-dependency-management)
 - [Coding Standards](#coding-standards)
 - [Testing](#testing)
 - [Deployment](#deployment)
@@ -53,6 +54,7 @@ Architecture Overview:
 - Node.js (v22 recommended)
 - Docker and Docker Compose
 - AWS CLI
+- Python 3.9+ and Poetry (for Python components)
 
 ### Environment Setup
 
@@ -91,6 +93,56 @@ After deploying with CDK, follow these steps:
    # Start development server
    npm run dev
    ```
+
+## Python Dependency Management
+
+This project uses [Poetry](https://python-poetry.org/) for Python dependency management in the following components:
+
+- `backend/src/review-workflow/review-item-processor`
+- `cdk/lib/constructs/mcp-runtime/python`
+
+### Installing Poetry
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+### Working with Python Components
+
+1. Navigate to the Python component directory:
+
+   ```bash
+   cd backend/src/review-workflow/review-item-processor
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   poetry install
+
+   # Install local wheel package
+   poetry run pip install ./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
+   ```
+
+3. Run commands within the poetry environment:
+
+   ```bash
+   poetry run python your_script.py
+   ```
+
+   Or spawn a shell within the poetry environment:
+
+   ```bash
+   poetry shell
+   ```
+
+4. Add new dependencies:
+
+   ```bash
+   poetry add package-name
+   ```
+
+For more detailed instructions on using Poetry, refer to the README_POETRY.md file in each Python component directory.
 
 ## Coding Standards
 
@@ -144,3 +196,8 @@ eval $RESET_COMMAND
 
 3. **Prisma Generation Errors**
    - If you encounter errors with the `prisma:generate` command, delete the `node_modules/.prisma` directory and try again.
+
+4. **Poetry Issues**
+   - If you encounter issues with Poetry:
+     - Ensure you're running the latest version: `poetry self update`
+     - Try clearing the Poetry cache: `poetry cache clear . --all`

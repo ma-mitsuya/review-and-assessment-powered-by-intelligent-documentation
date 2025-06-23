@@ -10,6 +10,7 @@
 - [アーキテクチャ](#アーキテクチャ)
 - [技術スタック](#技術スタック)
 - [ローカル開発環境](#ローカル開発環境)
+- [Python依存関係の管理](#python依存関係の管理)
 - [コード規約](#コード規約)
 - [テスト](#テスト)
 - [デプロイ](#デプロイ)
@@ -53,6 +54,7 @@
 - Node.js (v22 推奨)
 - Docker と Docker Compose
 - AWS CLI
+- Python 3.9+ と Poetry (Python コンポーネント用)
 
 ### 環境構築
 
@@ -91,6 +93,56 @@
    # 開発サーバー起動
    npm run dev
    ```
+
+## Python依存関係の管理
+
+このプロジェクトでは、以下のPythonコンポーネントで[Poetry](https://python-poetry.org/)を使用して依存関係を管理しています：
+
+- `backend/src/review-workflow/review-item-processor`
+- `cdk/lib/constructs/mcp-runtime/python`
+
+### Poetryのインストール
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+### Pythonコンポーネントの操作
+
+1. Pythonコンポーネントディレクトリに移動：
+
+   ```bash
+   cd backend/src/review-workflow/review-item-processor
+   ```
+
+2. 依存関係のインストール：
+
+   ```bash
+   poetry install
+
+   # ローカルのwheelパッケージをインストール
+   poetry run pip install ./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
+   ```
+
+3. Poetry環境内でコマンドを実行：
+
+   ```bash
+   poetry run python your_script.py
+   ```
+
+   または、Poetry環境内でシェルを起動：
+
+   ```bash
+   poetry shell
+   ```
+
+4. 新しい依存関係の追加：
+
+   ```bash
+   poetry add パッケージ名
+   ```
+
+Poetry の使用方法の詳細については、各 Python コンポーネントディレクトリの README_POETRY.md ファイルを参照してください。
 
 ## コード規約
 
@@ -144,3 +196,8 @@ eval $RESET_COMMAND
 
 3. **Prisma 生成エラー**
    - `prisma:generate` コマンドでエラーが発生した場合、`node_modules/.prisma` ディレクトリを削除して再試行してください。
+
+4. **Poetry関連の問題**
+   - Poetryで問題が発生した場合：
+     - 最新バージョンを使用していることを確認：`poetry self update`
+     - Poetryのキャッシュをクリア：`poetry cache clear . --all`

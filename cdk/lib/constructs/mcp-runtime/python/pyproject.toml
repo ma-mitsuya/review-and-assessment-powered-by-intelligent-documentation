@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "mcp-runtime"
+version = "0.1.0"
+description = "MCP Runtime for Python"
+authors = ["AWS Samples"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+uv = "^0.7.12"
+mcp-server-time = "^0.1.0"
+boto3 = "^1.28.0"
+mcp = "^1.9.2"
+pydantic = "^2.11.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Local wheel package will be installed manually with:
+# poetry run pip install ./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
