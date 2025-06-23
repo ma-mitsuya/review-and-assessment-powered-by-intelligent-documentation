@@ -23,6 +23,12 @@ export interface ReviewJobRepository {
     status: REVIEW_JOB_STATUS;
     errorDetail?: string;
   }): Promise<void>;
+  updateJobCostInfo(params: {
+    reviewJobId: string;
+    totalCost: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+  }): Promise<void>;
 }
 
 export const makePrismaReviewJobRepository = async (
@@ -158,6 +164,9 @@ export const makePrismaReviewJobRepository = async (
       createdAt: job.createdAt,
       updatedAt: job.updatedAt,
       completedAt: job.completedAt || undefined,
+      totalInputTokens: job.totalInputTokens || undefined,
+      totalOutputTokens: job.totalOutputTokens || undefined,
+      totalCost: job.totalCost ? Number(job.totalCost) : undefined,
     };
   };
 
@@ -252,12 +261,32 @@ export const makePrismaReviewJobRepository = async (
     });
   };
 
+  const updateJobCostInfo = async (params: {
+    reviewJobId: string;
+    totalCost: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+  }): Promise<void> => {
+    const { reviewJobId, totalCost, totalInputTokens, totalOutputTokens } =
+      params;
+    await client.reviewJob.update({
+      where: { id: reviewJobId },
+      data: {
+        totalCost,
+        totalInputTokens,
+        totalOutputTokens,
+        updatedAt: new Date(),
+      },
+    });
+  };
+
   return {
     findAllReviewJobs,
     findReviewJobById,
     createReviewJob,
     deleteReviewJobById,
     updateJobStatus,
+    updateJobCostInfo,
   };
 };
 

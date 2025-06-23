@@ -121,7 +121,34 @@ export async function finalizeReview(
       }
     }
 
-    // 3. ジョブのステータスを完了に更新
+    // 3. コスト計算
+    let totalCost = 0;
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+
+    for (const result of results) {
+      const cost = result.totalCost || 0;
+      const inputTokens = result.inputTokens || 0;
+      const outputTokens = result.outputTokens || 0;
+
+      if (cost > 0) {
+        totalCost += cost;
+        totalInputTokens += inputTokens;
+        totalOutputTokens += outputTokens;
+      }
+    }
+
+    // コスト情報を保存
+    if (totalCost > 0) {
+      await reviewJobRepository.updateJobCostInfo({
+        reviewJobId,
+        totalCost,
+        totalInputTokens,
+        totalOutputTokens,
+      });
+    }
+
+    // 4. ジョブのステータスを完了に更新
     await reviewJobRepository.updateJobStatus({
       reviewJobId,
       status: REVIEW_JOB_STATUS.COMPLETED,
@@ -131,6 +158,11 @@ export async function finalizeReview(
       status: "success",
       reviewJobId,
       message: "Review processing completed",
+      costInfo: {
+        totalCost,
+        totalInputTokens,
+        totalOutputTokens,
+      },
     };
   } catch (error) {
     console.error(`Error finalizing review job ${reviewJobId}:`, error);

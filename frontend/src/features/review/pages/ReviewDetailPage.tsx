@@ -5,8 +5,6 @@ import ReviewResultTree from "../components/ReviewResultTree";
 import ReviewResultFilter from "../components/ReviewResultFilter";
 import { FilterType } from "../hooks/useReviewResultQueries";
 import { useReviewJobDetail } from "../hooks/useReviewJobQueries";
-import { useTotalReviewCost } from "../hooks/useTotalReviewCost";
-import { useReviewResultItems } from "../hooks/useReviewResultQueries";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 import Slider from "../../../components/Slider";
 import { DetailSkeleton } from "../../../components/Skeleton";
@@ -30,10 +28,6 @@ export default function ReviewDetailPage() {
     error: jobError,
     refetch: refetchJob,
   } = useReviewJobDetail(id || null);
-
-  // Get review items and calculate cost information
-  const { items } = useReviewResultItems(id || null, undefined, "all");
-  const costInfo = useTotalReviewCost(items);
 
   // When filter state changes
   const handleFilterChange = (newFilter: FilterType) => {
@@ -94,10 +88,14 @@ export default function ReviewDetailPage() {
           </div>
           <div className="mt-3 flex items-center justify-between">
             {/* 合計料金表示 */}
-            {costInfo.hasCost && (
+            {job.totalCost && (
               <TotalReviewCostSummary
-                formattedTotalCost={costInfo.formattedTotalCost}
-                summary={costInfo.summary}
+                formattedTotalCost={`$${job.totalCost.toFixed(4)}`}
+                summary={{
+                  totalInputTokens: job.totalInputTokens || 0,
+                  totalOutputTokens: job.totalOutputTokens || 0,
+                  itemCount: job.totalCost > 0 ? 1 : 0,
+                }}
               />
             )}
           </div>

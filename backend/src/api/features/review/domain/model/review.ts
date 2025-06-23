@@ -108,6 +108,9 @@ export interface ReviewJobDetail {
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
+  totalInputTokens?: number;
+  totalOutputTokens?: number;
+  totalCost?: number;
 }
 
 /**
