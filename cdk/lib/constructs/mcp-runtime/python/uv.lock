@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "dependencies": {
+    "boto3": {
+      "version": "1.34.93",
+      "extras": []
+    },
+    "mcp": {
+      "version": "1.9.2",
+      "extras": []
+    },
+    "mcp-server-time": {
+      "version": "0.1.0",
+      "extras": []
+    },
+    "pydantic": {
+      "version": "2.11.5",
+      "extras": []
+    },
+    "uv": {
+      "version": "0.7.12",
+      "extras": []
+    }
+  }
+}

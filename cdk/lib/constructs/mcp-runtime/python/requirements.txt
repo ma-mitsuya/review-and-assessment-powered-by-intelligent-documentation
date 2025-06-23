@@ -2,6 +2,8 @@
 # Ref: https://github.com/awslabs/run-model-context-protocol-servers-with-aws-lambda/blob/main/DEVELOP.md
 ./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
 
+# Note: These dependencies are locked in uv.lock
+# To install with exact versions: uv pip install -r requirements.txt
 uv>=0.7.12
 
 # Required by MCP time server

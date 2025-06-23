@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "dependencies": {
+    "pillow": {
+      "version": "11.2.1",
+      "extras": []
+    },
+    "strands-agents": {
+      "version": "0.1.5",
+      "extras": []
+    },
+    "strands-agents-tools": {
+      "version": "0.1.5",
+      "extras": []
+    }
+  }
+}

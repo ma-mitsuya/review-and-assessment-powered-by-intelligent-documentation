@@ -3,6 +3,8 @@
 ./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl
 
 # Core Strands packages
+# Note: These dependencies are locked in uv.lock
+# To install with exact versions: uv pip install -r requirements.txt
 strands-agents>=0.1.5
 strands-agents-tools>=0.1.5
 

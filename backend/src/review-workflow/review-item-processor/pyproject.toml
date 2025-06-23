@@ -1,0 +1,16 @@
+[project]
+name = "review-item-processor"
+version = "0.1.0"
+description = "Review item processor using Strands agents"
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "strands-agents>=0.1.5",
+    "strands-agents-tools>=0.1.5",
+    "pillow>=11.2.1",
+]
+
+[build-system]
+requires = ["uv"]
+build-backend = "uv.legacy_wheel"
