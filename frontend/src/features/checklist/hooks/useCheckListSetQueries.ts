@@ -9,11 +9,15 @@ import type {
 } from "../types";
 
 export const getChecklistSetsKey = (
+  page?: number,
+  limit?: number,
   sortBy?: string,
   sortOrder?: "asc" | "desc",
   status?: CHECK_LIST_STATUS
 ) => {
   const params = new URLSearchParams();
+  if (page) params.append("page", page.toString());
+  if (limit) params.append("limit", limit.toString());
   if (sortBy) params.append("sortBy", sortBy);
   if (sortOrder) params.append("sortOrder", sortOrder);
   if (status) params.append("status", status);
@@ -27,11 +31,13 @@ export const getChecklistItemsKey = (setId: string | null) =>
   setId ? `/checklist-sets/${setId}/items` : null;
 
 export function useChecklistSets(
+  page = 1,
+  limit = 10,
   sortBy?: string,
   sortOrder?: "asc" | "desc",
   status?: CHECK_LIST_STATUS
 ) {
-  const url = getChecklistSetsKey(sortBy, sortOrder, status);
+  const url = getChecklistSetsKey(page, limit, sortBy, sortOrder, status);
   const { data, isLoading, error, refetch } =
     useApiClient().useQuery<GetAllChecklistSetsResponse>(url);
 
@@ -43,6 +49,9 @@ export function useChecklistSets(
         }))
       : [],
     total: data?.total ?? 0,
+    page: data?.page ?? page,
+    limit: data?.limit ?? limit,
+    totalPages: data?.totalPages ?? 0,
     isLoading,
     error,
     refetch,

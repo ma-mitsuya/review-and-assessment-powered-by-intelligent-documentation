@@ -16,13 +16,44 @@ import {
 import { getDocumentDownloadUrl } from "../usecase/document";
 
 export const getAllReviewJobsHandler = async (
-  request: FastifyRequest,
+  request: FastifyRequest<{
+    Querystring: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+      status?: string;
+    };
+  }>,
   reply: FastifyReply
 ): Promise<void> => {
-  const jobs = await getAllReviewJobs({});
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+    status,
+  } = request.query;
+
+  // Convert string query parameters to numbers
+  const pageNum = typeof page === "string" ? parseInt(page, 10) : page;
+  const limitNum = typeof limit === "string" ? parseInt(limit, 10) : limit;
+
+  // Validate sortBy parameter - only allow valid fields
+  const validSortFields = ["id", "createdAt", "status"];
+  const validSortBy = validSortFields.includes(sortBy) ? sortBy : "id";
+
+  const result = await getAllReviewJobs({
+    page: pageNum,
+    limit: limitNum,
+    sortBy: validSortBy,
+    sortOrder,
+    status,
+  });
+
   reply.code(200).send({
     success: true,
-    data: jobs,
+    data: result,
   });
 };
 

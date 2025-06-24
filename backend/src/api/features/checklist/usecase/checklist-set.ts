@@ -10,6 +10,7 @@ import {
   CheckListSetDetailModel,
   CHECK_LIST_STATUS,
 } from "../domain/model/checklist";
+import { PaginatedResponse } from "../../../common/types";
 import { ulid } from "ulid";
 import { getPresignedUrl } from "../../../core/s3";
 import { getChecklistOriginalKey } from "../../../../checklist-workflow/common/storage-paths";
@@ -179,14 +180,24 @@ export const removeChecklistSet = async (params: {
 
 export const getAllChecklistSets = async (params: {
   status?: CHECK_LIST_STATUS;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
   deps?: {
     repo?: CheckRepository;
   };
-}): Promise<CheckListSetSummary[]> => {
+}): Promise<PaginatedResponse<CheckListSetSummary>> => {
   const repo = params.deps?.repo || (await makePrismaCheckRepository());
 
-  const checkListSets = await repo.findAllCheckListSets(params.status);
-  return checkListSets;
+  const result = await repo.findAllCheckListSets({
+    status: params.status,
+    page: params.page,
+    limit: params.limit,
+    sortBy: params.sortBy,
+    sortOrder: params.sortOrder,
+  });
+  return result;
 };
 
 export const getCheckListDocumentPresignedUrl = async (params: {

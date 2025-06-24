@@ -3,6 +3,7 @@ import {
   ReviewJobSummary,
   ReviewJobDetail,
 } from "../domain/model/review";
+import { PaginatedResponse } from "../../../common/types";
 import {
   ReviewJobRepository,
   makePrismaReviewJobRepository,
@@ -23,13 +24,24 @@ import { ApplicationError } from "../../../core/errors";
 import { startStateMachineExecution } from "../../../core/sfn";
 
 export const getAllReviewJobs = async (params: {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  status?: string;
   deps?: {
     repo?: ReviewJobRepository;
   };
-}): Promise<ReviewJobSummary[]> => {
+}): Promise<PaginatedResponse<ReviewJobSummary>> => {
   const repo = params.deps?.repo || (await makePrismaReviewJobRepository());
-  const reviewJobs = await repo.findAllReviewJobs();
-  return reviewJobs;
+  const result = await repo.findAllReviewJobs({
+    page: params.page,
+    limit: params.limit,
+    sortBy: params.sortBy,
+    sortOrder: params.sortOrder,
+    status: params.status,
+  });
+  return result;
 };
 
 export const getReviewDocumentPresignedUrl = async (params: {

@@ -44,15 +44,18 @@ export function useReviewJobs(
 ) {
   const url = getReviewJobsKey(page, limit, sortBy, sortOrder, status);
   const {
-    data: jobs,
+    data: result,
     isLoading,
     error,
     refetch,
   } = useApiClient().useQuery<GetAllReviewJobsResponse>(url);
 
   return {
-    items: jobs ?? [],
-    total: jobs?.length ?? 0,
+    items: result?.items ?? [],
+    total: result?.total ?? 0,
+    page: result?.page ?? page,
+    limit: result?.limit ?? limit,
+    totalPages: result?.totalPages ?? 0,
     isLoading,
     error,
     refetch,

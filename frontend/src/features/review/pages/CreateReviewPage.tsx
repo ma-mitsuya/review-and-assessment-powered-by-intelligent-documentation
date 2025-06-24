@@ -31,17 +31,27 @@ export const CreateReviewPage: React.FC = () => {
     REVIEW_FILE_TYPE.PDF
   );
   const [mcpServerName, setMcpServerName] = useState("");
+  const [checklistPage, setChecklistPage] = useState(1);
+  const [checklistLimit] = useState(5);
   const [errors, setErrors] = useState({
     name: "",
     files: "",
   });
 
-  // チェックリストセット一覧を取得（completedステータスのみ）
+  // チェックリストセット一覧を取得（完成状態のみ）
   const {
     items: checkListSets,
     isLoading: isLoadingCheckListSets,
     error: checkListSetsError,
-  } = useChecklistSets(undefined, undefined, "completed");
+    total: checklistTotal,
+    totalPages: checklistTotalPages,
+  } = useChecklistSets(
+    checklistPage,
+    checklistLimit,
+    "id",
+    "desc",
+    "completed"
+  );
 
   // 審査ジョブ作成フック
   const { createReviewJob, status, error: createError } = useCreateReviewJob();
@@ -348,6 +358,12 @@ export const CreateReviewPage: React.FC = () => {
                   checklists={checkListSets || []}
                   selectedChecklistId={selectedChecklist?.id || null}
                   onSelectChecklist={handleChecklistSelect}
+                  currentPage={checklistPage}
+                  totalPages={checklistTotalPages}
+                  totalItems={checklistTotal}
+                  itemsPerPage={checklistLimit}
+                  onPageChange={setChecklistPage}
+                  isLoading={isLoadingCheckListSets}
                 />
               )}
             </div>
