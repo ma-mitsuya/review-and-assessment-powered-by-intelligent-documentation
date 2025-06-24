@@ -252,7 +252,11 @@ def run_strands_agent(
         logger.info(f"Creating Strands agent with model: {model_id}")
         agent = Agent(
             model=BedrockModel(
-                model_id=model_id, region_name=BEDROCK_REGION, temperature=temperature
+                model_id=model_id,
+                region_name=BEDROCK_REGION,
+                temperature=temperature,
+                cache_prompt="default",  # Enable system prompt caching
+                cache_tools="default",  # Enable tool definitions caching
             ),
             tools=tools,
             system_prompt=system_prompt,
