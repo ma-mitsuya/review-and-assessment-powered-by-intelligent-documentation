@@ -61,6 +61,11 @@ Parameters:
     Default: "main"
     Description: デプロイするブランチ名
 
+  GitTag:
+    Type: String
+    Default: ""
+    Description: デプロイするGitタグ名（指定した場合はブランチよりも優先されます）
+
 Resources:
   ProjectRole:
     Type: AWS::IAM::Role
@@ -173,6 +178,8 @@ Resources:
             Value: !Ref RepoUrl
           - Name: BRANCH
             Value: !Ref Branch
+          - Name: GIT_TAG
+            Value: !Ref GitTag
       ServiceRole:
         Fn::GetAtt:
           - ProjectRole
@@ -194,7 +201,7 @@ Resources:
               "build": {
                 "commands": [
                   "echo 'ビルドフェーズを開始します...'",
-                  "git clone --branch $BRANCH $REPO_URL rapid",
+                  "if [ ! -z \"$GIT_TAG\" ]; then\n  git clone $REPO_URL rapid\n  cd rapid\n  git checkout $GIT_TAG\n  cd ..\nelse\n  git clone --branch $BRANCH $REPO_URL rapid\nfi",
                   "cd rapid",
                   "echo 'パラメータを設定中...'",
                   "echo '/**' > cdk/lib/parameter.ts",
