@@ -1,4 +1,4 @@
-# Review & Assessment Powered by Intelligent Documentation
+# Review & Assessment Powered by Intelligent Documentation (RAPID)
 
 [English](./docs/en/README_en.md) | [日本語](README.md)
 
