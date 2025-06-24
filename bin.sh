@@ -23,6 +23,7 @@ COGNITO_DOMAIN_PREFIX=""
 MCP_ADMIN="false"
 REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
+GIT_TAG=""  # 新しいGitタグのパラメータ
 
 # コマンドライン引数の解析
 while [[ "$#" -gt 0 ]]; do
@@ -38,6 +39,7 @@ while [[ "$#" -gt 0 ]]; do
         --mcp-admin) MCP_ADMIN="$2"; shift ;;
         --repo-url) REPO_URL="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
+        --tag) GIT_TAG="$2"; shift ;;
         *) echo "不明なパラメータ: $1"; exit 1 ;;
     esac
     shift
@@ -68,7 +70,8 @@ aws cloudformation deploy \
     CognitoDomainPrefix="$COGNITO_DOMAIN_PREFIX" \
     McpAdmin="$MCP_ADMIN" \
     RepoUrl="$REPO_URL" \
-    Branch="$BRANCH"
+    Branch="$BRANCH" \
+    GitTag="$GIT_TAG"
 
 echo "スタック作成の完了を待機中..."
 echo "注意: このスタックにはCDKデプロイに使用されるCodeBuildプロジェクトが含まれています。"
