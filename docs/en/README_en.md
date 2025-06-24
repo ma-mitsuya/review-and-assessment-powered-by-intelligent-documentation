@@ -83,6 +83,7 @@ This method allows you to deploy directly from your browser using AWS CloudShell
    - `--mcp-admin`: Whether to grant admin privileges to the MCP runtime Lambda function (true/false)
    - `--repo-url`: URL of the repository to deploy
    - `--branch`: Branch name to deploy
+   - `--tag`: Deploy a specific Git tag
 
 5. **Post-Deployment Verification**
 
