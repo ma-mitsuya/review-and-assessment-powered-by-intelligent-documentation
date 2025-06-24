@@ -377,40 +377,164 @@ async function main(): Promise<void> {
     console.log(`結論チェックリスト項目を作成しました: ${item.name}`);
   }
 
-  // 3. Review関連データの追加
+  // 3. 追加のチェックリストセットを作成（合計12個になるように）
+  console.log("追加のチェックリストセットの作成を開始します...");
+
+  const additionalCheckListSets = [
+    {
+      name: "不動産売買契約書チェックリスト",
+      description: "不動産売買契約書の審査用チェックリスト",
+    },
+    {
+      name: "賃貸借契約書チェックリスト",
+      description: "賃貸借契約書の審査用チェックリスト",
+    },
+    {
+      name: "業務委託契約書チェックリスト",
+      description: "業務委託契約書の審査用チェックリスト",
+    },
+    {
+      name: "秘密保持契約書チェックリスト",
+      description: "秘密保持契約書の審査用チェックリスト",
+    },
+    {
+      name: "ライセンス契約書チェックリスト",
+      description: "ライセンス契約書の審査用チェックリスト",
+    },
+    {
+      name: "販売代理店契約書チェックリスト",
+      description: "販売代理店契約書の審査用チェックリスト",
+    },
+    {
+      name: "雇用契約書チェックリスト",
+      description: "雇用契約書の審査用チェックリスト",
+    },
+    {
+      name: "保険契約書チェックリスト",
+      description: "保険契約書の審査用チェックリスト",
+    },
+    {
+      name: "融資契約書チェックリスト",
+      description: "融資契約書の審査用チェックリスト",
+    },
+    {
+      name: "M&A契約書チェックリスト",
+      description: "M&A契約書の審査用チェックリスト",
+    },
+  ];
+
+  const createdCheckListSets = [contractCheckListSetId, buildingCheckListSetId];
+
+  for (const setData of additionalCheckListSets) {
+    const setId = ulid();
+    const checkListSet = await prisma.checkListSet.create({
+      data: {
+        id: setId,
+        name: setData.name,
+        description: setData.description,
+      },
+    });
+    createdCheckListSets.push(setId);
+    console.log(`追加チェックリストセットを作成しました: ${checkListSet.name}`);
+
+    // 各セットに基本的なチェック項目を追加
+    const basicCheckItems = [
+      {
+        name: "契約当事者の確認",
+        description: "契約当事者が正確に記載されているか",
+      },
+      {
+        name: "契約期間の確認",
+        description: "契約期間が明確に記載されているか",
+      },
+      { name: "対価の確認", description: "対価・報酬が明確に記載されているか" },
+      {
+        name: "解除条件の確認",
+        description: "契約解除の条件が適切に記載されているか",
+      },
+      {
+        name: "準拠法の確認",
+        description: "準拠法・管轄裁判所が記載されているか",
+      },
+    ];
+
+    for (const item of basicCheckItems) {
+      await prisma.checkList.create({
+        data: {
+          id: ulid(),
+          name: item.name,
+          description: item.description,
+          checkListSetId: setId,
+        },
+      });
+    }
+  }
+
+  // 4. Review関連データの追加（12個のReviewJobを作成）
   console.log("Review関連データの作成を開始します...");
 
-  // ReviewJob（審査ジョブ）の作成
-  const reviewJobId = ulid();
-  const reviewJob = await prisma.reviewJob.create({
-    data: {
-      id: reviewJobId,
-      name: "建築確認申請書審査",
-      status: "pending",
-      checkListSetId: buildingCheckListSetId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: "user123",
-    },
-  });
-  console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
+  const reviewJobNames = [
+    "建築確認申請書審査",
+    "不動産売買契約書審査",
+    "賃貸借契約書審査",
+    "業務委託契約書審査",
+    "秘密保持契約書審査",
+    "ライセンス契約書審査",
+    "販売代理店契約書審査",
+    "雇用契約書審査",
+    "保険契約書審査",
+    "融資契約書審査",
+    "M&A契約書審査",
+    "基本契約書審査",
+  ];
 
-  // ReviewDocument（審査対象ドキュメント）の作成
-  const reviewDocumentId = ulid();
-  const reviewDocument = await prisma.reviewDocument.create({
-    data: {
-      id: reviewDocumentId,
-      filename: "建築確認申請書_サンプル.pdf",
-      s3Path: "review-documents/building-application-sample.pdf",
-      fileType: "application/pdf",
-      uploadDate: new Date(),
-      userId: "user123",
-      status: "uploaded",
-      reviewJobId: reviewJobId,
-    },
-  });
-  console.log(`ReviewDocumentを作成しました: ${reviewDocument.filename}`);
-  console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
+  const reviewStatuses = ["pending", "in_progress", "completed", "failed"];
+  const createdReviewJobs = [];
+
+  for (let i = 0; i < reviewJobNames.length; i++) {
+    const reviewJobId = ulid();
+    const checkListSetId =
+      createdCheckListSets[i % createdCheckListSets.length];
+    const status =
+      reviewStatuses[Math.floor(Math.random() * reviewStatuses.length)];
+
+    // 作成日時を少しずつずらす
+    const createdAt = new Date(Date.now() - i * 24 * 60 * 60 * 1000); // i日前
+
+    const reviewJob = await prisma.reviewJob.create({
+      data: {
+        id: reviewJobId,
+        name: reviewJobNames[i],
+        status,
+        checkListSetId,
+        createdAt,
+        updatedAt: createdAt,
+        userId: "user123",
+      },
+    });
+    createdReviewJobs.push(reviewJobId);
+    console.log(`ReviewJobを作成しました: ${reviewJob.name}`);
+
+    // ReviewDocument（審査対象ドキュメント）の作成
+    const reviewDocumentId = ulid();
+    const filename = `${reviewJobNames[i].replace("審査", "")}_サンプル.pdf`;
+    const reviewDocument = await prisma.reviewDocument.create({
+      data: {
+        id: reviewDocumentId,
+        filename,
+        s3Path: `review-documents/${filename.replace(".pdf", "").toLowerCase()}.pdf`,
+        fileType: "application/pdf",
+        uploadDate: createdAt,
+        userId: "user123",
+        status: "uploaded",
+        reviewJobId: reviewJobId,
+      },
+    });
+    console.log(`ReviewDocumentを作成しました: ${reviewDocument.filename}`);
+  }
+
+  // 最初のReviewJobに詳細なReviewResultを作成（既存のロジックを使用）
+  const firstReviewJobId = createdReviewJobs[0];
 
   // 建築確認申請チェックリストの全項目を取得
   const allBuildingCheckItems = await prisma.checkList.findMany({
@@ -527,7 +651,7 @@ async function main(): Promise<void> {
     await prisma.reviewResult.create({
       data: {
         id: ulid(),
-        reviewJobId: reviewJobId,
+        reviewJobId: firstReviewJobId,
         checkId: checkItem.id,
         status,
         result,
@@ -551,7 +675,7 @@ async function main(): Promise<void> {
     `ReviewResultを作成しました: ${allBuildingCheckItems.length}件（実際のデータを含む）`
   );
 
-  // 4. プロンプトテンプレートの追加
+  // 5. プロンプトテンプレートの追加
   console.log("プロンプトテンプレートの作成を開始します...");
 
   // デフォルトのチェックリスト用プロンプトテンプレート

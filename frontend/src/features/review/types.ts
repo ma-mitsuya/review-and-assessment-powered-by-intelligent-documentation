@@ -94,7 +94,13 @@ export interface OverrideReviewResultRequest {
  * Response type for getting all review jobs
  * GET /review-jobs
  */
-export type GetAllReviewJobsResponse = ApiResponse<ReviewJobSummary[]>;
+export type GetAllReviewJobsResponse = ApiResponse<{
+  items: ReviewJobSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}>;
 
 /**
  * Response type for getting a review job detail

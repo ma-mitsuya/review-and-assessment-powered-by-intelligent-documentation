@@ -30,7 +30,14 @@
     "ok": "OK",
     "info": "Info",
     "warning": "Warning",
-    "confirmation": "Confirmation"
+    "confirmation": "Confirmation",
+    "previous": "Previous"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "results": "results"
   },
   "sidebar": {
     "checklist": "Checklist",

@@ -78,6 +78,9 @@ export interface UpdateChecklistItemRequest {
  */
 export type GetAllChecklistSetsResponse = ApiResponse<{
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   checkListSets: {
     checkListSetId: string;
     name: string;

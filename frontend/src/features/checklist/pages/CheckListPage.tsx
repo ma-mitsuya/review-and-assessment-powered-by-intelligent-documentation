@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useChecklistSets } from "../hooks/useCheckListSetQueries";
-import { useDeleteChecklistSet, useDuplicateChecklistSet } from "../hooks/useCheckListSetMutations";
+import {
+  useDeleteChecklistSet,
+  useDuplicateChecklistSet,
+} from "../hooks/useCheckListSetMutations";
 import { useToast } from "../../../contexts/ToastContext";
 import CheckListSetList from "../components/CheckListSetList";
 import CreateChecklistButton from "../components/CreateChecklistButton";
 import DuplicateChecklistModal from "../components/DuplicateChecklistModal";
+import Pagination from "../../../components/Pagination";
 import { HiCheck } from "react-icons/hi";
 import { mutate } from "swr";
 import { getChecklistSetsKey } from "../hooks/useCheckListSetQueries";
@@ -23,18 +27,24 @@ export function CheckListPage() {
 
   // 複製用の状態を追加
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
-  const [selectedChecklistId, setSelectedChecklistId] = useState<string | null>(null);
-  const [selectedChecklistName, setSelectedChecklistName] = useState<string>("");
+  const [selectedChecklistId, setSelectedChecklistId] = useState<string | null>(
+    null
+  );
+  const [selectedChecklistName, setSelectedChecklistName] =
+    useState<string>("");
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
   const {
     items: checkListSets,
     total,
+    page,
+    limit,
+    totalPages,
     isLoading,
     error,
     refetch,
-  } = useChecklistSets(currentPage, itemsPerPage);
+  } = useChecklistSets(currentPage, itemsPerPage, "id", "desc");
 
   const {
     deleteChecklistSet,
@@ -43,10 +53,8 @@ export function CheckListPage() {
   } = useDeleteChecklistSet();
 
   // 複製フックを追加
-  const {
-    duplicateChecklistSet,
-    status: duplicateStatus,
-  } = useDuplicateChecklistSet();
+  const { duplicateChecklistSet, status: duplicateStatus } =
+    useDuplicateChecklistSet();
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
@@ -61,11 +69,11 @@ export function CheckListPage() {
       // 削除後にリストを再取得
       refetch();
       // 削除成功のトースト通知を表示
-      addToast(t('checklist.deleteConfirm', { name }), "success");
+      addToast(t("checklist.deleteConfirm", { name }), "success");
     } catch (error) {
       console.error("削除に失敗しました", error);
       // 削除失敗のトースト通知を表示
-      addToast(t('checklist.deleteError'), "error");
+      addToast(t("checklist.deleteError"), "error");
     }
   };
 
@@ -73,7 +81,7 @@ export function CheckListPage() {
   const handleDuplicateClick = (id: string, name: string) => {
     setSelectedChecklistId(id);
     setSelectedChecklistName(name);
-    setNewName(`${name} (${t('common.duplicate')})`);
+    setNewName(`${name} (${t("common.duplicate")})`);
     setNewDescription(""); // 説明は空にしておく
     setIsDuplicateModalOpen(true);
   };
@@ -87,34 +95,34 @@ export function CheckListPage() {
         name,
         description,
       });
-      
+
       // 複製成功のトースト通知を表示
-      addToast(t('checklist.duplicateSuccess'), "success");
-      
+      addToast(t("checklist.duplicateSuccess"), "success");
+
       // モーダルを閉じる
       setIsDuplicateModalOpen(false);
-      
+
       // チェックリスト一覧を更新
-      mutate(getChecklistSetsKey());
+      mutate(getChecklistSetsKey(currentPage, itemsPerPage));
       refetch();
     } catch (error) {
-      console.error(t('common.error'), error);
-      addToast(t('checklist.duplicateError'), "error");
+      console.error(t("common.error"), error);
+      addToast(t("checklist.duplicateError"), "error");
     }
   };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <div className="flex items-center">
-            <HiCheck className="h-8 w-8 mr-2 text-aws-font-color-light dark:text-aws-font-color-dark" />
+            <HiCheck className="mr-2 h-8 w-8 text-aws-font-color-light dark:text-aws-font-color-dark" />
             <h1 className="text-3xl font-bold text-aws-font-color-light dark:text-aws-font-color-dark">
-              {t('checklist.title')}
+              {t("checklist.title")}
             </h1>
           </div>
-          <p className="text-aws-font-color-gray mt-2">
-            {t('checklist.description')}
+          <p className="mt-2 text-aws-font-color-gray">
+            {t("checklist.description")}
           </p>
         </div>
         <CreateChecklistButton />
@@ -128,6 +136,16 @@ export function CheckListPage() {
         onDuplicate={handleDuplicateClick} // 複製ハンドラーを渡す
       />
 
+      {/* ページネーション */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={total}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        isLoading={isLoading}
+      />
+
       {/* 複製ダイアログ */}
       {isDuplicateModalOpen && (
         <DuplicateChecklistModal
@@ -136,7 +154,7 @@ export function CheckListPage() {
           onConfirm={handleDuplicateConfirm}
           initialName={newName}
           initialDescription={newDescription}
-          isLoading={duplicateStatus === 'loading'}
+          isLoading={duplicateStatus === "loading"}
         />
       )}
     </div>

@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../../components/Button";
 import { ReviewJobList } from "../components/ReviewJobList";
 import { useReviewJobs } from "../hooks/useReviewJobQueries";
+import Pagination from "../../../components/Pagination";
 import { HiPlus, HiDocumentText } from "react-icons/hi";
 import { ErrorAlert } from "../../../components/ErrorAlert";
 
@@ -11,13 +12,19 @@ export const ReviewListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   const {
     items: reviewJobs,
+    total,
+    page,
+    limit,
+    totalPages,
     refetch: revalidate,
     isLoading,
     error,
-  } = useReviewJobs(1, 10, "createdAt", "desc");
+  } = useReviewJobs(currentPage, itemsPerPage, "id", "desc");
 
   // 画面表示時またはlocationが変わった時にデータを再取得
   useEffect(() => {
@@ -60,12 +67,24 @@ export const ReviewListPage: React.FC = () => {
           retry={revalidate}
         />
       ) : (
-        <ReviewJobList
-          jobs={reviewJobs}
-          onJobClick={handleJobClick}
-          revalidate={revalidate}
-          isLoading={isLoading}
-        />
+        <>
+          <ReviewJobList
+            jobs={reviewJobs}
+            onJobClick={handleJobClick}
+            revalidate={revalidate}
+            isLoading={isLoading}
+          />
+
+          {/* ページネーション */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={total}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            isLoading={isLoading}
+          />
+        </>
       )}
     </div>
   );

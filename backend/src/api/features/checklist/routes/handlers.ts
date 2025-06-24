@@ -107,18 +107,49 @@ export const duplicateChecklistSetHandler = async (
  * チェックリストセット一覧取得ハンドラー
  */
 export const getAllChecklistSetsHandler = async (
-  request: FastifyRequest<{ Querystring: { status?: CHECK_LIST_STATUS } }>,
+  request: FastifyRequest<{
+    Querystring: {
+      status?: CHECK_LIST_STATUS;
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    };
+  }>,
   reply: FastifyReply
 ): Promise<void> => {
-  const { status } = request.query;
+  const {
+    status,
+    page = 1,
+    limit = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+  } = request.query;
 
-  const checkLists = await getAllChecklistSets({ status });
+  // Convert string query parameters to numbers
+  const pageNum = typeof page === "string" ? parseInt(page, 10) : page;
+  const limitNum = typeof limit === "string" ? parseInt(limit, 10) : limit;
+
+  // Validate sortBy parameter - only allow valid fields
+  const validSortFields = ["id", "name", "description", "createdAt"];
+  const validSortBy = validSortFields.includes(sortBy) ? sortBy : "id";
+
+  const result = await getAllChecklistSets({
+    status,
+    page: pageNum,
+    limit: limitNum,
+    sortBy: validSortBy,
+    sortOrder,
+  });
 
   reply.code(200).send({
     success: true,
     data: {
-      total: checkLists.length,
-      checkListSets: checkLists.map((checkList) => ({
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      checkListSets: result.items.map((checkList: any) => ({
         checkListSetId: checkList.id,
         name: checkList.name,
         description: checkList.description,

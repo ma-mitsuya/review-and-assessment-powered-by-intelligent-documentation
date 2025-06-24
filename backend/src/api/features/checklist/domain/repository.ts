@@ -8,15 +8,20 @@ import {
   CHECK_LIST_STATUS,
   CheckListSetDetailModel,
 } from "./model/checklist";
+import { PaginatedResponse } from "../../../common/types";
 
 export interface CheckRepository {
   storeCheckListSet(params: {
     checkListSet: CheckListSetEntity;
   }): Promise<void>;
   deleteCheckListSetById(params: { checkListSetId: string }): Promise<void>;
-  findAllCheckListSets(
-    status?: CHECK_LIST_STATUS
-  ): Promise<CheckListSetSummary[]>;
+  findAllCheckListSets(params: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    status?: CHECK_LIST_STATUS;
+  }): Promise<PaginatedResponse<CheckListSetSummary>>;
   findCheckListItems(
     setId: string,
     parentId?: string,
@@ -156,8 +161,21 @@ export const makePrismaCheckRepository = async (
   };
 
   const findAllCheckListSets = async (
-    status?: CHECK_LIST_STATUS
-  ): Promise<CheckListSetSummary[]> => {
+    params: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+      status?: CHECK_LIST_STATUS;
+    } = {}
+  ): Promise<PaginatedResponse<CheckListSetSummary>> => {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "id",
+      sortOrder = "desc",
+      status,
+    } = params;
     // ステータスフィルタリングのためのサブクエリを準備
     let whereCondition = {};
 
@@ -196,29 +214,37 @@ export const makePrismaCheckRepository = async (
       }
     }
 
-    const sets = await client.checkListSet.findMany({
-      where: whereCondition,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdAt: true,
-        // ドキュメントの詳細情報を取得
-        documents: {
-          select: {
-            id: true,
-            filename: true,
-            s3Path: true,
-            fileType: true,
-            uploadDate: true,
-            status: true,
-            errorDetail: true,
+    // ページネーション用のクエリを並列実行
+    const [sets, total] = await Promise.all([
+      client.checkListSet.findMany({
+        where: whereCondition,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          createdAt: true,
+          // ドキュメントの詳細情報を取得
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+              s3Path: true,
+              fileType: true,
+              uploadDate: true,
+              status: true,
+              errorDetail: true,
+            },
           },
+          _count: { select: { reviewJobs: true } },
         },
-        _count: { select: { reviewJobs: true } },
-      },
-      orderBy: { id: "desc" },
-    });
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      client.checkListSet.count({
+        where: whereCondition,
+      }),
+    ]);
 
     const mappedSets = sets.map((s) => {
       const statuses = s.documents.map((d) => d.status as CHECK_LIST_STATUS);
@@ -255,7 +281,15 @@ export const makePrismaCheckRepository = async (
       };
     });
 
-    return mappedSets;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      items: mappedSets,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   };
 
   const findCheckListItems = async (

@@ -1,5 +1,6 @@
 import { getPrismaClient, PrismaClient } from "../../../core/db";
 import { NotFoundError } from "../../../core/errors";
+import { PaginatedResponse } from "../../../common/types";
 import {
   ReviewJobEntity,
   ReviewJobSummary,
@@ -14,7 +15,13 @@ import {
 import { CHECK_LIST_STATUS } from "../../checklist/domain/model/checklist";
 
 export interface ReviewJobRepository {
-  findAllReviewJobs(): Promise<ReviewJobSummary[]>;
+  findAllReviewJobs(params?: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    status?: string;
+  }): Promise<PaginatedResponse<ReviewJobSummary>>;
   findReviewJobById(params: { reviewJobId: string }): Promise<ReviewJobDetail>;
   createReviewJob(params: ReviewJobEntity): Promise<void>;
   deleteReviewJobById(params: { reviewJobId: string }): Promise<void>;
@@ -36,39 +43,70 @@ export const makePrismaReviewJobRepository = async (
 ): Promise<ReviewJobRepository> => {
   const client = clientInput || (await getPrismaClient());
 
-  const findAllReviewJobs = async (): Promise<ReviewJobSummary[]> => {
-    const jobs = await client.reviewJob.findMany({
-      orderBy: { id: "desc" },
-      include: {
-        documents: {
-          select: {
-            id: true,
-            filename: true,
-            s3Path: true,
-            fileType: true,
+  const findAllReviewJobs = async (
+    params: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+      status?: string;
+    } = {}
+  ): Promise<PaginatedResponse<ReviewJobSummary>> => {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "id",
+      sortOrder = "desc",
+      status,
+    } = params;
+
+    // WHERE条件を構築
+    const whereCondition: any = {};
+    if (status) {
+      whereCondition.status = status;
+    }
+
+    // ページネーション用のクエリを並列実行
+    const [jobs, total] = await Promise.all([
+      client.reviewJob.findMany({
+        where: whereCondition,
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          documents: {
+            select: {
+              id: true,
+              filename: true,
+              s3Path: true,
+              fileType: true,
+            },
+            orderBy: {
+              id: "asc",
+            },
           },
-          orderBy: {
-            id: "asc",
+          checkListSet: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          // サマリー情報計算用にレビュー結果も同時取得
+          reviewResults: {
+            select: {
+              status: true,
+              result: true,
+            },
           },
         },
-        checkListSet: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        // サマリー情報計算用にレビュー結果も同時取得
-        reviewResults: {
-          select: {
-            status: true,
-            result: true,
-          },
-        },
-      },
-    });
+      }),
+      client.reviewJob.count({
+        where: whereCondition,
+      }),
+    ]);
 
     // 各ジョブのモデルを構築
-    return jobs.map((job) => {
+    const mappedJobs = jobs.map((job) => {
       // サマリー情報を計算
       const reviewResults = job.reviewResults || [];
       const stats = {
@@ -102,6 +140,16 @@ export const makePrismaReviewJobRepository = async (
         stats,
       };
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      items: mappedJobs,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   };
 
   const findReviewJobById = async (params: {

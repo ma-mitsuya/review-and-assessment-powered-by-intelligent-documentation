@@ -30,7 +30,14 @@
     "ok": "OK",
     "info": "情報",
     "warning": "警告",
-    "confirmation": "確認"
+    "confirmation": "確認",
+    "previous": "前へ"
+  },
+  "pagination": {
+    "showing": "表示中",
+    "to": "から",
+    "of": "件中",
+    "results": "件"
   },
   "sidebar": {
     "checklist": "チェックリスト",
