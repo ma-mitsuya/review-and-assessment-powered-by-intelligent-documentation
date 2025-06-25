@@ -335,6 +335,10 @@ export const CreateReviewPage: React.FC = () => {
                 multiple={fileType === REVIEW_FILE_TYPE.IMAGE}
                 uploadedDocuments={uploadedDocuments}
                 onDeleteFile={handleFileRemove}
+                acceptedFileTypes={fileType === REVIEW_FILE_TYPE.PDF ? 
+                  { 'application/pdf': ['.pdf'] } : 
+                  { 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] }
+                }
               />
             </div>
 
