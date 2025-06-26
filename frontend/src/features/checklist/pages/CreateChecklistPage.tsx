@@ -243,6 +243,9 @@ export function CreateChecklistPage() {
             multiple={false}
             uploadedDocuments={uploadedDocuments || []}
             onDeleteFile={handleFileRemove}
+            acceptedFileTypes={{
+              'application/pdf': ['.pdf']
+            }}
           />
 
           {/* プロンプトテンプレート選択セクション */}

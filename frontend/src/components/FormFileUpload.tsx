@@ -12,6 +12,7 @@ interface FormFileUploadProps {
   className?: string;
   uploadedDocuments?: Array<{ documentId: string; filename: string }>;
   onDeleteFile?: (index: number) => void;
+  acceptedFileTypes?: Record<string, string[]>;
 }
 
 /**
@@ -29,6 +30,7 @@ export const FormFileUpload: React.FC<FormFileUploadProps> = ({
   className = "",
   uploadedDocuments = [],
   onDeleteFile,
+  acceptedFileTypes,
 }) => {
   return (
     <div className={`mb-6 ${className}`}>
@@ -42,6 +44,7 @@ export const FormFileUpload: React.FC<FormFileUploadProps> = ({
         multiple={multiple}
         uploadedDocuments={uploadedDocuments}
         onDeleteFile={onDeleteFile}
+        acceptedFileTypes={acceptedFileTypes}
       />
       {error && <p className="mt-1 text-red text-sm">{error}</p>}
     </div>
