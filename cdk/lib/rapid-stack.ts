@@ -23,7 +23,7 @@ export class RapidStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RapidStackProps) {
     super(scope, id, {
       description:
-        "Rapid Stack for Document Processing and Review (uksb-v0ap2ubnkl)",
+        "Rapid Stack for Document Processing and Review (uksb-pr771pp43k)",
       ...props,
     });
 
