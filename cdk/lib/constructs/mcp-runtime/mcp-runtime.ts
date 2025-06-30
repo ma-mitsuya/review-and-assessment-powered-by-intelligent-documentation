@@ -54,6 +54,13 @@ export class McpRuntime extends Construct {
         },
         memorySize: 1024,
         architecture: lambda.Architecture.ARM_64,
+        bundling: {
+          command: [
+            "bash",
+            "-c",
+            "pip install -r requirements-locked.txt -t /asset-output && cp -r . /asset-output/",
+          ],
+        },
       }
     );
 
