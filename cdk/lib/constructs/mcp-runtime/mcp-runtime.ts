@@ -56,8 +56,9 @@ export class McpRuntime extends Construct {
         architecture: lambda.Architecture.ARM_64,
         bundling: {
           command: [
-            "bash", "-c",
-            "pip install poetry && poetry export -f requirements.txt > /asset-output/requirements.txt && pip install -r /asset-output/requirements.txt"
+            "bash",
+            "-c",
+            "pip install -r requirements-locked.txt -t /asset-output && cp -r . /asset-output/",
           ],
         },
       }

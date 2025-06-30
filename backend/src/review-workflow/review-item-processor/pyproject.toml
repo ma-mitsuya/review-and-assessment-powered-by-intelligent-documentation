@@ -5,7 +5,7 @@ description = "Review Item Processor for Strands Agent"
 authors = ["aws-samples <https://github.com/aws-samples>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.13"
 run-mcp-servers-with-aws-lambda = { path = "./run_mcp_servers_with_aws_lambda-0.2.1.post2.dev0+254672e-py3-none-any.whl" }
 strands-agents = ">=0.1.5"
 strands-agents-tools = ">=0.1.5"

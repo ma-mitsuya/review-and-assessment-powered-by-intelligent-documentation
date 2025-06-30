@@ -84,7 +84,6 @@ export class ReviewProcessor extends Construct {
           __dirname,
           "../../../backend/src/review-workflow/review-item-processor"
         ),
-        index: "lambda_handler.py",
         handler: "handler",
         runtime: lambda.Runtime.PYTHON_3_13,
         memorySize: 1024,
@@ -104,8 +103,9 @@ export class ReviewProcessor extends Construct {
         architecture: lambda.Architecture.ARM_64,
         bundling: {
           command: [
-            "bash", "-c",
-            "pip install poetry && poetry export -f requirements.txt > /asset-output/requirements.txt && pip install -r /asset-output/requirements.txt"
+            "bash",
+            "-c",
+            "pip install -r requirements-locked.txt -t /asset-output && cp -r . /asset-output/",
           ],
         },
       }
