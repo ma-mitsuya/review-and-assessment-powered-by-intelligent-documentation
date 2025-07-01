@@ -36,8 +36,6 @@ new RapidStack(app, "RapidStack", {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || "us-west-2",
   },
-  description:
-    "RAPID (Review & Assessment Powered by Intelligent Documentation)",
   crossRegionReferences: true,
   webAclId: waf.webAclArn.value,
   enableIpV6: waf.ipV6Enabled,
