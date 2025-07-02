@@ -185,6 +185,7 @@ export async function processWithLLM({
                 source: {
                   bytes: pdfBytes, // Actual PDF binary data
                 },
+                citations: { enabled: true }, // Enable citations for PDF image analysis (workaround for visual understanding)
               },
             },
           ],
@@ -248,6 +249,7 @@ export async function processWithLLM({
                   source: {
                     bytes: pdfBytes, // 実際のPDFバイナリデータ
                   },
+                  citations: { enabled: true }, // Enable citations for PDF image analysis (workaround for visual understanding)
                 },
               },
             ],
