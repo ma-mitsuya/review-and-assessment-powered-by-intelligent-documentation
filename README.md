@@ -59,6 +59,7 @@
    ```bash
    git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
    cd review-and-assessment-powered-by-intelligent-documentation
+   chmod +x bin.sh
    ./bin.sh
    ```
 
