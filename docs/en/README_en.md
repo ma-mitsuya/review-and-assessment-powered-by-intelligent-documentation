@@ -59,6 +59,7 @@ This method allows you to deploy directly from your browser using AWS CloudShell
    ```bash
    git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
    cd review-and-assessment-powered-by-intelligent-documentation
+   chmod +x bin.sh
    ./bin.sh
    ```
 
