@@ -57,15 +57,29 @@
 3. **デプロイスクリプトの実行**
 
    ```bash
+   wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash
+   ```
+
+   このワンライナーコマンドで、リポジトリのクローンからデプロイまでが自動的に実行されます。
+
+   **従来の方法（git clone してから実行）も引き続き利用可能です：**
+
+   ```bash
    git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
    cd review-and-assessment-powered-by-intelligent-documentation
    chmod +x bin.sh
    ./bin.sh
    ```
 
-   このスクリプトは、CloudShell を使用して、アプリケーションを自動的にデプロイします。
-
 4. **カスタムパラメータの指定（オプション）**
+
+   **wget でパラメータを指定する場合：**
+
+   ```bash
+   wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash -s -- --ipv4-ranges '["192.168.0.0/16"]'
+   ```
+
+   **従来の方法でパラメータを指定する場合：**
 
    ```bash
    ./bin.sh --ipv4-ranges '["192.168.0.0/16"]'
@@ -84,7 +98,7 @@
    - `--mcp-admin`: MCP ランタイム Lambda 関数に管理者権限を付与するかどうか（true/false）
    - `--repo-url`: デプロイするリポジトリの URL
    - `--branch`: デプロイするブランチ名
-   - `--tag`: デプロイする特定のGitタグ
+   - `--tag`: デプロイする特定の Git タグ
 
 5. **デプロイ後の確認**
 
@@ -139,18 +153,18 @@ RapidStack.FrontendURL = https://xxxxx.cloudfront.net
 
 CDK デプロイ時に以下のパラメータをカスタマイズできます:
 
-| パラメータグループ   | パラメータ名             | 説明                                                                                         | デフォルト値                              |
-| -------------------- | ------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| **WAF 設定**         | allowedIpV4AddressRanges | フロントエンド WAF で許可する IPv4 範囲                                                      | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
-|                      | allowedIpV6AddressRanges | フロントエンド WAF で許可する IPv6 範囲                                                      | ["0000::/1", "8000::/1"] (すべて許可)     |
-| **Cognito 設定**     | cognitoUserPoolId        | 既存の Cognito User Pool ID                                                                  | 新規作成                                  |
-|                      | cognitoUserPoolClientId  | 既存の Cognito User Pool Client ID                                                           | 新規作成                                  |
-|                      | cognitoDomainPrefix      | Cognito ドメインのプレフィックス                                                             | 自動生成                                  |
-|                      | cognitoSelfSignUpEnabled | Cognito User Pool のセルフサインアップを有効にするかどうか                                   | true (有効)                               |
-| **マイグレーション** | autoMigrate              | デプロイ時に自動的にマイグレーションを実行するかどうか                                       | true (自動実行する)                       |
-| **MCP 機能**         | mcpAdmin                 | MCP ランタイム Lambda 関数に管理者権限を付与するかどうか ([詳細](./docs/ja/mcp-features.md)) | false (無効)                              |
-| **Map State並行処理**     | reviewMapConcurrency     | レビュープロセッサのMap State並行処理数 (スロットリングと相談して設定が必要)                  | 1                                         |
-| **Map State並行処理**     | checklistInlineMapConcurrency | チェックリストプロセッサのインラインMap State並行処理数 (スロットリングと相談して設定が必要) | 1                                      |
+| パラメータグループ     | パラメータ名                  | 説明                                                                                           | デフォルト値                              |
+| ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| **WAF 設定**           | allowedIpV4AddressRanges      | フロントエンド WAF で許可する IPv4 範囲                                                        | ["0.0.0.0/1", "128.0.0.0/1"] (すべて許可) |
+|                        | allowedIpV6AddressRanges      | フロントエンド WAF で許可する IPv6 範囲                                                        | ["0000::/1", "8000::/1"] (すべて許可)     |
+| **Cognito 設定**       | cognitoUserPoolId             | 既存の Cognito User Pool ID                                                                    | 新規作成                                  |
+|                        | cognitoUserPoolClientId       | 既存の Cognito User Pool Client ID                                                             | 新規作成                                  |
+|                        | cognitoDomainPrefix           | Cognito ドメインのプレフィックス                                                               | 自動生成                                  |
+|                        | cognitoSelfSignUpEnabled      | Cognito User Pool のセルフサインアップを有効にするかどうか                                     | true (有効)                               |
+| **マイグレーション**   | autoMigrate                   | デプロイ時に自動的にマイグレーションを実行するかどうか                                         | true (自動実行する)                       |
+| **MCP 機能**           | mcpAdmin                      | MCP ランタイム Lambda 関数に管理者権限を付与するかどうか ([詳細](./docs/ja/mcp-features.md))   | false (無効)                              |
+| **Map State 並行処理** | reviewMapConcurrency          | レビュープロセッサの Map State 並行処理数 (スロットリングと相談して設定が必要)                 | 1                                         |
+| **Map State 並行処理** | checklistInlineMapConcurrency | チェックリストプロセッサのインライン Map State 並行処理数 (スロットリングと相談して設定が必要) | 1                                         |
 
 設定するには`cdk/lib/parameter.ts` ファイルを直接編集してください。
 
