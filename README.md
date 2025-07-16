@@ -62,27 +62,10 @@
 
    このワンライナーコマンドで、リポジトリのクローンからデプロイまでが自動的に実行されます。
 
-   **従来の方法（git clone してから実行）も引き続き利用可能です：**
-
-   ```bash
-   git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
-   cd review-and-assessment-powered-by-intelligent-documentation
-   chmod +x bin.sh
-   ./bin.sh
-   ```
-
 4. **カスタムパラメータの指定（オプション）**
-
-   **wget でパラメータを指定する場合：**
 
    ```bash
    wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash -s -- --ipv4-ranges '["192.168.0.0/16"]'
-   ```
-
-   **従来の方法でパラメータを指定する場合：**
-
-   ```bash
-   ./bin.sh --ipv4-ranges '["192.168.0.0/16"]'
    ```
 
    利用可能なオプション：

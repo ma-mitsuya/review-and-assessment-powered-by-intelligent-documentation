@@ -62,27 +62,10 @@ This method allows you to deploy directly from your browser using AWS CloudShell
 
    This one-liner command automatically executes everything from repository cloning to deployment.
 
-   **The traditional method (clone first, then execute) is still available:**
-
-   ```bash
-   git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
-   cd review-and-assessment-powered-by-intelligent-documentation
-   chmod +x bin.sh
-   ./bin.sh
-   ```
-
 4. **Specify Custom Parameters (Optional)**
-
-   **When specifying parameters with wget:**
 
    ```bash
    wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash -s -- --ipv4-ranges '["192.168.0.0/16"]'
-   ```
-
-   **When specifying parameters with the traditional method:**
-
-   ```bash
-   ./bin.sh --ipv4-ranges '["192.168.0.0/16"]'
    ```
 
    Available options:
