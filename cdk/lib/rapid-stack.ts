@@ -12,6 +12,7 @@ import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
 import { McpRuntime } from "./constructs/mcp-runtime/mcp-runtime";
 import { Parameters } from "./parameter-schema";
+import { execSync } from "child_process";
 
 export interface RapidStackProps extends cdk.StackProps {
   readonly webAclId: string;
@@ -120,7 +121,8 @@ export class RapidStack extends cdk.Stack {
         vpc,
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
-        inlineMapConcurrency: props.parameters.checklistInlineMapConcurrency || 1,
+        inlineMapConcurrency:
+          props.parameters.checklistInlineMapConcurrency || 1,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
       }
@@ -181,10 +183,14 @@ export class RapidStack extends cdk.Stack {
       // hostedZoneId: props.hostedZoneId,
     });
 
+    // Gitの最新タグを取得
+    const latestGitTag = this.getLatestGitTag();
+
     frontend.buildViteApp({
       backendApiEndpoint: api.api.url,
       userPoolDomainPrefix: "",
       auth,
+      version: latestGitTag, // Gitタグ情報を追加
     });
 
     documentBucket.addCorsRule({
@@ -233,6 +239,12 @@ export class RapidStack extends cdk.Stack {
       value: database.secret.secretArn,
     });
 
+    // Gitの最新タグをCloudFormation出力に追加
+    new cdk.CfnOutput(this, "LatestGitTag", {
+      value: latestGitTag,
+      description: "デプロイされたコードの最新Gitタグ",
+    });
+
     // Fix migrationLambda.functionArn
     if (
       prismaMigration.migrationLambda &&
@@ -241,6 +253,24 @@ export class RapidStack extends cdk.Stack {
       new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
         value: prismaMigration.migrationLambda.functionArn,
       });
+    }
+  }
+
+  /**
+   * Gitリポジトリの最新タグを取得する
+   * @returns 最新のGitタグ、取得できない場合は'no-tag-found'
+   * @private
+   */
+  private getLatestGitTag(): string {
+    try {
+      // git describe --tags --abbrev=0 コマンドで最新のタグを取得
+      return execSync("git describe --tags --abbrev=0").toString().trim();
+    } catch (error) {
+      // タグが存在しない場合や、Gitコマンドが失敗した場合のフォールバック
+      cdk.Annotations.of(this).addWarning(
+        `Failed to get latest Git tag: ${error}`
+      );
+      return "no-tag-found";
     }
   }
 }

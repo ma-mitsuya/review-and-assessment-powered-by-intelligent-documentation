@@ -16,6 +16,7 @@ import {
 } from "react-icons/hi";
 import { useAuth } from "../contexts/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { getVersion } from "../utils/version";
 
 /**
  * サイドバーコンポーネント
@@ -170,6 +171,13 @@ export default function Sidebar() {
 
                 {/* 言語切り替えボタン */}
                 <LanguageSwitcher />
+
+                {/* バージョン情報 */}
+                <div className="mt-4 border-t border-aws-font-color-white-light border-opacity-20 pt-2">
+                  <div className="text-center text-xs text-aws-font-color-white-light text-opacity-70">
+                    Version: {getVersion()}
+                  </div>
+                </div>
               </div>
             )}
           </div>

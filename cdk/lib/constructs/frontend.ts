@@ -193,10 +193,12 @@ export class Frontend extends Construct {
     backendApiEndpoint,
     userPoolDomainPrefix,
     auth,
+    version,
   }: {
     backendApiEndpoint: string;
     userPoolDomainPrefix: string;
     auth: Auth;
+    version?: string; // バージョン情報を追加（オプショナル）
   }) {
     const region = Stack.of(auth.userPool).region;
     const cognitoDomain = `${userPoolDomainPrefix}.auth.${region}.amazoncognito.com/`;
@@ -206,6 +208,7 @@ export class Frontend extends Construct {
         VITE_APP_USER_POOL_ID: auth.userPool.userPoolId,
         VITE_APP_USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
         VITE_APP_REGION: region,
+        VITE_APP_VERSION: version || "unknown ver", // バージョン情報を追加
       };
 
       return defaultProps;
