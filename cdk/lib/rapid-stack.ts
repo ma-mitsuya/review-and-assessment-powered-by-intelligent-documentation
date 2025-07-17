@@ -21,24 +21,6 @@ export interface RapidStackProps extends cdk.StackProps {
 }
 
 export class RapidStack extends cdk.Stack {
-  /**
-   * Gitリポジトリの最新タグを取得する
-   * @returns 最新のGitタグ、取得できない場合は'no-tag-found'
-   * @private
-   */
-  private getLatestGitTag(): string {
-    try {
-      // git describe --tags --abbrev=0 コマンドで最新のタグを取得
-      return execSync("git describe --tags --abbrev=0").toString().trim();
-    } catch (error) {
-      // タグが存在しない場合や、Gitコマンドが失敗した場合のフォールバック
-      cdk.Annotations.of(this).addWarning(
-        `Failed to get latest Git tag: ${error}`
-      );
-      return "no-tag-found";
-    }
-  }
-
   constructor(scope: Construct, id: string, props: RapidStackProps) {
     super(scope, id, {
       description:
@@ -270,6 +252,24 @@ export class RapidStack extends cdk.Stack {
       new cdk.CfnOutput(this, "PrismaMigrationLambdaArn", {
         value: prismaMigration.migrationLambda.functionArn,
       });
+    }
+  }
+
+  /**
+   * Gitリポジトリの最新タグを取得する
+   * @returns 最新のGitタグ、取得できない場合は'no-tag-found'
+   * @private
+   */
+  private getLatestGitTag(): string {
+    try {
+      // git describe --tags --abbrev=0 コマンドで最新のタグを取得
+      return execSync("git describe --tags --abbrev=0").toString().trim();
+    } catch (error) {
+      // タグが存在しない場合や、Gitコマンドが失敗した場合のフォールバック
+      cdk.Annotations.of(this).addWarning(
+        `Failed to get latest Git tag: ${error}`
+      );
+      return "no-tag-found";
     }
   }
 }
