@@ -12,6 +12,7 @@ import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
 import { McpRuntime } from "./constructs/mcp-runtime/mcp-runtime";
 import { Parameters } from "./parameter-schema";
+import { execSync } from "child_process";
 
 export interface RapidStackProps extends cdk.StackProps {
   readonly webAclId: string;
@@ -20,6 +21,22 @@ export interface RapidStackProps extends cdk.StackProps {
 }
 
 export class RapidStack extends cdk.Stack {
+  /**
+   * Gitリポジトリの最新タグを取得する
+   * @returns 最新のGitタグ、取得できない場合は'no-tag-found'
+   * @private
+   */
+  private getLatestGitTag(): string {
+    try {
+      // git describe --tags --abbrev=0 コマンドで最新のタグを取得
+      return execSync("git describe --tags --abbrev=0").toString().trim();
+    } catch (error) {
+      // タグが存在しない場合や、Gitコマンドが失敗した場合のフォールバック
+      console.warn("Failed to get latest Git tag:", error);
+      return "no-tag-found";
+    }
+  }
+
   constructor(scope: Construct, id: string, props: RapidStackProps) {
     super(scope, id, {
       description:
@@ -120,7 +137,8 @@ export class RapidStack extends cdk.Stack {
         vpc,
         mediumDocThreshold: 40,
         largeDocThreshold: 100,
-        inlineMapConcurrency: props.parameters.checklistInlineMapConcurrency || 1,
+        inlineMapConcurrency:
+          props.parameters.checklistInlineMapConcurrency || 1,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
       }
@@ -197,6 +215,9 @@ export class RapidStack extends cdk.Stack {
       maxAge: 3000,
     });
 
+    // Gitの最新タグを取得
+    const latestGitTag = this.getLatestGitTag();
+
     // 出力
     new cdk.CfnOutput(this, "FrontendURL", {
       value: frontend.getOrigin(),
@@ -231,6 +252,12 @@ export class RapidStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
       value: database.secret.secretArn,
+    });
+
+    // Gitの最新タグをCloudFormation出力に追加
+    new cdk.CfnOutput(this, "LatestGitTag", {
+      value: latestGitTag,
+      description: "デプロイされたコードの最新Gitタグ",
     });
 
     // Fix migrationLambda.functionArn
