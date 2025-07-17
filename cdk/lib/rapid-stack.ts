@@ -183,10 +183,14 @@ export class RapidStack extends cdk.Stack {
       // hostedZoneId: props.hostedZoneId,
     });
 
+    // Gitの最新タグを取得
+    const latestGitTag = this.getLatestGitTag();
+
     frontend.buildViteApp({
       backendApiEndpoint: api.api.url,
       userPoolDomainPrefix: "",
       auth,
+      version: latestGitTag, // Gitタグ情報を追加
     });
 
     documentBucket.addCorsRule({
@@ -198,9 +202,6 @@ export class RapidStack extends cdk.Stack {
       allowedHeaders: ["*"],
       maxAge: 3000,
     });
-
-    // Gitの最新タグを取得
-    const latestGitTag = this.getLatestGitTag();
 
     // 出力
     new cdk.CfnOutput(this, "FrontendURL", {
