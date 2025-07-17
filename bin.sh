@@ -1,17 +1,40 @@
 #!/bin/bash
 echo ""
 echo "==========================================================================="
-echo "  🚀 RAPID: Review & Assessment Powered by Intelligent Documentation        "
-echo "---------------------------------------------------------------------------"
-echo "  このスクリプトはRAPIDアプリケーションをCodeBuildを使用してデプロイします。"
-echo "  ローカル環境に依存せず、AWSアカウント内でデプロイが完結します。          "
+echo "    ____  ___    ____  ________  "
+echo "   / __ \\/   |  / __ \\/  _/ __ \\ "
+echo "  / /_/ / /| | / /_/ // // / / / "
+echo " / _, _/ ___ |/ ____// // /_/ /  "
+echo "/_/ |_/_/  |_/_/   /___/_____/   "
 echo ""
-echo "  ⚠️ 注意: デフォルトでは自動マイグレーションが有効になっています。       "
-echo "     本番環境では --auto-migrate=false を指定することを検討してください。  "
+echo "Review & Assessment Powered by Intelligent Documentation"
+echo "---------------------------------------------------------------------------"
+echo "  This script deploys the RAPID application using AWS CodeBuild."
+echo "  No local environment dependencies - deployment runs entirely in AWS."
+echo ""
+echo "  ⚠️  WARNING: Auto-migration is enabled by default."
+echo "     For production environments, consider using --auto-migrate=false"
 echo "==========================================================================="
 echo ""
 
-# デフォルトパラメータ
+# Prepare working directory (ensure idempotency)
+WORK_DIR="rapid-deploy-$(date +%s)"
+if [ -d "$WORK_DIR" ]; then
+    echo "Removing existing working directory: $WORK_DIR"
+    rm -rf "$WORK_DIR"
+fi
+
+echo "Cloning repository..."
+git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git "$WORK_DIR"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to clone repository"
+    exit 1
+fi
+
+cd "$WORK_DIR"
+echo "Moved to working directory: $(pwd)"
+
+# Default parameters
 ALLOWED_IPV4_RANGES='["0.0.0.0/1","128.0.0.0/1"]'
 ALLOWED_IPV6_RANGES='["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
 DISABLE_IPV6="false"
@@ -23,9 +46,9 @@ COGNITO_DOMAIN_PREFIX=""
 MCP_ADMIN="false"
 REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
-GIT_TAG=""  # 新しいGitタグのパラメータ
+GIT_TAG=""
 
-# コマンドライン引数の解析
+# Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --ipv4-ranges) ALLOWED_IPV4_RANGES="$2"; shift ;;
@@ -40,21 +63,23 @@ while [[ "$#" -gt 0 ]]; do
         --repo-url) REPO_URL="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
         --tag) GIT_TAG="$2"; shift ;;
-        *) echo "不明なパラメータ: $1"; exit 1 ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
 
-# テンプレートの検証
+# Validate CloudFormation template
 aws cloudformation validate-template --template-body file://deploy.yml > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
-    echo "テンプレートの検証に失敗しました"
+    echo "CloudFormation template validation failed"
+    cd ..
+    rm -rf "$WORK_DIR"
     exit 1
 fi
 
 StackName="RapidCodeBuildDeploy"
 
-# CloudFormationスタックのデプロイ
+# Deploy CloudFormation stack
 aws cloudformation deploy \
   --stack-name $StackName \
   --template-file deploy.yml \
@@ -73,8 +98,8 @@ aws cloudformation deploy \
     Branch="$BRANCH" \
     GitTag="$GIT_TAG"
 
-echo "スタック作成の完了を待機中..."
-echo "注意: このスタックにはCDKデプロイに使用されるCodeBuildプロジェクトが含まれています。"
+echo "Waiting for stack creation to complete..."
+echo "Note: This stack includes a CodeBuild project used for CDK deployment."
 spin='-\|/'
 i=0
 while true; do
@@ -82,31 +107,35 @@ while true; do
     if [[ "$status" == "CREATE_COMPLETE" || "$status" == "UPDATE_COMPLETE" || "$status" == "DELETE_COMPLETE" ]]; then
         break
     elif [[ "$status" == "ROLLBACK_COMPLETE" || "$status" == "DELETE_FAILED" || "$status" == "CREATE_FAILED" ]]; then
-        echo "スタック作成に失敗しました。ステータス: $status"
+        echo "Stack creation failed. Status: $status"
         exit 1
     fi
     printf "\r${spin:i++%${#spin}:1}"
     sleep 1
 done
-echo -e "\n完了しました。\n"
+echo -e "\nCompleted.\n"
 
 outputs=$(aws cloudformation describe-stacks --stack-name $StackName --query 'Stacks[0].Outputs')
 projectName=$(echo $outputs | jq -r '.[] | select(.OutputKey=="ProjectName").OutputValue')
 
 if [[ -z "$projectName" ]]; then
-    echo "CodeBuildプロジェクト名の取得に失敗しました"
+    echo "Failed to get CodeBuild project name"
+    cd ..
+    rm -rf "$WORK_DIR"
     exit 1
 fi
 
-echo "CodeBuildプロジェクトを開始します: $projectName..."
+echo "Starting CodeBuild project: $projectName..."
 buildId=$(aws codebuild start-build --project-name $projectName --query 'build.id' --output text)
 
 if [[ -z "$buildId" ]]; then
-    echo "CodeBuildプロジェクトの開始に失敗しました"
+    echo "Failed to start CodeBuild project"
+    cd ..
+    rm -rf "$WORK_DIR"
     exit 1
 fi
 
-echo "CodeBuildプロジェクトの完了を待機中..."
+echo "Waiting for CodeBuild project to complete..."
 while true; do
     buildStatus=$(aws codebuild batch-get-builds --ids $buildId --query 'builds[0].buildStatus' --output text)
     if [[ "$buildStatus" == "SUCCEEDED" || "$buildStatus" == "FAILED" || "$buildStatus" == "STOPPED" ]]; then
@@ -114,17 +143,20 @@ while true; do
     fi
     sleep 10
 done
-echo "CodeBuildプロジェクトが完了しました。ステータス: $buildStatus"
+echo "CodeBuild project completed. Status: $buildStatus"
 
 if [[ "$buildStatus" != "SUCCEEDED" ]]; then
-    echo "ビルドに失敗しました。ログを確認してください。"
+    echo "Build failed. Please check the logs."
     buildDetail=$(aws codebuild batch-get-builds --ids $buildId --query 'builds[0].logs.{groupName: groupName, streamName: streamName}' --output json)
     logGroupName=$(echo $buildDetail | jq -r '.groupName')
     logStreamName=$(echo $buildDetail | jq -r '.streamName')
-    echo "ロググループ名: $logGroupName"
-    echo "ログストリーム名: $logStreamName"
-    echo "以下のコマンドでログを確認できます:"
+    echo "Log Group Name: $logGroupName"
+    echo "Log Stream Name: $logStreamName"
+    echo "You can check the logs with the following command:"
     echo "aws logs get-log-events --log-group-name $logGroupName --log-stream-name $logStreamName"
+    # Cleanup before exit
+    cd ..
+    rm -rf "$WORK_DIR"
     exit 1
 fi
 
@@ -132,16 +164,21 @@ buildDetail=$(aws codebuild batch-get-builds --ids $buildId --query 'builds[0].l
 logGroupName=$(echo $buildDetail | jq -r '.groupName')
 logStreamName=$(echo $buildDetail | jq -r '.streamName')
 
-echo "CDKデプロイのログを取得中..."
+echo "Retrieving CDK deployment logs..."
 logs=$(aws logs get-log-events --log-group-name $logGroupName --log-stream-name $logStreamName)
 frontendUrl=$(echo "$logs" | grep -o 'FrontendURL = [^ ]*' | cut -d' ' -f3 | tr -d '\n,')
 
+# Cleanup process
+cd ..
+echo "Cleaning up working directory: $WORK_DIR"
+rm -rf "$WORK_DIR"
+
 echo ""
 echo "==========================================================================="
-echo "  🎉 デプロイが完了しました！                                              "
+echo "  🎉 Deployment completed successfully!                                    "
 echo "---------------------------------------------------------------------------"
-echo "  フロントエンドURL: $frontendUrl"
+echo "  Frontend URL: $frontendUrl"
 echo ""
-echo "  ログの詳細は以下のコマンドで確認できます:"
+echo "  You can check detailed logs with the following command:"
 echo "  aws logs get-log-events --log-group-name $logGroupName --log-stream-name $logStreamName"
 echo "==========================================================================="

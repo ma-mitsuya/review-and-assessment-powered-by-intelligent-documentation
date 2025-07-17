@@ -57,18 +57,15 @@ This method allows you to deploy directly from your browser using AWS CloudShell
 3. **Run the Deployment Script**
 
    ```bash
-   git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
-   cd review-and-assessment-powered-by-intelligent-documentation
-   chmod +x bin.sh
-   ./bin.sh
+   wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash
    ```
 
-   This script automatically deploys the application using CloudShell.
+   This one-liner command automatically executes everything from repository cloning to deployment.
 
 4. **Specify Custom Parameters (Optional)**
 
    ```bash
-   ./bin.sh --ipv4-ranges '["192.168.0.0/16"]'
+   wget -O - https://raw.githubusercontent.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/main/bin.sh | bash -s -- --ipv4-ranges '["192.168.0.0/16"]'
    ```
 
    Available options:
@@ -139,18 +136,18 @@ RapidStack.FrontendURL = https://xxxxx.cloudfront.net
 
 The following parameters can be customized during CDK deployment:
 
-| Parameter Group       | Parameter Name           | Description                                                                                         | Default Value                              |
-| --------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| **WAF Configuration** | allowedIpV4AddressRanges | IPv4 ranges to allow in the frontend WAF                                                            | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
-|                       | allowedIpV6AddressRanges | IPv6 ranges to allow in the frontend WAF                                                            | ["0000::/1", "8000::/1"] (all allowed)     |
-| **Cognito Settings**  | cognitoUserPoolId        | Existing Cognito User Pool ID                                                                       | Create new                                 |
-|                       | cognitoUserPoolClientId  | Existing Cognito User Pool Client ID                                                                | Create new                                 |
-|                       | cognitoDomainPrefix      | Cognito domain prefix                                                                               | Auto-generated                             |
-|                       | cognitoSelfSignUpEnabled | Whether to enable self-signup for Cognito User Pool                                                 | true (enabled)                             |
-| **Migration**         | autoMigrate              | Whether to automatically run migration during deployment                                            | true (auto-run)                            |
-| **MCP Features**      | mcpAdmin                 | Whether to grant admin privileges to the MCP runtime Lambda function ([details](./mcp-features.md)) | false (disabled)                           |
-| **Map State Concurrency** | reviewMapConcurrency     | Map State concurrency for the Review Processor (must be configured in consultation with throttling limits)    | 1                                          |
-| **Map State Concurrency** | checklistInlineMapConcurrency | Inline Map State concurrency for the Checklist Processor (must be configured in consultation with throttling limits) | 1                               |
+| Parameter Group           | Parameter Name                | Description                                                                                                          | Default Value                              |
+| ------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **WAF Configuration**     | allowedIpV4AddressRanges      | IPv4 ranges to allow in the frontend WAF                                                                             | ["0.0.0.0/1", "128.0.0.0/1"] (all allowed) |
+|                           | allowedIpV6AddressRanges      | IPv6 ranges to allow in the frontend WAF                                                                             | ["0000::/1", "8000::/1"] (all allowed)     |
+| **Cognito Settings**      | cognitoUserPoolId             | Existing Cognito User Pool ID                                                                                        | Create new                                 |
+|                           | cognitoUserPoolClientId       | Existing Cognito User Pool Client ID                                                                                 | Create new                                 |
+|                           | cognitoDomainPrefix           | Cognito domain prefix                                                                                                | Auto-generated                             |
+|                           | cognitoSelfSignUpEnabled      | Whether to enable self-signup for Cognito User Pool                                                                  | true (enabled)                             |
+| **Migration**             | autoMigrate                   | Whether to automatically run migration during deployment                                                             | true (auto-run)                            |
+| **MCP Features**          | mcpAdmin                      | Whether to grant admin privileges to the MCP runtime Lambda function ([details](./mcp-features.md))                  | false (disabled)                           |
+| **Map State Concurrency** | reviewMapConcurrency          | Map State concurrency for the Review Processor (must be configured in consultation with throttling limits)           | 1                                          |
+| **Map State Concurrency** | checklistInlineMapConcurrency | Inline Map State concurrency for the Checklist Processor (must be configured in consultation with throttling limits) | 1                                          |
 
 To configure these, directly edit the `cdk/lib/parameter.ts` file.
 
