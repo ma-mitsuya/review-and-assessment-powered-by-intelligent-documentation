@@ -32,7 +32,9 @@ export class RapidStack extends cdk.Stack {
       return execSync("git describe --tags --abbrev=0").toString().trim();
     } catch (error) {
       // タグが存在しない場合や、Gitコマンドが失敗した場合のフォールバック
-      console.warn("Failed to get latest Git tag:", error);
+      cdk.Annotations.of(this).addWarning(
+        `Failed to get latest Git tag: ${error}`
+      );
       return "no-tag-found";
     }
   }
