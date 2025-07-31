@@ -15,6 +15,7 @@ import { DatabaseConnectionProps } from "./database";
 import { McpRuntime } from "./mcp-runtime/mcp-runtime";
 export interface ReviewProcessorProps {
   documentBucket: s3.IBucket;
+  tempBucket: s3.IBucket; // S3 Temp Storage bucket
   vpc: ec2.IVpc;
   databaseConnection: DatabaseConnectionProps;
   logLevel?: sfn.LogLevel;
@@ -67,6 +68,7 @@ export class ReviewProcessor extends Construct {
         },
         environment: {
           DOCUMENT_BUCKET: props.documentBucket.bucketName,
+          TEMP_BUCKET: props.tempBucket.bucketName,
           BEDROCK_REGION: "us-west-2",
         },
         securityGroups: [this.securityGroup],
@@ -95,6 +97,7 @@ export class ReviewProcessor extends Construct {
         // securityGroups: [this.securityGroup],
         environment: {
           DOCUMENT_BUCKET: props.documentBucket.bucketName,
+          TEMP_BUCKET: props.tempBucket.bucketName,
           BEDROCK_REGION: "us-west-2",
           // MCPサーバーLambdaのARNを設定
           PY_MCP_LAMBDA_ARN: props.McpRuntime.pythonMcpServer.functionArn,
@@ -113,6 +116,7 @@ export class ReviewProcessor extends Construct {
 
     // Lambda関数にS3バケットへのアクセス権限を付与
     props.documentBucket.grantReadWrite(this.reviewMcpLambda);
+    props.tempBucket.grantReadWrite(this.reviewMcpLambda);
 
     // Lambda関数にBedrockへのアクセス権限を付与
     this.reviewMcpLambda.addToRolePolicy(
@@ -131,6 +135,7 @@ export class ReviewProcessor extends Construct {
 
     // Lambda関数にS3バケットへのアクセス権限を付与
     props.documentBucket.grantReadWrite(this.reviewLambda);
+    props.tempBucket.grantReadWrite(this.reviewLambda);
 
     // Lambda関数にBedrockへのアクセス権限を付与
     this.reviewLambda.addToRolePolicy(
@@ -308,6 +313,7 @@ export class ReviewProcessor extends Construct {
 
     // S3バケットへのアクセス権限を追加
     props.documentBucket.grantReadWrite(stateMachineRole);
+    props.tempBucket.grantReadWrite(stateMachineRole);
 
     // ログ設定
     const logGroup = new logs.LogGroup(this, "StateMachineLogGroup", {

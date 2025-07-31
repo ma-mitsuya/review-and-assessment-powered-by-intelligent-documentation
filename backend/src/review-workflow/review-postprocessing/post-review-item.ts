@@ -6,6 +6,8 @@ import {
   REVIEW_FILE_TYPE,
   ReviewResultDomain,
 } from "../../api/features/review/domain/model/review";
+import { S3TempStorage } from "../../utils/s3-temp";
+import { getS3Client } from "../../api/core/s3";
 
 // TypeScript declaration for console
 declare const console: {
@@ -62,6 +64,12 @@ export async function postReviewItemProcessor(
   console.log(`[DEBUG POST] Processing review result for ${reviewResultId}`);
 
   try {
+    // 🎯 S3参照から実データを復元
+    const s3TempStorage = new S3TempStorage(
+      getS3Client(),
+      process.env.TEMP_BUCKET || ""
+    );
+    const resolvedReviewData = await s3TempStorage.resolve(reviewData);
     // Get the current review result
     const reviewResultRepository = await makePrismaReviewResultRepository();
     const current = await reviewResultRepository.findDetailedReviewResultById({
@@ -73,7 +81,7 @@ export async function postReviewItemProcessor(
     }
 
     // Use explicit review type from the response instead of detection
-    const reviewType = reviewData.reviewType || "PDF"; // Default to PDF for backward compatibility
+    const reviewType = resolvedReviewData.reviewType || "PDF"; // Default to PDF for backward compatibility
     console.log(`[DEBUG POST] Using explicit review type: ${reviewType}`);
 
     let updated;
@@ -98,7 +106,7 @@ export async function postReviewItemProcessor(
       }));
 
       // Handle bounding boxes
-      const boundingBoxes = reviewData.boundingBoxes || [];
+      const boundingBoxes = resolvedReviewData.boundingBoxes || [];
 
       console.log(
         `[DEBUG POST] Processing image review with ${imageBuffers.length} images and ${boundingBoxes.length} bounding boxes`
@@ -111,28 +119,28 @@ export async function postReviewItemProcessor(
       }));
 
       // Convert reviewMeta from snake_case to camelCase
-      if (reviewData.reviewMeta) {
-        reviewData.reviewMeta = convertSnakeToCamelCase(reviewData.reviewMeta);
+      if (resolvedReviewData.reviewMeta) {
+        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(resolvedReviewData.reviewMeta);
       }
 
       // Use the unified review data method
       updated = ReviewResultDomain.fromReviewData({
         current,
-        result: reviewData.result || "fail",
-        confidenceScore: reviewData.confidence || 0.5,
-        explanation: reviewData.explanation || "",
-        shortExplanation: reviewData.shortExplanation || "",
+        result: resolvedReviewData.result || "fail",
+        confidenceScore: resolvedReviewData.confidence || 0.5,
+        explanation: resolvedReviewData.explanation || "",
+        shortExplanation: resolvedReviewData.shortExplanation || "",
         documents,
         reviewType: "IMAGE",
         typeSpecificData: {
-          usedImageIndexes: reviewData.usedImageIndexes || [],
+          usedImageIndexes: resolvedReviewData.usedImageIndexes || [],
           boundingBoxes,
         },
-        verificationDetails: reviewData.verificationDetails,
-        reviewMeta: reviewData.reviewMeta || null,
-        inputTokens: reviewData.inputTokens || null,
-        outputTokens: reviewData.outputTokens || null,
-        totalCost: reviewData.totalCost || null,
+        verificationDetails: resolvedReviewData.verificationDetails,
+        reviewMeta: resolvedReviewData.reviewMeta || null,
+        inputTokens: resolvedReviewData.inputTokens || null,
+        outputTokens: resolvedReviewData.outputTokens || null,
+        totalCost: resolvedReviewData.totalCost || null,
       });
     } else {
       // Get the job detail to access document information
@@ -152,7 +160,7 @@ export async function postReviewItemProcessor(
         return {
           documentId: docId,
           filename: doc ? doc.filename : "",
-          pageNumber: reviewData.pageNumber || 1,
+          pageNumber: resolvedReviewData.pageNumber || 1,
         };
       });
 
@@ -161,27 +169,27 @@ export async function postReviewItemProcessor(
       );
 
       // Convert reviewMeta from snake_case to camelCase
-      if (reviewData.reviewMeta) {
-        reviewData.reviewMeta = convertSnakeToCamelCase(reviewData.reviewMeta);
+      if (resolvedReviewData.reviewMeta) {
+        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(resolvedReviewData.reviewMeta);
       }
 
       // Use the unified review data method
       updated = ReviewResultDomain.fromReviewData({
         current,
-        result: reviewData.result || "fail",
-        confidenceScore: reviewData.confidence || 0.5,
-        explanation: reviewData.explanation || "",
-        shortExplanation: reviewData.shortExplanation || "",
+        result: resolvedReviewData.result || "fail",
+        confidenceScore: resolvedReviewData.confidence || 0.5,
+        explanation: resolvedReviewData.explanation || "",
+        shortExplanation: resolvedReviewData.shortExplanation || "",
         documents,
         reviewType: "PDF",
         typeSpecificData: {
-          extractedText: reviewData.extractedText || "",
+          extractedText: resolvedReviewData.extractedText || "",
         },
-        verificationDetails: reviewData.verificationDetails,
-        reviewMeta: reviewData.reviewMeta || null,
-        inputTokens: reviewData.inputTokens || null,
-        outputTokens: reviewData.outputTokens || null,
-        totalCost: reviewData.totalCost || null,
+        verificationDetails: resolvedReviewData.verificationDetails,
+        reviewMeta: resolvedReviewData.reviewMeta || null,
+        inputTokens: resolvedReviewData.inputTokens || null,
+        outputTokens: resolvedReviewData.outputTokens || null,
+        totalCost: resolvedReviewData.totalCost || null,
       });
     }
 
@@ -190,13 +198,13 @@ export async function postReviewItemProcessor(
       newResult: updated,
     });
 
-    console.log(`[DEBUG POST] Updated review result to: ${reviewData.result}`);
+    console.log(`[DEBUG POST] Updated review result to: ${resolvedReviewData.result}`);
 
     return {
       status: "success",
       reviewResultId,
       checkId,
-      result: reviewData.result,
+      result: resolvedReviewData.result,
     };
   } catch (error) {
     console.error(`[DEBUG POST] Error processing review result: ${error}`);
