@@ -120,7 +120,9 @@ export async function postReviewItemProcessor(
 
       // Convert reviewMeta from snake_case to camelCase
       if (resolvedReviewData.reviewMeta) {
-        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(resolvedReviewData.reviewMeta);
+        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(
+          resolvedReviewData.reviewMeta
+        );
       }
 
       // Use the unified review data method
@@ -170,7 +172,9 @@ export async function postReviewItemProcessor(
 
       // Convert reviewMeta from snake_case to camelCase
       if (resolvedReviewData.reviewMeta) {
-        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(resolvedReviewData.reviewMeta);
+        resolvedReviewData.reviewMeta = convertSnakeToCamelCase(
+          resolvedReviewData.reviewMeta
+        );
       }
 
       // Use the unified review data method
@@ -198,7 +202,9 @@ export async function postReviewItemProcessor(
       newResult: updated,
     });
 
-    console.log(`[DEBUG POST] Updated review result to: ${resolvedReviewData.result}`);
+    console.log(
+      `[DEBUG POST] Updated review result to: ${resolvedReviewData.result}`
+    );
 
     return {
       status: "success",

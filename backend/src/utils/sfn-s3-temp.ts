@@ -13,10 +13,10 @@ export function withS3TempResolve<TInput, TOutput>(
       getS3Client(),
       process.env.TEMP_BUCKET || ""
     );
-    
+
     // 🎯 入力データがS3参照なら自動復元
     const resolvedInput = await s3TempStorage.resolve(input);
-    
+
     // 実際の処理を実行
     return await handler(resolvedInput);
   };
@@ -34,13 +34,13 @@ export function withS3TempStore<TInput, TOutput>(
       getS3Client(),
       process.env.TEMP_BUCKET || ""
     );
-    
+
     // 入力データがS3参照なら復元
     const resolvedInput = await s3TempStorage.resolve(input);
-    
+
     // 実際の処理を実行
     const output = await handler(resolvedInput);
-    
+
     // 🎯 出力データをS3に保存
     return await s3TempStorage.store(output);
   };
