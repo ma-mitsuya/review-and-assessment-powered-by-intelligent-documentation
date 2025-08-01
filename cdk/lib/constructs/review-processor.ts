@@ -153,6 +153,9 @@ export class ReviewProcessor extends Construct {
         reviewJobId: sfn.JsonPath.stringAt("$.reviewJobId"),
       }),
       resultPath: "$.prepareResult",
+      resultSelector: {
+        "Payload.$": "$.Payload"
+      },
     });
 
     // Map状態 - チェックリスト項目を並列処理
@@ -184,6 +187,9 @@ export class ReviewProcessor extends Construct {
           userId: sfn.JsonPath.stringAt("$$.Execution.Input.userId"),
         }),
         resultPath: "$.preItemResult",
+        resultSelector: {
+          "Payload.$": "$.Payload"
+        },
       }
     );
 
@@ -207,6 +213,9 @@ export class ReviewProcessor extends Construct {
         mcpServers: sfn.JsonPath.stringAt("$.preItemResult.Payload.mcpServers"),
       }),
       resultPath: "$.mcpResult",
+      resultSelector: {
+        "Payload.$": "$.Payload"
+      },
     });
 
     // Step 3: Post-processing - 結果の保存
@@ -226,6 +235,9 @@ export class ReviewProcessor extends Construct {
           reviewData: sfn.JsonPath.stringAt("$.mcpResult.Payload"),
         }),
         resultPath: "$.itemResult",
+        resultSelector: {
+          "Payload.$": "$.Payload"
+        },
       }
     );
 
