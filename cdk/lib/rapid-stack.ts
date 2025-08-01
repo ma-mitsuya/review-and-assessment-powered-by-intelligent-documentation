@@ -11,6 +11,7 @@ import { Auth } from "./constructs/auth";
 import { Frontend } from "./constructs/frontend";
 import { PrismaMigration } from "./constructs/prisma-migration";
 import { McpRuntime } from "./constructs/mcp-runtime/mcp-runtime";
+import { S3TempStorage } from "./constructs/s3-temp-storage";
 import { Parameters } from "./parameter-schema";
 import { execSync } from "child_process";
 
@@ -112,6 +113,11 @@ export class RapidStack extends cdk.Stack {
       admin: props.parameters.mcpAdmin,
     });
 
+    // S3 Temp Storage for Step Functions large data handling
+    const s3TempStorage = new S3TempStorage(this, "S3TempStorage", {
+      accessLogBucket,
+    });
+
     // ドキュメント処理ワークフローの作成
     const documentProcessor = new ChecklistProcessor(
       this,
@@ -131,6 +137,7 @@ export class RapidStack extends cdk.Stack {
     // 審査ワークフローの作成
     const reviewProcessor = new ReviewProcessor(this, "ReviewProcessor", {
       documentBucket,
+      tempBucket: s3TempStorage.bucket,
       vpc,
       logLevel: sfn.LogLevel.ALL,
       maxConcurrency: props.parameters.reviewMapConcurrency || 1,

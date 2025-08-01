@@ -5,9 +5,11 @@ from typing import Any, Dict, List, Optional
 import boto3
 from agent import SONNET_MODEL_ID, process_review
 from utils import check_environment_variables, get_language_name
+from s3_temp_utils import S3TempStorage
 
 # Environment variables
 DOCUMENT_BUCKET = os.environ.get("DOCUMENT_BUCKET", "")
+TEMP_BUCKET = os.environ.get("TEMP_BUCKET", "")
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-west-2")
 
 
@@ -102,7 +104,10 @@ def handler(event, context):
             result["verificationDetails"] = review_data["verificationDetails"]
 
         print(f"[Strands MCP] Review complete with result: {result['result']}")
-        return result
+        
+        # 🎯 大きなデータをS3に保存して参照情報を返す
+        s3_temp = S3TempStorage(TEMP_BUCKET)
+        return s3_temp.store(result)
 
     except Exception as e:
         print(f"[Strands MCP] Error processing review item {review_result_id}: {str(e)}")
