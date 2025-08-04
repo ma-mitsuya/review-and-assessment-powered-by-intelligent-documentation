@@ -49,7 +49,21 @@ Parameters:
     Type: String
     Default: "false"
     Description: MCPランタイムLambda関数に管理者権限を付与するかどうか
-    AllowedValues: ["true", "false"]
+
+  BedrockRegion:
+    Type: String
+    Default: "us-west-2"
+    Description: Amazon Bedrockを利用するリージョン
+
+  DocumentProcessingModelId:
+    Type: String
+    Default: ""
+    Description: ドキュメント処理に使用するAIモデルID
+
+  ImageReviewModelId:
+    Type: String
+    Default: ""
+    Description: 画像レビューに使用するAIモデルID
 
   RepoUrl:
     Type: String
@@ -174,6 +188,10 @@ Resources:
             Value: !Ref CognitoDomainPrefix
           - Name: MCP_ADMIN
             Value: !Ref McpAdmin
+          - Name: DOCUMENT_PROCESSING_MODEL_ID
+            Value: !Ref DocumentProcessingModelId
+          - Name: IMAGE_REVIEW_MODEL_ID
+            Value: !Ref ImageReviewModelId
           - Name: REPO_URL
             Value: !Ref RepoUrl
           - Name: BRANCH
@@ -224,6 +242,9 @@ Resources:
                   "if [ ! -z \"$COGNITO_USER_POOL_ID\" ]; then echo '  cognitoUserPoolId: \"'$COGNITO_USER_POOL_ID'\",' >> cdk/lib/parameter.ts; fi",
                   "if [ ! -z \"$COGNITO_USER_POOL_CLIENT_ID\" ]; then echo '  cognitoUserPoolClientId: \"'$COGNITO_USER_POOL_CLIENT_ID'\",' >> cdk/lib/parameter.ts; fi",
                   "if [ ! -z \"$COGNITO_DOMAIN_PREFIX\" ]; then echo '  cognitoDomainPrefix: \"'$COGNITO_DOMAIN_PREFIX'\",' >> cdk/lib/parameter.ts; fi",
+                  "echo '' >> cdk/lib/parameter.ts",
+                  "echo '  // Bedrock設定' >> cdk/lib/parameter.ts",
+                  "echo '  bedrockRegion: \"'$BEDROCK_REGION'\",' >> cdk/lib/parameter.ts",
                   "echo '' >> cdk/lib/parameter.ts",
                   "echo '  // MCP設定' >> cdk/lib/parameter.ts",
                   "if [ \"$MCP_ADMIN\" = \"true\" ]; then echo '  mcpAdmin: true,' >> cdk/lib/parameter.ts; else echo '  mcpAdmin: false,' >> cdk/lib/parameter.ts; fi",

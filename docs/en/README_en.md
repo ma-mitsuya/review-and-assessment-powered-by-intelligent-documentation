@@ -43,12 +43,12 @@ This method allows you to deploy directly from your browser using AWS CloudShell
 
 1. **Enable Amazon Bedrock Models**
 
-   Access [Bedrock Model Access](https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess) from the AWS Management Console and enable access to the following models:
+   Access Bedrock Model Access from the AWS Management Console and enable access to the following models:
 
    - Anthropic Claude 3.7 Sonnet
    - Amazon Nova Premier
 
-   Enable model access in the Oregon (us-west-2) region.
+   By default, the Oregon (us-west-2) region is used, but you can change it with the `--bedrock-region` option.
 
 2. **Open AWS CloudShell**
 
@@ -79,6 +79,9 @@ This method allows you to deploy directly from your browser using AWS CloudShell
    - `--cognito-user-pool-client-id`: Existing Cognito User Pool Client ID (creates new if not specified)
    - `--cognito-domain-prefix`: Prefix for the Cognito domain (auto-generated if not specified)
    - `--mcp-admin`: Whether to grant admin privileges to the MCP runtime Lambda function (true/false)
+   - `--bedrock-region`: Region to use for Amazon Bedrock (default: us-west-2)
+   - `--document-model`: AI model ID for document processing (default: us.deepseek.r1-v1:0)
+   - `--image-model`: AI model ID for image review processing (default: us.amazon.nova-premier-v1:0)
    - `--repo-url`: URL of the repository to deploy
    - `--branch`: Branch name to deploy
    - `--tag`: Deploy a specific Git tag
@@ -148,6 +151,33 @@ The following parameters can be customized during CDK deployment:
 | **MCP Features**          | mcpAdmin                      | Whether to grant admin privileges to the MCP runtime Lambda function ([details](./mcp-features.md))                  | false (disabled)                           |
 | **Map State Concurrency** | reviewMapConcurrency          | Map State concurrency for the Review Processor (must be configured in consultation with throttling limits)           | 1                                          |
 | **Map State Concurrency** | checklistInlineMapConcurrency | Inline Map State concurrency for the Checklist Processor (must be configured in consultation with throttling limits) | 1                                          |
+
+### AI Model Customization
+
+This application uses Strands agents with tools such as file reading, so you must select **models that support tool use**.
+
+**Examples of tool use supported models**:
+
+- `mistral.mistral-large-2407-v1:0` (Mistral Large 2)
+- `us.anthropic.claude-3-5-sonnet-20241022-v2:0` (Claude 3.5 Sonnet)
+- `us.amazon.nova-premier-v1:0` (Amazon Nova Premier)
+
+**Important Notes**:
+
+- **Cross-region inference profiles**: When using cross-region inference, regional prefixes like `us.`, `eu.`, `apac.` are required for model IDs
+
+- **Official Documentation**: [Supported models and model features - Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html)
+
+**Configuration Example**:
+
+```typescript
+// cdk/lib/parameter.ts
+export const parameters = {
+  documentProcessingModelId: "mistral.mistral-large-2407-v1:0", // Mistral Large 2
+  bedrockRegion: "ap-northeast-1", // Tokyo region
+  // ...
+};
+```
 
 To configure these, directly edit the `cdk/lib/parameter.ts` file.
 

@@ -89,15 +89,90 @@ IMAGE_FILE_EXTENSIONS = [
 ]
 PDF_FILE_EXTENSIONS = [".pdf"]
 
-# Model ID constants
-SONNET_MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"  # For PDF documents
-NOVA_PREMIER_MODEL_ID = "us.amazon.nova-premier-v1:0"  # For image processing
+# Default model IDs
+DEFAULT_DOCUMENT_MODEL_ID = (
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0"  # For all processing
+)
+DEFAULT_IMAGE_MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"  # For image processing (same as document by default)
+
+# Get model IDs from environment variables with fallback to defaults
+DOCUMENT_MODEL_ID = os.environ.get(
+    "DOCUMENT_PROCESSING_MODEL_ID", DEFAULT_DOCUMENT_MODEL_ID
+)
+IMAGE_MODEL_ID = os.environ.get("IMAGE_REVIEW_MODEL_ID", DEFAULT_IMAGE_MODEL_ID)
+
+# Log model configuration
+if os.environ.get("DOCUMENT_PROCESSING_MODEL_ID"):
+    print(f"INFO: Using custom document processing model: {DOCUMENT_MODEL_ID}")
+else:
+    print(f"INFO: Using default document processing model: {DOCUMENT_MODEL_ID}")
+
+if os.environ.get("IMAGE_REVIEW_MODEL_ID"):
+    print(f"INFO: Using custom image review model: {IMAGE_MODEL_ID}")
+else:
+    print(f"INFO: Using default image review model: {IMAGE_MODEL_ID}")
+
+# Backward compatibility
+SONNET_MODEL_ID = DOCUMENT_MODEL_ID
+NOVA_PREMIER_MODEL_ID = IMAGE_MODEL_ID
 
 # Get environment variables
 PY_MCP_LAMBDA_ARN = os.environ.get("PY_MCP_LAMBDA_ARN", "")
 NODE_MCP_LAMBDA_ARN = os.environ.get("NODE_MCP_LAMBDA_ARN", "")
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-west-2")
+# Models that support prompt and tool caching
+# Base model IDs that support prompt and tool caching (without region prefixes)
+CACHE_SUPPORTED_BASE_MODELS = {
+    # Anthropic Claude models
+    "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "anthropic.claude-3-5-sonnet-20240620-v1:0",
+    "anthropic.claude-3-5-haiku-20241022-v1:0",
+    "anthropic.claude-3-opus-20240229-v1:0",
+    "anthropic.claude-3-sonnet-20240229-v1:0",
+    "anthropic.claude-3-haiku-20240307-v1:0",
+    "anthropic.claude-sonnet-4-20250514-v1:0",
+    "anthropic.claude-opus-4-20250514-v1:0",
+    "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    # # Amazon Nova models
+    # "amazon.nova-premier-v1:0",
+    # "amazon.nova-pro-v1:0",
+    # "amazon.nova-lite-v1:0",
+    # "amazon.nova-micro-v1:0",
+}
+
+
+def supports_caching(model_id: str) -> bool:
+    """
+    Check if the given model supports prompt and tool caching.
+
+    Handles both direct model IDs and cross-region inference profiles
+    (e.g., us.anthropic.claude-3-5-sonnet-20241022-v2:0, eu.amazon.nova-premier-v1:0).
+
+    Args:
+        model_id: Bedrock model ID to check
+
+    Returns:
+        True if the model supports caching, False otherwise
+    """
+    # First check if it's a direct model ID
+    if model_id in CACHE_SUPPORTED_BASE_MODELS:
+        return True
+
+    # Check if it's a cross-region inference profile
+    # Pattern: {region}.{model_id} where region is lowercase letters
+    import re
+
+    cross_region_pattern = re.compile(r"^[a-z]+\.")
+    match = cross_region_pattern.match(model_id)
+    if match:
+        # Extract the base model ID by removing the region prefix
+        prefix_end = match.end()
+        base_model_id = model_id[prefix_end:]
+        return base_model_id in CACHE_SUPPORTED_BASE_MODELS
+
+    # Model not supported
+    return False
 
 
 def create_mcp_client(mcp_server_cfg: Dict[str, Any]) -> MCPClient:
@@ -181,7 +256,7 @@ def list_tools_sync(client: MCPClient) -> List[Dict[str, Any]]:
 def run_strands_agent(
     prompt: str,
     file_paths: List[str],
-    model_id: str = SONNET_MODEL_ID,
+    model_id: str = DOCUMENT_MODEL_ID,
     system_prompt: str = "You are an expert document reviewer.",
     temperature: float = 0.0,
     base_tools: Optional[List[Any]] = None,
@@ -250,14 +325,28 @@ def run_strands_agent(
 
         # Create Strands agent
         logger.info(f"Creating Strands agent with model: {model_id}")
+
+        # Check if model supports caching
+        model_supports_cache = supports_caching(model_id)
+        logger.info(f"Model {model_id} caching support: {model_supports_cache}")
+
+        # Configure BedrockModel with conditional caching
+        bedrock_config = {
+            "model_id": model_id,
+            "region_name": BEDROCK_REGION,
+            "temperature": temperature,
+            "streaming": False,  # Always disable streaming since this app doesn't use streaming
+        }
+
+        if model_supports_cache:
+            bedrock_config["cache_prompt"] = "default"  # Enable system prompt caching
+            bedrock_config["cache_tools"] = "default"  # Enable tool definitions caching
+            logger.info("Caching enabled for system prompt and tools")
+        else:
+            logger.info("Caching disabled - model does not support prompt caching")
+
         agent = Agent(
-            model=BedrockModel(
-                model_id=model_id,
-                region_name=BEDROCK_REGION,
-                temperature=temperature,
-                cache_prompt="default",  # Enable system prompt caching
-                cache_tools="default",  # Enable tool definitions caching
-            ),
+            model=BedrockModel(**bedrock_config),
             tools=tools,
             system_prompt=system_prompt,
         )
@@ -542,7 +631,7 @@ def process_review(
     check_name: str,
     check_description: str,
     language_name: str = "日本語",
-    model_id: str = SONNET_MODEL_ID,
+    model_id: str = DOCUMENT_MODEL_ID,
     mcpServers: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
@@ -614,16 +703,16 @@ def process_review(
         # Select appropriate model and prompt based on file types
         selected_model_id = model_id
         if has_images:
-            # selected_model_id = NOVA_PREMIER_MODEL_ID  # Nova can detect bounding boxes
-            selected_model_id = SONNET_MODEL_ID
-            logger.info(
-                f"Using Nova Premier model for image processing: {selected_model_id}"
-            )
+            # Use image-specific model
+            selected_model_id = IMAGE_MODEL_ID
+            logger.info(f"Using image processing model: {selected_model_id}")
             prompt = get_image_review_prompt(
                 language_name, check_name, check_description, selected_model_id
             )
             logger.info("Using image review prompt template")
         else:
+            # Use document processing model for non-image files
+            selected_model_id = DOCUMENT_MODEL_ID
             prompt = get_document_review_prompt(
                 language_name, check_name, check_description
             )

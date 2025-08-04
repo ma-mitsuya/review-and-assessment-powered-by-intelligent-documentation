@@ -21,6 +21,24 @@ export interface ReviewProcessorProps {
   logLevel?: sfn.LogLevel;
   maxConcurrency?: number; // Add parameter for controlling parallel executions
   McpRuntime: McpRuntime; // MCP runner for enhanced review capabilities
+
+  /**
+   * ドキュメント処理に使用するAIモデルID
+   * @default "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+   */
+  documentProcessingModelId: string;
+
+  /**
+   * 画像レビューに使用するAIモデルID
+   * @default "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+   */
+  imageReviewModelId: string;
+
+  /**
+   * Amazon Bedrockを利用するリージョン
+   * @default "us-west-2"
+   */
+  bedrockRegion: string;
 }
 
 export class ReviewProcessor extends Construct {
@@ -69,7 +87,9 @@ export class ReviewProcessor extends Construct {
         environment: {
           DOCUMENT_BUCKET: props.documentBucket.bucketName,
           TEMP_BUCKET: props.tempBucket.bucketName,
-          BEDROCK_REGION: "us-west-2",
+          BEDROCK_REGION: props.bedrockRegion,
+          DOCUMENT_PROCESSING_MODEL_ID: props.documentProcessingModelId,
+          IMAGE_REVIEW_MODEL_ID: props.imageReviewModelId,
         },
         securityGroups: [this.securityGroup],
         database: props.databaseConnection,
@@ -98,7 +118,9 @@ export class ReviewProcessor extends Construct {
         environment: {
           DOCUMENT_BUCKET: props.documentBucket.bucketName,
           TEMP_BUCKET: props.tempBucket.bucketName,
-          BEDROCK_REGION: "us-west-2",
+          BEDROCK_REGION: props.bedrockRegion,
+          DOCUMENT_PROCESSING_MODEL_ID: props.documentProcessingModelId,
+          IMAGE_REVIEW_MODEL_ID: props.imageReviewModelId,
           // MCPサーバーLambdaのARNを設定
           PY_MCP_LAMBDA_ARN: props.McpRuntime.pythonMcpServer.functionArn,
           NODE_MCP_LAMBDA_ARN: props.McpRuntime.typescriptMcpServer.functionArn,
@@ -154,7 +176,7 @@ export class ReviewProcessor extends Construct {
       }),
       resultPath: "$.prepareResult",
       resultSelector: {
-        "Payload.$": "$.Payload"
+        "Payload.$": "$.Payload",
       },
     });
 
@@ -188,7 +210,7 @@ export class ReviewProcessor extends Construct {
         }),
         resultPath: "$.preItemResult",
         resultSelector: {
-          "Payload.$": "$.Payload"
+          "Payload.$": "$.Payload",
         },
       }
     );
@@ -214,7 +236,7 @@ export class ReviewProcessor extends Construct {
       }),
       resultPath: "$.mcpResult",
       resultSelector: {
-        "Payload.$": "$.Payload"
+        "Payload.$": "$.Payload",
       },
     });
 
@@ -236,7 +258,7 @@ export class ReviewProcessor extends Construct {
         }),
         resultPath: "$.itemResult",
         resultSelector: {
-          "Payload.$": "$.Payload"
+          "Payload.$": "$.Payload",
         },
       }
     );

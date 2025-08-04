@@ -19,8 +19,16 @@ import { ParsedChecklistItem, ProcessWithLLMResult } from "../common/types";
 import { getLanguageName, DEFAULT_LANGUAGE } from "../../utils/language";
 import { ulid } from "ulid";
 
-// Define model ID
-const MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
+// Define model ID with environment variable override
+const DEFAULT_MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // Sonnet 3.7
+const MODEL_ID = process.env.DOCUMENT_PROCESSING_MODEL_ID || DEFAULT_MODEL_ID;
+
+// Log model configuration
+if (process.env.DOCUMENT_PROCESSING_MODEL_ID) {
+  console.info(`Using custom document processing model: ${MODEL_ID}`);
+} else {
+  console.info(`Using default document processing model: ${MODEL_ID}`);
+}
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 

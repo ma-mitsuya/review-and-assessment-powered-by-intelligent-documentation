@@ -43,12 +43,12 @@
 
 1. **Amazon Bedrock モデルの有効化**
 
-   AWS Management Console から [Bedrock モデルアクセス](https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess)にアクセスし、以下のモデルへのアクセスを有効化してください：
+   AWS Management Console から Bedrock モデルアクセスにアクセスし、以下のモデルへのアクセスを有効化してください：
 
    - Anthropic Claude 3.7 Sonnet
    - Amazon Nova Premier
 
-   オレゴン (us-west-2) リージョンでモデルアクセスを有効化してください。
+   デフォルトではオレゴン (us-west-2) リージョンを使用しますが、`--bedrock-region` オプションで変更可能です。
 
 2. **AWS CloudShell を開く**
 
@@ -79,6 +79,9 @@
    - `--cognito-user-pool-client-id`: 既存の Cognito User Pool Client ID（指定しない場合は新規作成）
    - `--cognito-domain-prefix`: Cognito ドメインのプレフィックス（指定しない場合は自動生成）
    - `--mcp-admin`: MCP ランタイム Lambda 関数に管理者権限を付与するかどうか（true/false）
+   - `--bedrock-region`: Amazon Bedrock を利用するリージョン（デフォルト：us-west-2）
+   - `--document-model`: ドキュメント処理に使用する AI モデル ID（デフォルト：us.deepseek.r1-v1:0）
+   - `--image-model`: 画像レビューに使用する AI モデル ID（デフォルト：us.amazon.nova-premier-v1:0）
    - `--repo-url`: デプロイするリポジトリの URL
    - `--branch`: デプロイするブランチ名
    - `--tag`: デプロイする特定の Git タグ
@@ -148,6 +151,33 @@ CDK デプロイ時に以下のパラメータをカスタマイズできます:
 | **MCP 機能**           | mcpAdmin                      | MCP ランタイム Lambda 関数に管理者権限を付与するかどうか ([詳細](./docs/ja/mcp-features.md))   | false (無効)                              |
 | **Map State 並行処理** | reviewMapConcurrency          | レビュープロセッサの Map State 並行処理数 (スロットリングと相談して設定が必要)                 | 1                                         |
 | **Map State 並行処理** | checklistInlineMapConcurrency | チェックリストプロセッサのインライン Map State 並行処理数 (スロットリングと相談して設定が必要) | 1                                         |
+
+### AI モデルのカスタマイズ
+
+このアプリケーションは Strands エージェントがファイル読み込みなどのツールを使用するため、**ツール使用に対応したモデル**を選択する必要があります。
+
+**ツール使用対応モデルの例**:
+
+- `mistral.mistral-large-2407-v1:0` (Mistral Large 2)
+- `us.anthropic.claude-3-5-sonnet-20241022-v2:0` (Claude 3.5 Sonnet)
+- `us.amazon.nova-premier-v1:0` (Amazon Nova Premier)
+
+**重要な注意事項**:
+
+- **Cross-region inference profiles**: Cross-region inference を利用する場合は、`us.`, `eu.`, `apac.` などの地域プレフィックス付きモデル ID が必須です
+
+- **公式ドキュメント**: [Amazon Bedrock でサポートされているモデルと機能](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html)
+
+**設定例**:
+
+```typescript
+// cdk/lib/parameter.ts
+export const parameters = {
+  documentProcessingModelId: "mistral.mistral-large-2407-v1:0", // Mistral Large 2
+  bedrockRegion: "ap-northeast-1", // 東京リージョン
+  // ...
+};
+```
 
 設定するには`cdk/lib/parameter.ts` ファイルを直接編集してください。
 

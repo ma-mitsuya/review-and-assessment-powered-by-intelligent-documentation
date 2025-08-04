@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import boto3
-from agent import SONNET_MODEL_ID, process_review
+from agent import DOCUMENT_MODEL_ID, process_review
 from utils import check_environment_variables, get_language_name
 from s3_temp_utils import S3TempStorage
 
@@ -70,7 +70,7 @@ def handler(event, context):
             check_name=check_name,
             check_description=check_description,
             language_name=language_name,
-            model_id=SONNET_MODEL_ID,  # Default model, will be overridden for images
+            model_id=DOCUMENT_MODEL_ID,  # Default model, will be overridden for images
             mcpServers=mcp_servers,
         )
 
