@@ -59,6 +59,18 @@ export interface ChecklistProcessorProps {
    * @default ERROR
    */
   logLevel?: sfn.LogLevel;
+
+  /**
+   * ドキュメント処理に使用するAIモデルID
+   * @default "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+   */
+  documentProcessingModelId: string;
+
+  /**
+   * Amazon Bedrockを利用するリージョン
+   * @default "us-west-2"
+   */
+  bedrockRegion: string;
 }
 
 /**
@@ -121,7 +133,8 @@ export class ChecklistProcessor extends Construct {
         },
         environment: {
           DOCUMENT_BUCKET: props.documentBucket.bucketName,
-          BEDROCK_REGION: "us-west-2",
+          BEDROCK_REGION: props.bedrockRegion,
+          DOCUMENT_PROCESSING_MODEL_ID: props.documentProcessingModelId,
         },
         securityGroups: [this.securityGroup],
         database: props.databaseConnection,

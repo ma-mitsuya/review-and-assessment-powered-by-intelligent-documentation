@@ -16,8 +16,16 @@ import {
 import { makePrismaCheckRepository } from "../../api/features/checklist/domain/repository";
 import { getLanguageName, DEFAULT_LANGUAGE } from "../../utils/language";
 
-// Define model ID
-const MODEL_ID = "us.amazon.nova-premier-v1:0"; // Amazon Nova Premier cross-region inference profile
+// Define model ID with environment variable override
+const DEFAULT_MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"; // 現在の実装に合わせてSonnetをデフォルトに
+const MODEL_ID = process.env.IMAGE_REVIEW_MODEL_ID || DEFAULT_MODEL_ID;
+
+// Log model configuration
+if (process.env.IMAGE_REVIEW_MODEL_ID) {
+  console.info(`Using custom image review model: ${MODEL_ID}`);
+} else {
+  console.info(`Using default image review model: ${MODEL_ID}`);
+}
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || "us-west-2";
 

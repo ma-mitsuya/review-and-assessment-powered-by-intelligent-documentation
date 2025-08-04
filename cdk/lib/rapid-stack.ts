@@ -131,6 +131,8 @@ export class RapidStack extends cdk.Stack {
           props.parameters.checklistInlineMapConcurrency || 1,
         logLevel: sfn.LogLevel.ALL,
         databaseConnection: database.connection,
+        documentProcessingModelId: props.parameters.documentProcessingModelId,
+        bedrockRegion: props.parameters.bedrockRegion,
       }
     );
 
@@ -143,6 +145,9 @@ export class RapidStack extends cdk.Stack {
       maxConcurrency: props.parameters.reviewMapConcurrency || 1,
       databaseConnection: database.connection,
       McpRuntime: mcpRuntime,
+      documentProcessingModelId: props.parameters.documentProcessingModelId,
+      imageReviewModelId: props.parameters.imageReviewModelId,
+      bedrockRegion: props.parameters.bedrockRegion,
     });
 
     // Auth構成の作成（Cognitoのカスタムパラメータを個別に渡す）

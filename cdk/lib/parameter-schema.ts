@@ -18,6 +18,23 @@ const parameterSchema = z.object({
       "8000:0000:0000:0000:0000:0000:0000:0000/1",
     ]), // デフォルトはすべてのIPv6を許可
 
+  // Bedrock設定
+  bedrockRegion: z
+    .string()
+    .default("us-west-2")
+    .describe("Amazon Bedrockを利用するリージョン"),
+
+  // AI モデル設定
+  documentProcessingModelId: z
+    .string()
+    .default("us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+    .describe("ドキュメント処理に使用するAIモデルID"),
+
+  imageReviewModelId: z
+    .string()
+    .default("us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+    .describe("画像レビューに使用するAIモデルID"),
+
   // 新しいパラメータを追加する場合はここに定義します
   // 例: newParameter: z.string().default("default"),
   // 例: isEnabled: z.boolean().default(false),
@@ -43,7 +60,7 @@ const parameterSchema = z.object({
     .boolean()
     .default(false)
     .describe("MCPランタイムLambda関数に管理者権限を付与するかどうか"),
-    
+
   // Map State並行処理設定
   reviewMapConcurrency: z
     .number()
@@ -51,13 +68,15 @@ const parameterSchema = z.object({
     .min(1)
     .optional()
     .describe("レビュープロセッサのMap State並行処理数（デフォルト：1）"),
-    
+
   checklistInlineMapConcurrency: z
     .number()
     .int()
     .min(1)
     .optional()
-    .describe("チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）"),
+    .describe(
+      "チェックリストプロセッサのインラインMap State並行処理数（デフォルト：1）"
+    ),
 });
 
 // パラメータの型定義（型安全性のため）
@@ -181,18 +200,29 @@ export function extractContextParameters(app: any): Record<string, any> {
   if (mcpAdmin !== undefined) {
     params.mcpAdmin = mcpAdmin === "true" || mcpAdmin === true;
   }
-  
+
   // Map State並行処理設定の取得
-  const reviewMapConcurrency = app.node.tryGetContext("rapid.reviewMapConcurrency");
+  const reviewMapConcurrency = app.node.tryGetContext(
+    "rapid.reviewMapConcurrency"
+  );
   if (reviewMapConcurrency !== undefined) {
     params.reviewMapConcurrency = Number(reviewMapConcurrency);
   }
-  
-  const checklistInlineMapConcurrency = app.node.tryGetContext("rapid.checklistInlineMapConcurrency");
+
+  const checklistInlineMapConcurrency = app.node.tryGetContext(
+    "rapid.checklistInlineMapConcurrency"
+  );
   if (checklistInlineMapConcurrency !== undefined) {
-    params.checklistInlineMapConcurrency = Number(checklistInlineMapConcurrency);
+    params.checklistInlineMapConcurrency = Number(
+      checklistInlineMapConcurrency
+    );
   }
-  
+
+  // Bedrockリージョン設定の取得
+  const bedrockRegion = app.node.tryGetContext("rapid.bedrockRegion");
+  if (bedrockRegion !== undefined) {
+    params.bedrockRegion = bedrockRegion;
+  }
 
   return params;
 }
