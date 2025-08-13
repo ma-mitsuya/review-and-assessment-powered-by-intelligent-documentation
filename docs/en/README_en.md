@@ -102,11 +102,20 @@ This method allows you to deploy directly from your browser using AWS CloudShell
 git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
 ```
 
-- Install npm packages
+- Prepare the backend
 
 ```
 cd review-and-assessment-powered-by-intelligent-documentation
-cd cdk
+cd backend
+npm ci
+npm run prisma:generate
+npm run build
+```
+
+- Install CDK packages
+
+```
+cd ../cdk
 npm ci
 ```
 

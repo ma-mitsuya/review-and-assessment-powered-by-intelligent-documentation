@@ -102,11 +102,20 @@
 git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git
 ```
 
-- npm パッケージのインストール
+- バックエンドの準備
 
 ```
 cd review-and-assessment-powered-by-intelligent-documentation
-cd cdk
+cd backend
+npm ci
+npm run prisma:generate
+npm run build
+```
+
+- CDK パッケージのインストール
+
+```
+cd ../cdk
 npm ci
 ```
 
