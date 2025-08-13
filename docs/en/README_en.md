@@ -28,10 +28,10 @@ Check that procurement documents and proposals meet necessary requirements. Auto
 
 ## Screenshots
 
-![](../imgs/ja_new_review.png)
-![](../imgs/ja_new_review_floor_plan.png)
-![](../imgs/ja_review_result.png)
-![](../imgs/ja_review_result_ng.png)
+![](../imgs/en_new_review.png)
+![](../imgs/en_new_review_floor_plan.png)
+![](../imgs/en_review_result.png)
+![](../imgs/en_review_result_ng.png)
 
 ## Deployment Methods
 
