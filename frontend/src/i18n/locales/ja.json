@@ -31,7 +31,8 @@
     "info": "情報",
     "warning": "警告",
     "confirmation": "確認",
-    "previous": "前へ"
+    "previous": "前へ",
+    "description": "説明"
   },
   "pagination": {
     "showing": "表示中",
@@ -132,7 +133,15 @@
     "itemNamePlaceholder": "チェック項目の名前",
     "itemDescriptionPlaceholder": "チェック項目の説明",
     "add": "追加",
-    "itemAddError": "チェックリスト項目の保存に失敗しました"
+    "itemAddError": "チェックリスト項目の保存に失敗しました",
+    "editItemTitle": "チェックリスト項目の編集",
+    "editItemNameRequired": "名前は必須です",
+    "editItemUpdateSuccess": "チェックリスト項目を更新しました",
+    "editItemUpdateError": "項目の更新に失敗しました。もう一度お試しください。",
+    "editItemUpdateErrorToast": "チェックリスト項目の更新に失敗しました",
+    "editItemUpdating": "更新中...",
+    "editItemUpdate": "更新",
+    "deleteItemConfirmation": "「{{name}}」を本当に削除しますか？"
   },
   "review": {
     "title": "審査ジョブ一覧",

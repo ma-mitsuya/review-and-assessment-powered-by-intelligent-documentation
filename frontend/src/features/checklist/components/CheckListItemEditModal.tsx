@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Modal from "../../../components/Modal";
 import Button from "../../../components/Button";
 import { CheckListItemEntity } from "../types";
@@ -23,6 +24,7 @@ export default function CheckListItemEditModal({
   checkListSetId,
   onSuccess,
 }: CheckListItemEditModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: item.name,
     description: item.description || "",
@@ -52,7 +54,7 @@ export default function CheckListItemEditModal({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      setError("名前は必須です");
+      setError(t("checklist.editItemNameRequired"));
       return;
     }
 
@@ -63,13 +65,13 @@ export default function CheckListItemEditModal({
         name: formData.name,
         description: formData.description,
       });
-      addToast("チェックリスト項目を更新しました", "success");
+      addToast(t("checklist.editItemUpdateSuccess"), "success");
       onSuccess();
       onClose();
     } catch (err) {
       console.error("項目の更新に失敗しました", err);
-      setError("項目の更新に失敗しました。もう一度お試しください。");
-      addToast("チェックリスト項目の更新に失敗しました", "error");
+      setError(t("checklist.editItemUpdateError"));
+      addToast(t("checklist.editItemUpdateErrorToast"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +81,7 @@ export default function CheckListItemEditModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="チェックリスト項目の編集"
+      title={t("checklist.editItemTitle")}
       size="md">
       <form onSubmit={handleSubmit}>
         {error && (
@@ -92,7 +94,7 @@ export default function CheckListItemEditModal({
           <label
             htmlFor="name"
             className="mb-2 block font-medium text-aws-squid-ink-light">
-            名前 <span className="text-red">*</span>
+            {t("checklist.name")} <span className="text-red">*</span>
           </label>
           <input
             type="text"
@@ -107,7 +109,7 @@ export default function CheckListItemEditModal({
             required
           />
           {!formData.name.trim() && (
-            <p className="mt-1 text-sm text-red">名前は必須です</p>
+            <p className="mt-1 text-sm text-red">{t("checklist.editItemNameRequired")}</p>
           )}
         </div>
 
@@ -115,7 +117,7 @@ export default function CheckListItemEditModal({
           <label
             htmlFor="description"
             className="mb-2 block font-medium text-aws-squid-ink-light">
-            説明
+            {t("common.description")}
           </label>
           <textarea
             id="description"
@@ -130,10 +132,10 @@ export default function CheckListItemEditModal({
 
         <div className="mt-6 flex justify-end space-x-3">
           <Button outline onClick={onClose} type="button">
-            キャンセル
+            {t("common.cancel")}
           </Button>
           <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "更新中..." : "更新"}
+            {isSubmitting ? t("checklist.editItemUpdating") : t("checklist.editItemUpdate")}
           </Button>
         </div>
       </form>

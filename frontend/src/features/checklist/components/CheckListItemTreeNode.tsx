@@ -90,9 +90,9 @@ export default function CheckListItemTreeNode({
   const handleDelete = () => {
     if (!isEditable) return;
 
-    showConfirm(`「${item.name}」を本当に削除しますか？`, {
+    showConfirm(t("checklist.deleteItemConfirmation", { name: item.name }), {
       title: t("common.confirm"),
-      confirmButtonText: "削除",
+      confirmButtonText: t("common.delete"),
       onConfirm: async () => {
         try {
           await deleteCheckListItem(item.id);
