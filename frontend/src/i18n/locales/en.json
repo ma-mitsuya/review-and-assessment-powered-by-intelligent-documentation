@@ -32,7 +32,9 @@
     "warning": "Warning",
     "confirmation": "Confirmation",
     "previous": "Previous",
-    "description": "Description"
+    "description": "Description",
+    "documentUrlError": "Failed to get document URL",
+    "pageNumber": "(Page {{page}})"
   },
   "pagination": {
     "showing": "Showing",

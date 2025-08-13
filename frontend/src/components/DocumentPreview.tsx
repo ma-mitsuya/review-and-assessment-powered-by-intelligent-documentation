@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { usePresignedDownloadUrl } from "../hooks/usePresignedDownloadUrl";
 import Spinner from "./Spinner";
 import { HiExternalLink } from "react-icons/hi";
@@ -14,6 +15,7 @@ export default function DocumentPreview({
   filename,
   pageNumber,
 }: DocumentPreviewProps) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState<string | null>(null);
   const { getPresignedUrl, getPdfPageUrl, isLoading, error } =
     usePresignedDownloadUrl();
@@ -42,7 +44,7 @@ export default function DocumentPreview({
 
   if (error) {
     return (
-      <div className="text-red-500">ドキュメントのURLの取得に失敗しました</div>
+      <div className="text-red-500">{t("common.documentUrlError")}</div>
     );
   }
 
@@ -59,7 +61,7 @@ export default function DocumentPreview({
         className="flex items-center text-aws-sea-blue hover:underline"
       >
         <span>{filename}</span>
-        {pageNumber && <span className="ml-1">（{pageNumber}ページ）</span>}
+        {pageNumber && <span className="ml-1">{t("common.pageNumber", { page: pageNumber })}</span>}
         <HiExternalLink className="ml-1 h-4 w-4" />
       </a>
     </div>

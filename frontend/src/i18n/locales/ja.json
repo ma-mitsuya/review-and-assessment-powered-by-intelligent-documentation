@@ -32,7 +32,9 @@
     "warning": "警告",
     "confirmation": "確認",
     "previous": "前へ",
-    "description": "説明"
+    "description": "説明",
+    "documentUrlError": "ドキュメントのURLの取得に失敗しました",
+    "pageNumber": "（{{page}}ページ）"
   },
   "pagination": {
     "showing": "表示中",
