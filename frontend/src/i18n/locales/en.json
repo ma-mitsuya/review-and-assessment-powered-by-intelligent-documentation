@@ -31,7 +31,10 @@
     "info": "Info",
     "warning": "Warning",
     "confirmation": "Confirmation",
-    "previous": "Previous"
+    "previous": "Previous",
+    "description": "Description",
+    "documentUrlError": "Failed to get document URL",
+    "pageNumber": "(Page {{page}})"
   },
   "pagination": {
     "showing": "Showing",
@@ -132,7 +135,15 @@
     "itemNamePlaceholder": "Checklist item name",
     "itemDescriptionPlaceholder": "Checklist item description",
     "add": "Add",
-    "itemAddError": "Failed to save checklist item"
+    "itemAddError": "Failed to save checklist item",
+    "editItemTitle": "Edit Checklist Item",
+    "editItemNameRequired": "Name is required",
+    "editItemUpdateSuccess": "Checklist item updated successfully",
+    "editItemUpdateError": "Failed to update item. Please try again.",
+    "editItemUpdateErrorToast": "Failed to update checklist item",
+    "editItemUpdating": "Updating...",
+    "editItemUpdate": "Update",
+    "deleteItemConfirmation": "Are you sure you want to delete \"{{name}}\"?"
   },
   "review": {
     "title": "Review Jobs",
