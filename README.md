@@ -80,8 +80,8 @@
    - `--cognito-domain-prefix`: Cognito ドメインのプレフィックス（指定しない場合は自動生成）
    - `--mcp-admin`: MCP ランタイム Lambda 関数に管理者権限を付与するかどうか（true/false）
    - `--bedrock-region`: Amazon Bedrock を利用するリージョン（デフォルト：us-west-2）
-   - `--document-model`: ドキュメント処理に使用する AI モデル ID（デフォルト：us.deepseek.r1-v1:0）
-   - `--image-model`: 画像レビューに使用する AI モデル ID（デフォルト：us.amazon.nova-premier-v1:0）
+   - `--document-model`: ドキュメント処理に使用する AI モデル ID（デフォルト：us.anthropic.claude-3-7-sonnet-20250219-v1:0）
+   - `--image-model`: 画像レビューに使用する AI モデル ID（デフォルト：us.anthropic.claude-3-7-sonnet-20250219-v1:0）
    - `--repo-url`: デプロイするリポジトリの URL
    - `--branch`: デプロイするブランチ名
    - `--tag`: デプロイする特定の Git タグ

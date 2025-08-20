@@ -80,8 +80,8 @@ This method allows you to deploy directly from your browser using AWS CloudShell
    - `--cognito-domain-prefix`: Prefix for the Cognito domain (auto-generated if not specified)
    - `--mcp-admin`: Whether to grant admin privileges to the MCP runtime Lambda function (true/false)
    - `--bedrock-region`: Region to use for Amazon Bedrock (default: us-west-2)
-   - `--document-model`: AI model ID for document processing (default: us.deepseek.r1-v1:0)
-   - `--image-model`: AI model ID for image review processing (default: us.amazon.nova-premier-v1:0)
+   - `--document-model`: AI model ID for document processing (default: us.anthropic.claude-3-7-sonnet-20250219-v1:0)
+   - `--image-model`: AI model ID for image review processing (default: us.anthropic.claude-3-7-sonnet-20250219-v1:0)
    - `--repo-url`: URL of the repository to deploy
    - `--branch`: Branch name to deploy
    - `--tag`: Deploy a specific Git tag
