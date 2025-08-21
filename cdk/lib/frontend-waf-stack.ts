@@ -97,7 +97,7 @@ export class FrontendWafStack extends Stack {
 
       this.webAclArn = new cdk.CfnOutput(this, "WebAclId", {
         value: webAcl.attrArn,
-        exportName: `RapidFrontendWafStack-WebAclArn-${props.env?.region}-v2`,
+        exportName: exportName: `RapidFrontendWafStack-WebAclArn-${Date.now()}`,
       });
     } else {
       throw new Error(
