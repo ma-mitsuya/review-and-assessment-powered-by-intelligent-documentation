@@ -25,7 +25,7 @@ if [ -d "$WORK_DIR" ]; then
 fi
 
 echo "Cloning repository..."
-git clone https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git "$WORK_DIR"
+git clone https://github.com/ma-mitsuya/review-and-assessment-powered-by-intelligent-documentation.git "$WORK_DIR"
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to clone repository"
     exit 1
@@ -47,7 +47,7 @@ MCP_ADMIN="false"
 BEDROCK_REGION="us-west-2"
 DOCUMENT_PROCESSING_MODEL_ID=""
 IMAGE_REVIEW_MODEL_ID=""
-REPO_URL="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
+REPO_URL="https://github.com/ma-mitsuya/review-and-assessment-powered-by-intelligent-documentation.git"
 BRANCH="main"
 GIT_TAG=""
 
