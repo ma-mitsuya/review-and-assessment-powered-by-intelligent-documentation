@@ -37,7 +37,7 @@ new RapidStack(app, "RapidStack", {
     region: process.env.CDK_DEFAULT_REGION || "us-west-2",
   },
   crossRegionReferences: true,
-  webAclId: waf.webAclArn.value,
+  webAclId: waf.webAclArnvalue,
   enableIpV6: waf.ipV6Enabled,
   // カスタムパラメータを追加
   parameters: parameters,
