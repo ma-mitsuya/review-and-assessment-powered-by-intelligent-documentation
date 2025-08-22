@@ -28,7 +28,7 @@ export class FrontendWafStack extends Stack {
 
     const sepHyphen = props.envPrefix ? "-" : "";
     const rules: wafv2.CfnWebACL.RuleProperty[] = [];
-    this.webAclArnValue = webAcl.attrArn;
+    
     // create Ipset for ACL
     if (props.allowedIpV4AddressRanges.length > 0) {
       const ipV4SetReferenceStatement = new wafv2.CfnIPSet(
@@ -95,7 +95,9 @@ export class FrontendWafStack extends Stack {
         rules,
       });
       
-      this.webAclArn = new cdk.CfnOutput(this, "WebAclId", {
+      this.webAclArnValue = webAcl.attrArn;
+      
+      new cdk.CfnOutput(this, "WebAclId", {
         value: webAcl.attrArn,
         exportName: `${props.envPrefix}-RapidFrontendWebAclArn`,
       });
