@@ -99,7 +99,7 @@ export class FrontendWafStack extends Stack {
       
       new cdk.CfnOutput(this, "WebAclId", {
         value: webAcl.attrArn,
-
+        description: "The ARN of the WebACL used for CloudFront",
       });
     } else {
       throw new Error(
