@@ -97,10 +97,7 @@ export class FrontendWafStack extends Stack {
       
       this.webAclArnValue = webAcl.attrArn;
       
-      new cdk.CfnOutput(this, "WebAclId", {
-        value: webAcl.attrArn,
-        description: "The ARN of the WebACL used for CloudFront",
-      });
+     
     } else {
       throw new Error(
         "One or more allowed IP ranges must be specified in IPv4 or IPv6."
