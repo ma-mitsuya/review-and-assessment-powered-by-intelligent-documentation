@@ -16,7 +16,7 @@ import { Parameters } from "./parameter-schema";
 import { execSync } from "child_process";
 
 export interface RapidStackProps extends cdk.StackProps {
-  readonly webAclId: string;
+  readonly webAclArn: string;
   readonly enableIpV6: boolean;
   readonly parameters: Parameters; // カスタムパラメータを追加
 }
@@ -189,7 +189,7 @@ export class RapidStack extends cdk.Stack {
 
     const frontend = new Frontend(this, "Frontend", {
       accessLogBucket,
-      webAclId: props.webAclId,
+      webAclId: props.webAclArn, 
       enableIpV6: props.enableIpV6,
       // alternateDomainName: props.alternateDomainName,
       // hostedZoneId: props.hostedZoneId,
