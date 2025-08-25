@@ -67,7 +67,7 @@ Parameters:
 
   RepoUrl:
     Type: String
-    Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
+    Default: "hhttps://github.com/ma-mitsuya/review-and-assessment-powered-by-intelligent-documentation.git"
     Description: デプロイするリポジトリのURL
 
   Branch:
