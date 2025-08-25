@@ -31,7 +31,7 @@ const waf = new FrontendWafStack(app, `RapidFrontendWafStack`, {
   allowedIpV6AddressRanges: parameters.allowedIpV6AddressRanges,
 });
 
-new RapidStack(app, "RapidStack4", {
+new RapidStack(app, "RapidStack5", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || "us-west-2",
