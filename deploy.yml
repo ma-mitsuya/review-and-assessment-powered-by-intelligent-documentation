@@ -267,8 +267,8 @@ Resources:
               "post_build": {
                 "commands": [
                   "echo 'デプロイ完了！'",
-                  "FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name RapidStack4 --query \"Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue\" --output text)",
-                  "API_URL=$(aws cloudformation describe-stacks --stack-name RapidStack4 --query \"Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue\" --output text)",
+                  "FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name RapidStack5 --query \"Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue\" --output text)",
+                  "API_URL=$(aws cloudformation describe-stacks --stack-name RapidStack5 --query \"Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue\" --output text)",
                   "echo \"フロントエンドURL: $FRONTEND_URL\"",
                   "echo \"API URL: $API_URL\"",
                   "echo \"FrontendURL = $FRONTEND_URL\""
