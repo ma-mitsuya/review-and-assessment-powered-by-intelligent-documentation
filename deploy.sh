@@ -48,7 +48,7 @@ cdk deploy --all --require-approval never
 echo "データベースマイグレーションの確認..."
 echo "注: マイグレーションはCDK CustomResourceにより自動実行されています"
 echo "自動マイグレーションが失敗した場合は以下のコマンドで手動実行可能:"
-MIGRATION_COMMAND=$(aws cloudformation describe-stacks --stack-name RapidStack --query "Stacks[0].Outputs[?OutputKey=='DeployMigrationCommand'].OutputValue" --output text)
+MIGRATION_COMMAND=$(aws cloudformation describe-stacks --stack-name RapidStack5 --query "Stacks[0].Outputs[?OutputKey=='DeployMigrationCommand'].OutputValue" --output text)
 echo "$MIGRATION_COMMAND"
 
 # マイグレーション完了確認のためしばらく待機
@@ -56,8 +56,8 @@ echo "マイグレーション完了を確認中..."
 sleep 5
 
 # フロントエンドURLとバックエンドAPIのURLを表示
-FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name RapidStack --query "Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue" --output text)
-API_URL=$(aws cloudformation describe-stacks --stack-name RapidStack --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name RapidStack5 --query "Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue" --output text)
+API_URL=$(aws cloudformation describe-stacks --stack-name RapidStack5 --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 
 echo "デプロイ成功！"
 echo "フロントエンドURL: $FRONTEND_URL"
